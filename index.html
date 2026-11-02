@@ -107,7 +107,7 @@ body{
 .sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px;}
 .sidebar::-webkit-scrollbar-thumb:hover{background:var(--text3);}
 .sidebar .sidebar-logo{position:sticky;top:0;z-index:3;background:var(--bg2);}
-.innogix-logo-img{display:block;width:118px;max-width:100%;height:auto;}
+.innogix-logo-img{display:block;width:176px;max-width:100%;height:auto;}
 .light .innogix-logo-img{filter:brightness(.38) contrast(1.1);}
 .logo-text h2{font-size:14px;font-weight:700;color:var(--text);letter-spacing:.5px;}
 .logo-text p{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
@@ -895,7 +895,7 @@ tbody td.muted{color:var(--text3);}
   box-shadow:0 20px 60px rgba(0,0,0,.5);
 }
 .lock-logo { font-size:40px; margin-bottom:14px; display:flex; justify-content:center; }
-.lock-logo .innogix-logo-img{width:150px;}
+.lock-logo .innogix-logo-img{width:260px;}
 .lock-title { font-size:18px; font-weight:700; color:var(--text); margin-bottom:4px; }
 .lock-sub { font-size:12px; color:var(--text3); margin-bottom:28px; }
 .pin-dots { display:flex; justify-content:center; gap:14px; margin-bottom:28px; }
@@ -1711,7 +1711,7 @@ tbody td.muted{color:var(--text3);}
 <div id="lock-screen">
   <div class="lock-box" style="width:360px;">
     <div class="lock-logo"><img class="innogix-logo-img" alt="InnoGix" data-logo="1"></div>
-    <div class="lock-title">InnoGix Business OS</div>
+    <div class="lock-title" style="display:none;"></div>
     <div class="lock-sub">পার্টনার নির্বাচন করুন এবং PIN দিন</div>
 
     <!-- Partner Selector -->
@@ -7052,7 +7052,7 @@ function downloadInvoicePDF() {
 /* ═══ 🖼️ PNG এক্সপোর্ট — সব প্রিন্ট উইন্ডোর জন্য শেয়ার্ড বাটন (html2canvas, শুধু প্রয়োজনে লোড) ═══ */
 window.__igxPngBtn = '<style>@media print{#igx-png-btn{display:none!important}}#igx-png-btn{position:fixed;right:14px;top:14px;z-index:99999;padding:9px 16px;background:#0f2a5c;color:#fff;border:0;border-radius:8px;font:700 13px sans-serif;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.25)}</style>'
  + '<button id="igx-png-btn" type="button">⬇ PNG ডাউনলোড</button>'
- + '<script>(function(){var b=document.getElementById("igx-png-btn");function run(){b.textContent="⏳ তৈরি হচ্ছে...";b.disabled=true;var f=document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve();f.then(function(){setTimeout(function(){b.style.display="none";var W=Math.max(document.documentElement.scrollWidth,document.body.scrollWidth);var sc=2;html2canvas(document.body,{backgroundColor:"#ffffff",scale:sc,useCORS:true,logging:false,windowWidth:W,foreignObjectRendering:false}).then(function(c){var nm=(document.title||"document").replace(/[^A-Za-z0-9_\\-\\u0980-\\u09FF]+/g,"_");var H=c.height,part=9000,n=Math.ceil(H/part),i=0;(function next(){if(i>=n){b.style.display="";b.disabled=false;b.textContent=n>1?"✅ "+n+" পেজে ডাউনলোড হয়েছে":"✅ ডাউনলোড হয়েছে";return;}var y=i*part,h=Math.min(part,H-y),cc=document.createElement("canvas");cc.width=c.width;cc.height=h;var x=cc.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,cc.width,h);x.drawImage(c,0,y,c.width,h,0,0,c.width,h);var a=document.createElement("a");a.download=nm+(n>1?"_part"+(i+1):"")+".png";a.href=cc.toDataURL("image/png");document.body.appendChild(a);a.click();document.body.removeChild(a);i++;setTimeout(next,350);})();}).catch(function(e){b.style.display="";b.disabled=false;b.textContent="⚠ আবার চেষ্টা করুন";alert("PNG error: "+e.message);});},200);});}b.onclick=function(){if(window.html2canvas){run();return;}var s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";s.onload=run;s.onerror=function(){alert("PNG library load হয়নি — ইন্টারনেট কানেকশন চেক করুন");};document.head.appendChild(s);};})();<\/script>';
+ + '<script>(function(){var b=document.getElementById("igx-png-btn");function run(){b.textContent="⏳ তৈরি হচ্ছে...";b.disabled=true;var f=document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve();f.then(function(){setTimeout(function(){b.style.display="none";var bs=document.body.style,W=Math.min(1100,Math.max(820,document.body.scrollWidth));bs.width=W+"px";bs.margin="0";bs.padding="28px";bs.boxSizing="border-box";bs.minHeight="0";bs.height="auto";bs.background="#fff";document.documentElement.style.background="#fff";var H0=0;Array.prototype.forEach.call(document.body.children,function(e){if(e===b||e.tagName==="SCRIPT"||e.tagName==="STYLE")return;var r=e.getBoundingClientRect();if(r.height>0&&r.bottom+window.scrollY>H0)H0=r.bottom+window.scrollY;});H0=Math.ceil(H0+28);html2canvas(document.body,{backgroundColor:"#ffffff",scale:2,useCORS:true,logging:false,width:W,height:H0,windowWidth:W,windowHeight:H0,x:0,y:0,scrollX:0,scrollY:0,foreignObjectRendering:false}).then(function(c){var nm=(document.title||"document").replace(/[^A-Za-z0-9_\\-\\u0980-\\u09FF]+/g,"_");bs.cssText="";var H=c.height,part=9000,n=Math.ceil(H/part),i=0;(function next(){if(i>=n){b.style.display="";b.disabled=false;b.textContent=n>1?"✅ "+n+" পেজে ডাউনলোড হয়েছে":"✅ ডাউনলোড হয়েছে";return;}var y=i*part,h=Math.min(part,H-y),cc=document.createElement("canvas");cc.width=c.width;cc.height=h;var x=cc.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,cc.width,h);x.drawImage(c,0,y,c.width,h,0,0,c.width,h);var a=document.createElement("a");a.download=nm+(n>1?"_part"+(i+1):"")+".png";a.href=cc.toDataURL("image/png");document.body.appendChild(a);a.click();document.body.removeChild(a);i++;setTimeout(next,350);})();}).catch(function(e){bs.cssText="";b.style.display="";b.disabled=false;b.textContent="⚠ আবার চেষ্টা করুন";alert("PNG error: "+e.message);});},200);});}b.onclick=function(){if(window.html2canvas){run();return;}var s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";s.onload=run;s.onerror=function(){alert("PNG library load হয়নি — ইন্টারনেট কানেকশন চেক করুন");};document.head.appendChild(s);};})();<\/script>';
 function downloadInvoicePNG(){
   const area = document.getElementById('invoice-print-area');
   if (!area) { showToast('ইনভয়েস পাওয়া যায়নি','error'); return; }
@@ -13289,7 +13289,7 @@ function impShowPreview() {
   }
 }
 
-async function impSubmit() {
+async function impSubmit(force) {
   let rows = impRawRows.filter(r=>r.some(c=>String(c).trim()));
   if(!rows.length){ showToast('কোনো data নেই','error'); return; }
 
@@ -13298,8 +13298,12 @@ async function impSubmit() {
     showToast('Customer ও Product column map করুন','error'); return;
   }
 
-  { const d = await igxSafe.dedupe('sales', rows, impColMap); rows = d.rows;
-    if(!rows.length){ showToast('সব order আগে থেকেই আছে — নতুন কিছু import হয়নি','info'); return; } }
+  if(force!==true){ const d = await igxSafe.dedupe('sales', rows, impColMap); rows = d.rows;
+    if(!rows.length){
+      const rs=document.getElementById('imp-result');
+      rs.style.cssText='display:block;padding:12px;border-radius:8px;background:rgba(212,160,23,0.1);border:1px solid rgba(212,160,23,0.4);color:var(--gold);font-size:13px;text-align:center;';
+      rs.innerHTML='<div style="margin-bottom:10px;">⚠️ এই সব order (তারিখ, গ্রাহক, ফোন, পণ্য, পরিমাণ, দাম মিলে) আগে থেকেই সিস্টেমে আছে — তাই নতুন কিছু import হয়নি।</div><button class="btn primary" style="font-size:12px;padding:5px 14px;" onclick="document.getElementById(\'imp-result\').style.display=\'none\';impSubmit(true)">তবুও Import করুন (ডুপ্লিকেট সহ)</button>';
+      return; } }
   document.getElementById('imp-submit-btn').disabled = true;
   document.getElementById('imp-preview-wrap').style.display='none';
   document.getElementById('imp-progress-wrap').style.display='block';
@@ -17962,6 +17966,10 @@ table{width:100%;border-collapse:collapse}th{background:#0f2a5c;color:#fff;text-
     smDrill: drill, smOpenEdit: openEdit, smSave: save, smDelete: del, smExport: exportSm, smOpenImport: openImp, smImpRead: impRead, smImpGo: impGo, smSampleCSV: smSample, smPrint: printSm, smFillOrderSelect: fillOrderSelect, smLoad: loadSalesmen,
     bakiOpenPage, bakiReload, bakiRender, bakiEdit, bakiKpi, bakiClear, bakiCollect, bakiCPrev, bakiCSave, bakiExport, bakiPrint });
 })();
+</script>
+<script>
+/* 🛡️ ডাবল-ক্লিক সুরক্ষা — যেকোনো Import চলার সময় আবার চাপলে নতুন করে শুরু হবে না */
+(function(){['impSubmit','invImpSubmit','expImpSubmit','ptrImpSubmit','invsImpSubmit','chImpSubmit'].forEach(function(n){var f=window[n];if(typeof f!=='function')return;var busy=false;window[n]=async function(){if(busy)return;busy=true;try{return await f.apply(this,arguments);}finally{busy=false;}};});})();
 </script>
 </body>
 </html>
