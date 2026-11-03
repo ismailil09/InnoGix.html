@@ -5898,7 +5898,7 @@ tbody td.muted{color:var(--text3);}
 // ═══════════════════════════════════════════════════════════════
 
 // ⚠️ এখানে আপনার Google Apps Script Web App URL বসান (Deploy > New Deployment > Web App)
-      const API_URL = "https://script.google.com/macros/s/AKfycbwb3moTs49uliGGau3MggblZCgt6drHuRcPxM5DiVF0sywEWyo1kK1J4uYZ7dlQbqqR/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
+      const API_URL = "https://script.google.com/macros/s/AKfycbxBwdo-EBQp2jTvz3QXtd5Ekjj3B4O1hdbRr86kCYgadInsuFYaEBynz0_NjIpJLXoI/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
 
 // ─── CONNECTION STATE ────────────────────────────────────────
 let apiConnected = false;
@@ -13721,6 +13721,11 @@ function invImpParseCSV(text){
     if(found<0) for(let i=0;i<headers.length;i++) if(variants.some(v=>v.length>=5&&headers[i].includes(v))){found=i;break;}
     if(found>=0) invImpColMap[field]=found;
   });
+  // 🆔 CSV-তে ID কলাম থাকলে সেটাই রাখা হবে (শুধু সঠিক হেডার মিললে)
+  { const idNames=['id','product id','productid','sku','item id','code','product code','#','sl','sl no','আইডি','পণ্য আইডি'];
+    const hl=invImpHeaders.map(h=>h.toLowerCase().trim());
+    const ix=hl.findIndex(h=>h && idNames.includes(h));
+    if(ix>=0) invImpColMap['id']=ix; }
   // Preview
   const zone=document.getElementById('inv-imp-drop-zone');
   const wrap=document.getElementById('inv-imp-preview-wrap');
@@ -13760,6 +13765,7 @@ async function invImpSubmit(){
   const payload_rows=rows.map(r=>{
     const g=(field)=>{ const idx=invImpColMap[field]; return idx!==undefined?String(r[idx]||'').trim():''; };
     return {
+      id:            g('id'),
       name:          g('name'),
       category:      g('category') || 'General',
       cost:          cleanNum(g('cost')),
