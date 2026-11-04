@@ -4920,23 +4920,17 @@ tbody td.muted{color:var(--text3);}
           <span style="font-size:16px;">🤖</span>
           <div>
             <div style="font-size:13px;font-weight:700;color:#a78bfa;">AI Smart Paste <span style="font-size:10px;font-weight:600;color:var(--text3);">v2</span></div>
-            <div style="font-size:11px;color:var(--text3);">টেক্সট (বাংলা/Banglish/English) · 🎤 ভয়েস · 🖼 স্ক্রিনশট/ছবি — সব বুঝে ফর্ম ভরবে</div>
+            <div style="font-size:11px;color:var(--text3);">টেক্সট (বাংলা/Banglish/English) · 🎤 ভয়েস — সব বুঝে ফর্ম ভরবে</div>
           </div>
         </div>
         <button onclick="closeSmartPaste()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;">✕</button>
       </div>
-      <textarea id="smart-paste-input" placeholder="মেসেজ পেস্ট করুন, 🎤 চেপে বলুন, অথবা স্ক্রিনশট পেস্ট (Ctrl+V) / ড্রপ করুন...&#10;&#10;উদাহরণ: rahim, 01711234567, gazipur kaliakoir, 2ta rechargable fan 900 tk kore, delivery 120, steadfast, 500 advance disi&#10;কমান্ডও দিতে পারেন: &quot;ডেলিভারি চার্জ ১০০ করো&quot;, &quot;কুরিয়ার পাঠাও&quot;, &quot;সেলসম্যান রহিম&quot;" style="width:100%;min-height:100px;background:rgba(0,0,0,.2);border:1px solid rgba(124,58,237,.3);border-radius:8px;color:var(--text);padding:10px;font-size:13px;resize:vertical;font-family:inherit;box-sizing:border-box;"></textarea>
-      <div id="smart-paste-imgbox" style="display:none;margin-top:8px;align-items:center;gap:10px;">
-        <img id="smart-paste-thumb" alt="" style="max-height:70px;max-width:120px;border-radius:6px;border:1px solid rgba(124,58,237,.4);">
-        <span id="smart-paste-imginfo" style="font-size:11px;color:var(--text3);"></span>
-        <button type="button" onclick="spRemoveImage()" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text3);font-size:11px;padding:3px 8px;cursor:pointer;">✕ ছবি সরাও</button>
-      </div>
-      <input type="file" id="smart-paste-file" accept="image/*" style="display:none;">
+      <textarea id="smart-paste-input" placeholder="মেসেজ পেস্ট করুন অথবা 🎤 চেপে বলুন...&#10;&#10;উদাহরণ: rahim, 01711234567, gazipur kaliakoir, 2ta rechargable fan 900 tk kore, delivery 120, steadfast, 500 advance disi&#10;কমান্ডও দিতে পারেন: &quot;ডেলিভারি চার্জ ১০০ করো&quot;, &quot;কুরিয়ার পাঠাও&quot;, &quot;সেলসম্যান রহিম&quot;" style="width:100%;min-height:100px;background:rgba(0,0,0,.2);border:1px solid rgba(124,58,237,.3);border-radius:8px;color:var(--text);padding:10px;font-size:13px;resize:vertical;font-family:inherit;box-sizing:border-box;"></textarea>
       <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap;">
         <button id="smart-paste-btn" onclick="runSmartPaste()" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;padding:8px 18px;cursor:pointer;">✨ AI বিশ্লেষণ করো</button>
         <button id="smart-paste-mic" type="button" onclick="spToggleVoice()" title="ভয়েসে বলুন" style="background:var(--bg3);border:1px solid rgba(124,58,237,.5);border-radius:8px;color:var(--text);font-size:12px;font-weight:600;padding:8px 12px;cursor:pointer;">🎤 ভয়েস</button>
         <select id="smart-paste-lang" title="ভয়েসের ভাষা" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text3);font-size:11px;padding:7px 6px;"><option value="bn-BD">বাংলা</option><option value="en-US">English</option></select>
-        <button type="button" onclick="document.getElementById('smart-paste-file').click()" style="background:var(--bg3);border:1px solid rgba(124,58,237,.5);border-radius:8px;color:var(--text);font-size:12px;font-weight:600;padding:8px 12px;cursor:pointer;">🖼 ছবি</button>
+        
         <button onclick="clearSmartPaste()" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text3);font-size:12px;padding:8px 12px;cursor:pointer;">🗑 ক্লিয়ার</button>
         <span id="smart-paste-status" style="font-size:12px;color:var(--text3);"></span>
       </div>
@@ -11164,26 +11158,7 @@ function clearSmartPaste(){
 function _spEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 // ── ছবি: ফাইল / পেস্ট / ড্রপ → ছোট করে JPEG base64 ──
-function spInitOnce(){
-  if(window._spInit) return; window._spInit = true;
-  const f = document.getElementById('smart-paste-file');
-  if(f) f.addEventListener('change', e=>{ const file=e.target.files&&e.target.files[0]; if(file) spLoadImage(file); e.target.value=''; });
-  const ta = document.getElementById('smart-paste-input');
-  if(ta){
-    ta.addEventListener('paste', e=>{
-      const items = (e.clipboardData&&e.clipboardData.items)||[];
-      for(const it of items){ if(it.type && it.type.indexOf('image/')===0){ const file=it.getAsFile(); if(file){ e.preventDefault(); spLoadImage(file); return; } } }
-    });
-  }
-  const panel = document.getElementById('smart-paste-panel');
-  if(panel){
-    panel.addEventListener('dragover', e=>{ e.preventDefault(); });
-    panel.addEventListener('drop', e=>{
-      const file = e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
-      if(file && file.type.indexOf('image/')===0){ e.preventDefault(); spLoadImage(file); }
-    });
-  }
-}
+function spInitOnce(){ window._spInit = true; }
 function spLoadImage(file){
   const st = document.getElementById('smart-paste-status');
   if(!file || file.type.indexOf('image/')!==0){ showToast('শুধু ছবি (PNG/JPG) দিন','warning'); return; }
@@ -11312,6 +11287,13 @@ function spCourierName(raw, options){
 const _SP_FILL = /^(?:[\s:：=\-–,।.]|হচ্ছে|হলো|হল|হয়|তার|এর|এটা|ওটা|লিখো|লিখবা|লিখুন|লিখ|হবে|দিবা|দিও|দাও|কুরিয়ারে|কুরিয়ার|পাঠাও|পাঠান|দিয়ে|টাকা|tk|taka|৳|is|ta|er)+/i;
 function _spClean(s){ let r=String(s||'').trim(), prev; do{ prev=r; r=r.replace(_SP_FILL,'').trim(); }while(r!==prev); return r.replace(/[\s,।\-:]+$/,'').trim(); }
 
+const _SP_DIST_AL = {"Barguna":"বরগুনা","Barisal":"বরিশাল বারিশাল","Bhola":"ভোলা","Jhalokati":"ঝালকাঠি ঝালকাটি","Patuakhali":"পটুয়াখালী","Pirojpur":"পিরোজপুর","Bandarban":"বান্দরবান","Brahmanbaria":"ব্রাহ্মণবাড়িয়া ব্রাহ্মণবাড়ীয়া ব্রাক্ষণবাড়িয়া বি বাড়িয়া","Chandpur":"চাঁদপুর চান্দপুর","Chittagong":"চট্টগ্রাম চট্রগ্রাম চিটাগং চিটাগাং চাটগাঁ চট্টগ্রাম","Comilla":"কুমিল্লা কুমিল্লা কুমিল্লা কুমিলা","Cox's Bazar":"কক্সবাজার কক্সবাজার কক্স বাজার","Feni":"ফেনী ফেনি","Khagrachhari":"খাগড়াছড়ি খাগড়াছড়ী","Lakshmipur":"লক্ষ্মীপুর লক্ষীপুর","Noakhali":"নোয়াখালী নোয়াখালি","Rangamati":"রাঙ্গামাটি রাংগামাটি রাঙামাটি","Dhaka":"ঢাকা","Faridpur":"ফরিদপুর","Gazipur":"গাজীপুর গাজিপুর","Gopalganj":"গোপালগঞ্জ","Kishoreganj":"কিশোরগঞ্জ","Madaripur":"মাদারীপুর মাদারিপুর","Manikganj":"মানিকগঞ্জ","Munshiganj":"মুন্সিগঞ্জ মুন্সীগঞ্জ","Narayanganj":"নারায়ণগঞ্জ নারায়নগঞ্জ","Narsingdi":"নরসিংদী নরসিংদি","Rajbari":"রাজবাড়ী রাজবাড়ি","Shariatpur":"শরীয়তপুর শরিয়তপুর","Tangail":"টাঙ্গাইল টাংগাইল","Bagerhat":"বাগেরহাট","Chuadanga":"চুয়াডাঙ্গা চুয়াডাংগা","Jessore":"যশোর যশোহর","Jhenaidah":"ঝিনাইদহ","Khulna":"খুলনা","Kushtia":"কুষ্টিয়া","Magura":"মাগুরা","Meherpur":"মেহেরপুর","Narail":"নড়াইল","Satkhira":"সাতক্ষীরা","Jamalpur":"জামালপুর","Mymensingh":"ময়মনসিংহ ময়মনসিং","Netrokona":"নেত্রকোনা নেত্রকোণা","Sherpur":"শেরপুর","Bogra":"বগুড়া বগুরা","Chapai Nawabganj":"চাঁপাইনবাবগঞ্জ চাপাইনবাবগঞ্জ","Joypurhat":"জয়পুরহাট","Naogaon":"নওগাঁ","Natore":"নাটোর","Pabna":"পাবনা","Rajshahi":"রাজশাহী","Sirajganj":"সিরাজগঞ্জ","Dinajpur":"দিনাজপুর","Gaibandha":"গাইবান্ধা","Kurigram":"কুড়িগ্রাম","Lalmonirhat":"লালমনিরহাট","Nilphamari":"নীলফামারী নীলফামারি","Panchagarh":"পঞ্চগড়","Rangpur":"রংপুর রংপুর","Thakurgaon":"ঠাকুরগাঁও ঠাকুরগাঁ","Habiganj":"হবিগঞ্জ","Moulvibazar":"মৌলভীবাজার মৌলভী বাজার","Sunamganj":"সুনামগঞ্জ","Sylhet":"সিলেট"};
+function spBnNorm(s){ return String(s||'').normalize('NFC').replace(/[\u200c\u200d]/g,'').replace(/ী/g,'ি').replace(/ূ/g,'ু').replace(/ঁ/g,'').replace(/ণ/g,'ন').replace(/[শষ]/g,'স').replace(/য়/g,'য').replace(/[ংঙ]/g,'ং').replace(/[ৎ]/g,'ত').replace(/[\s\u0964,.\-]/g,''); }
+let _spAlMap=null;
+function spDistAlias(q){
+  if(!_spAlMap){ _spAlMap=new Map(); Object.keys(_SP_DIST_AL).forEach(en=>_SP_DIST_AL[en].split(/\s+/).forEach(bn=>{ if(bn) _spAlMap.set(spBnNorm(bn),en); })); }
+  if(!/[\u0980-\u09FF]/.test(q)) return ''; return _spAlMap.get(spBnNorm(q))||'';
+}
 // জায়গা শনাক্ত: বিভাগ/জেলা/থানা (বানান ভুল ও বাংলা↔English মিলিয়ে)
 function spResolveLoc(text, hint){
   const LOC = (typeof BD_LOCATIONS!=='undefined' && BD_LOCATIONS) || {}; const divs = Object.keys(LOC);
@@ -11320,7 +11302,8 @@ function spResolveLoc(text, hint){
   const dists = []; divs.forEach(d=>Object.keys(LOC[d]).forEach(s=>dists.push({d,s})));
   const dTok = []; // জেলা প্রার্থী
   toks.forEach((t,i)=>{ [t, i+1<toks.length? t+toks[i+1] : null].forEach((q,k)=>{ if(!q || spSkel(q).length<3) return;
-    dists.forEach(x=>{ let sc=0; for(const v of spVariants(q)) sc=Math.max(sc,spSim(v,x.s)); if(sc>=0.82) dTok.push({d:x.d,s:x.s,sc,i,n:k+1}); }); }); });
+    const al=(()=>{ for(const v of spVariants(q)){ const a=spDistAlias(v); if(a) return a; } return ''; })();
+    dists.forEach(x=>{ let sc=0; for(const v of spVariants(q)) sc=Math.max(sc,spSim(v,x.s)); if(al&&al===x.s) sc=1; if(sc>=0.82) dTok.push({d:x.d,s:x.s,sc,i,n:k+1}); }); }); });
   const thanaFor = (d,s,excl)=>{ let best=null; const list=LOC[d][s];
     toks.forEach((t,i)=>{ [t, i+1<toks.length? t+toks[i+1] : null].forEach((q,k)=>{ if(!q||spSkel(q).length<3) return; if(excl&&excl.has(i)&&k===0) return;
       list.forEach(th=>{ let sc=0; for(const v of spVariants(q)) sc=Math.max(sc,spSim(v,th)); if(sc>=0.72 && (!best||sc>best.sc)) best={t:th,sc,i,n:k+1}; }); }); }); return best; };
@@ -11343,13 +11326,23 @@ function spFindProduct(text, names){
   const toks = spBn2En(text).split(/[\s,।|\/:;()]+/).filter(t=>t.length>=2 && !/^\d+$/.test(t));
   if(!toks.length||!names.length) return null; let best=null;
   names.forEach(nm=>{
-    const nt = nm.split(/[\s\-_/()]+/).filter(t=>t.length>=2 && !/^\d+(?:inch|v|w|mm)?$/i.test(t));
+    const nt = nm.split(/[\s\-_/()]+/).filter(t=>t.length>=2 && !/^\d+$/.test(t));
     if(!nt.length) return; let cov=0, hit=0;
-    toks.forEach(t=>{ if(nt.some(n=>spSim(t,n)>=0.8)) hit++; }); nt.forEach(n=>{ if(toks.some(t=>spSim(t,n)>=0.8)) cov++; });
+    toks.forEach(t=>{ if(nt.some(n=>spSim(t,n)>=0.74)) hit++; }); nt.forEach(n=>{ if(toks.some(t=>spSim(t,n)>=0.74)) cov++; });
     const sc = (hit/toks.length)*0.55 + (cov/nt.length)*0.45; const whole=spSim(text,nm);
     const s2 = Math.max(sc, whole*0.95); if(hit>0 && (!best||s2>best.s)) best={v:nm,s:s2};
   });
   return best && best.s>=0.55 ? best : null;
+}
+const _SP_KEYS_NG = _SP_KEYS.filter(x=>x[0]!=='courier').map(([k,re])=>[k,new RegExp(re.source,re.flags.replace('g',''))]);
+function spLabelKey(label, KP){
+  const L=String(label||'');
+  if(/পণ্য|প্রোডাক্ট|প্রডাক্ট|আইটেম|product|item/i.test(L)) return 'prod';
+  if(/কুরিয়ার|courier/i.test(L) && !/চার্জ|charge/i.test(L)) return 'courierv';
+  if(/ক্যাশ\s*কালেকশন|কালেকশন|collection|cod\s*amount|মোট\s*(?:টাকা|মূল্য|দাম)|total/i.test(L)) return 'cash';
+  if(/এলাকা|বাজার|গ্রাম|\barea\b|village|বাসা|হোল্ডিং|রোড|পাড়া/i.test(L) && !/ঠিকানা/.test(L)) return 'addr';
+  for(const [k,re] of KP){ if(re.test(L)) return k; }
+  return '';
 }
 function spLocalParse(text, ctx){
   ctx = ctx||_spCtx(); const warns=[]; const o={}; let t = spBn2En(String(text||'')).replace(/\r/g,'\n');
@@ -11360,50 +11353,78 @@ function spLocalParse(text, ctx){
   // "৫০০ advance disi" ধরনের আগে-সংখ্যা
   let pm = t.match(/(\d+(?:\.\d+)?)\s*(?:tk|taka|টাকা|৳|\/-)?\s*(?:advance|অ্যাডভান্স|এডভান্স|boyna|বায়না|অগ্রিম|jama|জমা|paid)/i);
   if(pm){ o.paid=parseFloat(pm[1]); t=t.replace(pm[0],' '); }
-  // মার্কার
+  // লেবেল-ভিত্তিক (প্রতি লাইনে "লেবেল: মান") নাকি ফ্রি-টেক্সট?
+  const _lines=t.split('\n'); const _lab=_lines.filter(l=>/^\s*[^:：\n]{1,40}[:：]/.test(l)).length;
+  const lineMode = _lab>=2;
+  let seg={}, preTxt='', order=[];
+  if(lineMode){
+    const KP=_SP_KEYS_NG; let cur=null;
+    _lines.forEach(line=>{
+      const lm=line.match(/^\s*([^:：\n]{1,40})[:：]\s*(.*)$/);
+      if(lm){ const key=spLabelKey(lm[1],KP);
+        if(key){ cur=key; seg[key]=(seg[key]?seg[key]+'\n':'')+lm[2]; order.push(key); if(key==='courierv') o.courier=spCourierName(lm[2],ctx.couriers)||spBest(lm[2],ctx.couriers,0.7).v||o.courier||''; return; }
+        cur=null; preTxt+=' '+lm[2]; return; }
+      if(line.trim()){ if(cur) seg[cur]+='\n'+line; else preTxt+=' '+line; } });
+    delete seg.courierv;
+  } else {
   const hits=[]; _SP_KEYS.forEach(([k,re])=>{ re.lastIndex=0; let x; while((x=re.exec(t))){ if(!x[0]) {re.lastIndex++; continue;} hits.push({k,s:x.index,e:x.index+x[0].length,raw:x[0]}); } });
-  hits.sort((a,b)=>a.s-b.s||(b.e-b.s)-(a.e-a.s)); const mk=[]; let last=-1; hits.forEach(h=>{ if(h.s>=last){ mk.push(h); last=h.e; } });
-  const seg={}; let preTxt = t.slice(0, mk.length?mk[0].s:t.length); const order=[];
-  mk.forEach((h,i)=>{ const body=t.slice(h.e, i+1<mk.length?mk[i+1].s:t.length);
-    if(['dlv','paid','price'].includes(h.k) && !/\d|হাজার|শ\b/.test(body) && order.length){ seg[order[order.length-1]] += ' '+h.raw+' '+body; return; }
-    if(h.k==='courier'){ o.courier = spCourierName(h.raw, ctx.couriers)||o.courier||''; if(!o.courier) warns.push('কুরিয়ার বোঝা যায়নি: '+h.raw); if(body.trim()) { /* কুরিয়ারের পরের লেখা আলাদা — পূর্ববর্তী সেগমেন্টে নয় */ preTxt += ' '+body; } return; }
-    seg[h.k]=(seg[h.k]?seg[h.k]+' ':'')+body; order.push(h.k); });
+    hits.sort((a,b)=>a.s-b.s||(b.e-b.s)-(a.e-a.s)); const mk=[]; let last=-1; hits.forEach(h=>{ if(h.s>=last){ mk.push(h); last=h.e; } });
+    preTxt = t.slice(0, mk.length?mk[0].s:t.length);
+    mk.forEach((h,i)=>{ const body=t.slice(h.e, i+1<mk.length?mk[i+1].s:t.length);
+      if(['dlv','paid','price'].includes(h.k) && !/\d|হাজার|শ\b/.test(body) && order.length){ seg[order[order.length-1]] += ' '+h.raw+' '+body; return; }
+      if(h.k==='courier'){ o.courier = spCourierName(h.raw, ctx.couriers)||o.courier||''; if(!o.courier) warns.push('কুরিয়ার বোঝা যায়নি: '+h.raw); if(body.trim()) { /* কুরিয়ারের পরের লেখা আলাদা — পূর্ববর্তী সেগমেন্টে নয় */ preTxt += ' '+body; } return; }
+      seg[h.k]=(seg[h.k]?seg[h.k]+' ':'')+body; order.push(h.k); });
+  
+  }
   let free='';
-  ['div','dist','thana'].forEach(k=>{ if(seg[k]){ const mm=seg[k].match(/^([^,\n।]*)([\s\S]*)$/); seg[k]=mm[1]; free+=' '+mm[2]; } });
+  if(!lineMode) ['div','dist','thana'].forEach(k=>{ if(seg[k]){ const mm=seg[k].match(/^([^,\n।]*)([\s\S]*)$/); seg[k]=mm[1]; free+=' '+mm[2]; } });
+  if(seg.phone && _spClean(seg.phone)) free+=' '+seg.phone;
   const g=k=>_spClean(seg[k]||'');
   if(g('name')) o.customer_name=g('name').replace(/\d+/g,'').replace(/\s+(?:তার|এর|এই|ওর|এবং|ও|হচ্ছে)\s*$/,'').replace(/\s+/g,' ').trim();
   if(g('desc')) o.description=g('desc'); if(g('note')) o.notes=g('note');
   if(seg.dlv!=null){ const a=/ফ্রি|free|বিনামূল্যে/i.test(seg.dlv)?0:spAmount(seg.dlv); if(a!=null) o.delivery=a; }
   if(seg.paid!=null && o.paid==null){ const a=spAmount(seg.paid); if(a!=null) o.paid=a; }
   // ঠিকানা + লোকেশন
-  const addrSrc = [g('addr'),g('div'),g('dist'),g('thana')].filter(Boolean).join(' ');
+  const addrSrc = ((lineMode&&(g('div')||g('dist')||g('thana')))?[g('div'),g('dist'),g('thana')]:[g('addr'),g('div'),g('dist'),g('thana')]).filter(Boolean).join(' ');
   let loc = spResolveLoc(addrSrc || preTxt);
   let locFromPre = !addrSrc;
   if(!loc.district && addrSrc && preTxt.trim()) { const l2=spResolveLoc(preTxt); if(l2.district){ loc=l2; locFromPre=true; } }
+  if(lineMode && !loc.district && g('addr')){ const l3=spResolveLoc(g('addr')); if(l3.district) loc=l3; }
   if(loc.division) o.division=loc.division; if(loc.district) o.district=loc.district; if(loc.thana) o.thana=loc.thana; loc.notes.forEach(n=>warns.push(n));
-  if(g('addr')||g('dist')||g('thana')){ const rest=(loc.district? loc.rest : addrSrc).trim(); o.address=_spClean(rest||g('addr')); }
+  if(lineMode && g('addr')){ o.address=g('addr').replace(/\s*\n\s*/g,', '); }
+  else if(lineMode){ o.address=''; }
+  else if(g('addr')||g('dist')||g('thana')){ const rest=(loc.district? loc.rest : addrSrc).trim(); o.address=_spClean(rest||g('addr')); }
   else if(loc.district){ o.address=''; }
   if(locFromPre && loc.district && !g('name')){ const nm=(loc.rest||'').split(/\s+/).filter(Boolean).slice(0,3).join(' '); if(nm && !/\d/.test(nm)) o.customer_name=nm; }
-  // পণ্য
-  const names=ctx.products||[]; let prodTxt=g('prod'); let pHit=null;
-  if(prodTxt) pHit=spFindProduct(prodTxt,names); else { pHit=spFindProduct(free,names)||spFindProduct(preTxt+' '+free,names); }
-  // পরিমাণ
-  const qsrc = (prodTxt||'')+' '+preTxt+' '+free; let qty=1;
-  const QW={'এক':1,'দুই':2,'দুটো':2,'দুইটা':2,'দুটি':2,'তিন':3,'চার':4,'পাঁচ':5,'ছয়':6,'সাত':7,'আট':8,'নয়':9,'দশ':10,'duita':2,'tinta':3,'charta':4,'ekta':1};
-  let qm = qsrc.match(/(\d{1,3})\s*(?:ta|টা|টি|pcs?|pis|piece|পিস|পিছ|pic|x)(?![a-z])/i)||qsrc.match(/\bx\s*(\d+)/i);
-  if(qm) qty=Math.max(1,parseInt(qm[1],10)); else { qm=qsrc.match(/(এক|দুই|দুটো|দুইটা|দুটি|তিন|চার|পাঁচ|ছয়|সাত|আট|নয়|দশ|duita|tinta|charta)\s*(?:টা|টি|টো|পিস)?/i); if(qm&&/টা|টি|টো|পিস|ta\b/i.test(qm[0])||/duita|tinta|charta/i.test(qsrc)) qty=QW[(qm||[])[1]]||qty; }
-  // দাম
-  let price=null;
-  if(seg.price!=null) price=spAmount(seg.price);
-  if(price==null){ const pm2=qsrc.match(/(\d+(?:\.\d+)?)\s*(?:tk|taka|টাকা|৳|\/-)/i); if(pm2) price=parseFloat(pm2[1]); }
-  if(price!=null && qty>1 && /মোট|total|সব মিলিয়ে/i.test((seg.price||'')+' '+qsrc)) price=Math.round(price/qty);
-  if(pHit||prodTxt||price!=null){
-    if(pHit) o.items=[{product:pHit.v,matched:true,qty,unit_price:price||0}];
-    else if(prodTxt){ o.items=[{product:prodTxt,matched:false,qty,unit_price:price||0}]; warns.push('পণ্য ইনভেন্টরিতে মেলেনি: '+prodTxt); }
-    if(pHit && prodTxt && pHit.s<0.85 && spSim(prodTxt,pHit.v)<0.85) warns.push('পণ্য "'+(prodTxt||pHit.v)+'" → "'+pHit.v+'" ধরা হয়েছে, মিলিয়ে নিন');
-    if(o.items && !price) warns.push('দাম পাওয়া যায়নি');
+  // পণ্য (একাধিক লাইন/১) ২) সহ)
+  const names=ctx.products||[]; let prodTxt=g('prod'); let pHit=null; const extraNotes=[]; let price=null;
+  const chunkQty=(ch)=>{ let m=ch.match(/(?<![\d.])(\d{1,3})\s*(?:ta|টা|টি|pcs?|pis|piece|পিস|পিছ|pic)(?![a-z\u0980-\u09FF])/i)||ch.match(/(?:^|\s)x\s*(\d{1,3})(?!\d)/i)||ch.match(/(\d{1,3})\s*x(?![a-z0-9])/i); if(m) return Math.max(1,parseInt(m[1],10));
+    m=ch.match(/(এক|দুই|দুটো|দুইটা|দুটি|তিন|চার|পাঁচ|ছয়|সাত|আট|নয়|দশ)\s*(?:টা|টি|টো|পিস)/); const QW={'এক':1,'দুই':2,'দুটো':2,'দুইটা':2,'দুটি':2,'তিন':3,'চার':4,'পাঁচ':5,'ছয়':6,'সাত':7,'আট':8,'নয়':9,'দশ':10}; if(m) return QW[m[1]]||1;
+    if(/duita/i.test(ch)) return 2; if(/tinta/i.test(ch)) return 3; if(/charta/i.test(ch)) return 4; return 1; };
+  const chunkPrice=(ch)=>{ const m=spBn2En(ch).match(/(\d+(?:\.\d+)?)\s*(?:tk|taka|টাকা|৳|\/-)/i); return m?parseFloat(m[1]):null; };
+  const items=[];
+  if(prodTxt){
+    prodTxt.split(/\n+|(?:^|\s)\d{1,2}\s*[)）]\s*|;/).map(s=>s.trim()).filter(Boolean).forEach(ch=>{
+      const hit=spFindProduct(ch,names), q=chunkQty(ch), cp=chunkPrice(ch);
+      if(hit){ items.push({product:hit.v,matched:true,qty:q,unit_price:cp||0,s:hit.s,src:ch}); }
+      else if(/ডেলিভারি|করতে\s*হবে|দিতে\s*হবে|জরুরি|ইমারজেন্সি|emergency|urgent|বৃহস্পতি|শুক্রবার|শনিবার|রবিবার|সোমবার|মঙ্গলবার|বুধবার|দিনের\s*মধ্যে|কল\s*করে|ফোন\s*করে/i.test(ch)) extraNotes.push(ch);
+      else if(ch.replace(/[\d\s.,]/g,'').length>1) items.push({product:ch.slice(0,60),matched:false,qty:q,unit_price:cp||0,s:0,src:ch}); });
+  } else {
+    pHit=spFindProduct(free,names)||spFindProduct(preTxt+' '+free,names);
+    if(pHit){ const src=(preTxt+' '+free); items.push({product:pHit.v,matched:true,qty:chunkQty(src),unit_price:chunkPrice(src)||0,s:pHit.s,src}); }
   }
-  if(!o.address && !pHit && !prodTxt && price==null && _spClean(free).replace(/[\s,]/g,'')) o.address=_spClean(free).replace(/\s*\n\s*/g,', ');
+  if(seg.price!=null){ price=spAmount(seg.price); }
+  if(price==null && seg.cash!=null){ const c=spAmount(seg.cash); if(c!=null && items.length===1){ price=Math.max(0,c-(o.delivery||0)); warns.push('ক্যাশ কালেকশন থেকে দাম ('+price+') হিসাব করা হয়েছে — মিলিয়ে নিন'); } }
+  if(items.length===1){
+    const it=items[0]; if(price==null && !it.unit_price){ const pm2=((it.src||'')+' '+preTxt+' '+free).match(/(\d+(?:\.\d+)?)\s*(?:tk|taka|টাকা|৳|\/-)/i); if(pm2) price=parseFloat(pm2[1]); }
+    if(price!=null){ if(it.qty>1 && /মোট|total|সব মিলিয়ে/i.test((seg.price||'')+' '+it.src)) price=Math.round(price/it.qty); it.unit_price=price; }
+  } else if(items.length>1 && price!=null){ warns.push('একাধিক পণ্য — একটাই দাম দেওয়া, প্রতিটার দাম নিজে দিন'); }
+  if(items.length){
+    o.items=items.map(it=>({product:it.product,matched:it.matched,qty:it.qty,unit_price:it.unit_price||0}));
+    items.forEach(it=>{ if(!it.matched) warns.push('পণ্য ইনভেন্টরিতে মেলেনি: '+it.product); else if(it.s<0.8) warns.push('পণ্য "'+it.src.trim().replace(/\s+/g,' ').slice(0,40)+'" → "'+it.product+'" ধরা হয়েছে, মিলিয়ে নিন'); if(!it.unit_price) warns.push('"'+it.product+'"-এর দাম পাওয়া যায়নি'); });
+  }
+  if(extraNotes.length){ o.notes=(o.notes?o.notes+' | ':'')+extraNotes.join(' | '); }
+  if(!o.address && !lineMode && !items.length && price==null && _spClean(free).replace(/[\s,]/g,'')) o.address=_spClean(free).replace(/\s*\n\s*/g,', ');
   // পেমেন্ট
   const all=t.toLowerCase(); let pay='';
   if(/\bcod\b|ক্যাশ\s*অন|সিওডি/.test(all)) pay='COD'; else if(/bkash|বিকাশ/.test(all)) pay='bKash'; else if(/nagad/.test(all)) pay='Nagad'; else if(/\bdue\b|বাকি|baki|ধার/.test(all)) pay='Due (বাকি)'; else if(/bank|ব্যাংক/.test(all)) pay='Bank Transfer';
@@ -11528,15 +11549,15 @@ async function runSmartPaste(){
       else { try{ parseOrderRegex(text); }catch(_e){} }
     }
     // ২) AI (ব্যাকগ্রাউন্ডে) — ছবি থাকলে বা AI key থাকলে নিখুঁত করে
-    if(!hasAPI){ if(!text && img) showToast('ছবির জন্য Google Script সংযোগ দরকার','warning'); return; }
+    if(!hasAPI) return;
     btn.textContent = '🤖 AI যাচাই করছে...';
     if(status) status.innerHTML = '<span style="color:var(--text3);">ফর্ম ভরা হয়েছে — AI আরও নিখুঁত করছে, ঠিক হলে নিজেই বসবে...</span>';
     const snap = _spSnap();
     let res = await _spTimeout(postToAPI({ action:'aiParseOrder', text, image: img||undefined, ctx:_spCtx() }), 22000);
     if(res==='__timeout' || !res){ if(status) status.innerHTML = '<span style="color:var(--gold);">AI সাড়া দেয়নি — অফলাইন ফলাফলই রাখা হলো</span>'; return; }
     if(res.mode==='nokey'||res.mode==='error'){
-      if(status) status.innerHTML = '<span style="color:'+(res.mode==='nokey'?'var(--gold)':'var(--red)')+';">'+_spEsc(res.message||'AI ব্যবহার করা যায়নি')+'</span>';
-      if(!localDone.length && !text) showToast('ছবি বিশ্লেষণ হয়নি — AI সেটিং ঠিক করুন','warning');
+      if(status) status.innerHTML = '<span style="color:var(--text3);">ℹ️ AI এখন ব্যস্ত/বন্ধ — অফলাইন স্মার্ট ফলাফলই রাখা হলো</span>'; console.warn('AI:', res.message);
+      
       return;
     }
     const done = _spApplyGuarded(res.data||{}, snap);
