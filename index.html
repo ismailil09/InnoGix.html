@@ -11954,8 +11954,17 @@ function resetOrderModal(){
 
 // ─── ADD / EDIT PRODUCT ──────────────────────────────────────
 let currentEditProductId = null;
+// প্রফিট-বণ্টন ঘরগুলো হিডেন থাকলে (ব্যবহারকারী দেখতে পায় না) ১০০% ছাড়ালে নিজে ঠিক করে নেয় — এডিট আটকাবে না
+function _fixHiddenSplit(prefix){
+  const si=document.getElementById(prefix+'-split-ismail'), sa=document.getElementById(prefix+'-split-ashik'); if(!si||!sa) return;
+  let i=parseFloat(si.value)||0, a=parseFloat(sa.value)||0; if(i<0)i=0; if(a<0)a=0;
+  const hidden = !si.offsetParent;
+  if(i+a>100 && hidden){ const k=100/(i+a); i=Math.round(i*k*100)/100; a=Math.round(a*k*100)/100; }
+  if(hidden){ si.value=i; sa.value=a; }
+}
 
 async function submitProduct(){
+  _fixHiddenSplit('prod');
   const splitI = parseFloat(document.getElementById('prod-split-ismail')?.value||0);
   const splitA = parseFloat(document.getElementById('prod-split-ashik')?.value||0);
   const totalSplit = splitI + splitA;
@@ -12012,11 +12021,13 @@ function openEditProduct(p){
   const sa = p.splitAshik  != null ? parseFloat(p.splitAshik)  : saved.ashik;
   document.getElementById('eprod-split-ismail').value = si;
   document.getElementById('eprod-split-ashik').value  = sa;
+  _fixHiddenSplit('eprod');
   updateProductSplitPreview('edit');
   openModal('edit-product');
 }
 
 async function updateProduct(){
+  _fixHiddenSplit('eprod');
   const splitI = parseFloat(document.getElementById('eprod-split-ismail')?.value||0);
   const splitA = parseFloat(document.getElementById('eprod-split-ashik')?.value||0);
   const totalSplit = splitI + splitA;
