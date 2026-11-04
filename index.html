@@ -5902,7 +5902,7 @@ tbody td.muted{color:var(--text3);}
 // ═══════════════════════════════════════════════════════════════
 
 // ⚠️ এখানে আপনার Google Apps Script Web App URL বসান (Deploy > New Deployment > Web App)
-      const API_URL = "https://script.google.com/macros/s/AKfycbwFhG_qgvFeyg9lEr4EjMklW3nnWq04ANRvfmwCmMtO7JKwAQzGSUJgtwSKqrFfZvk4/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
+      const API_URL = "https://script.google.com/macros/s/AKfycbwJENXDG1VSoKzBG5PHSR_9G9TDC_pDM4ckLO-vIwtXwuF-0a7Hr3kqCxsTeA1XbnYGXw/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
 
 // ─── CONNECTION STATE ────────────────────────────────────────
 let apiConnected = false;
@@ -9912,8 +9912,9 @@ async function loadLiveInventory(){
     supplier:      String(r[12]||''),
     supplierPhone: String(r[13]||''),
     // v31: Split data from backend columns (if available)
-    splitIsmail: parseFloat(r[14])||null,
-    splitAshik:  parseFloat(r[15])||null,
+    // CSV-import পুরনো বাগে এই ঘরে তারিখ/নোট (যেমন ২০২৬) লিখে দিয়েছিল — ০–১০০-এর বাইরে বা মোট >১০০ হলে বাদ
+    splitIsmail: (()=>{ const a=parseFloat(r[14]), b=parseFloat(r[15]); return (a>=0 && a<=100 && (a+(b>=0&&b<=100?b:0))<=100) ? a : null; })(),
+    splitAshik:  (()=>{ const a=parseFloat(r[14]), b=parseFloat(r[15]); return (b>=0 && b<=100 && ((a>=0&&a<=100?a:0)+b)<=100) ? b : null; })(),
   })).filter(r=>r.name && r.name.trim());
   // v31: Sync split data from backend to local DB
   rows.forEach(p => {
@@ -11958,7 +11959,8 @@ let currentEditProductId = null;
 function _fixHiddenSplit(prefix){
   const si=document.getElementById(prefix+'-split-ismail'), sa=document.getElementById(prefix+'-split-ashik'); if(!si||!sa) return;
   let i=parseFloat(si.value)||0, a=parseFloat(sa.value)||0; if(i<0)i=0; if(a<0)a=0;
-  const hidden = !si.offsetParent;
+  const sec = si.closest && si.closest('.profit-split-section');
+  const hidden = !!(sec && sec.style.display==='none') || !si.offsetParent;
   if(i+a>100 && hidden){ const k=100/(i+a); i=Math.round(i*k*100)/100; a=Math.round(a*k*100)/100; }
   if(hidden){ si.value=i; sa.value=a; }
 }
