@@ -4913,24 +4913,34 @@ tbody td.muted{color:var(--text3);}
       </div>
     </div>
 
-    <!-- AI Smart Paste Panel -->
+    <!-- AI Smart Paste Panel (v2: text + voice + image) -->
     <div id="smart-paste-panel" style="display:none;background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(79,70,229,.08));border:1px solid rgba(124,58,237,.3);border-radius:12px;margin:12px 20px 0;padding:14px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-size:16px;">🤖</span>
           <div>
-            <div style="font-size:13px;font-weight:700;color:#a78bfa;">AI Smart Paste</div>
-            <div style="font-size:11px;color:var(--text3);">WhatsApp / Facebook / SMS — যেকোনো ফরম্যাটের টেক্সট পেস্ট করুন</div>
+            <div style="font-size:13px;font-weight:700;color:#a78bfa;">AI Smart Paste <span style="font-size:10px;font-weight:600;color:var(--text3);">v2</span></div>
+            <div style="font-size:11px;color:var(--text3);">টেক্সট (বাংলা/Banglish/English) · 🎤 ভয়েস · 🖼 স্ক্রিনশট/ছবি — সব বুঝে ফর্ম ভরবে</div>
           </div>
         </div>
         <button onclick="closeSmartPaste()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;">✕</button>
       </div>
-      <textarea id="smart-paste-input" placeholder="এখানে WhatsApp message পেস্ট করুন...&#10;&#10;উদাহরণ:&#10;নাম: রহিম&#10;ফোন: 01711234567&#10;ঠিকানা: ঢাকা, মিরপুর&#10;পণ্য: Door Lock&#10;দাম: ৩৬৯০" style="width:100%;min-height:100px;background:rgba(0,0,0,.2);border:1px solid rgba(124,58,237,.3);border-radius:8px;color:var(--text);padding:10px;font-size:13px;resize:vertical;font-family:inherit;box-sizing:border-box;"></textarea>
-      <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
+      <textarea id="smart-paste-input" placeholder="মেসেজ পেস্ট করুন, 🎤 চেপে বলুন, অথবা স্ক্রিনশট পেস্ট (Ctrl+V) / ড্রপ করুন...&#10;&#10;উদাহরণ: rahim, 01711234567, gazipur kaliakoir, 2ta rechargable fan 900 tk kore, delivery 120, steadfast, 500 advance disi&#10;কমান্ডও দিতে পারেন: &quot;ডেলিভারি চার্জ ১০০ করো&quot;, &quot;কুরিয়ার পাঠাও&quot;, &quot;সেলসম্যান রহিম&quot;" style="width:100%;min-height:100px;background:rgba(0,0,0,.2);border:1px solid rgba(124,58,237,.3);border-radius:8px;color:var(--text);padding:10px;font-size:13px;resize:vertical;font-family:inherit;box-sizing:border-box;"></textarea>
+      <div id="smart-paste-imgbox" style="display:none;margin-top:8px;align-items:center;gap:10px;">
+        <img id="smart-paste-thumb" alt="" style="max-height:70px;max-width:120px;border-radius:6px;border:1px solid rgba(124,58,237,.4);">
+        <span id="smart-paste-imginfo" style="font-size:11px;color:var(--text3);"></span>
+        <button type="button" onclick="spRemoveImage()" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text3);font-size:11px;padding:3px 8px;cursor:pointer;">✕ ছবি সরাও</button>
+      </div>
+      <input type="file" id="smart-paste-file" accept="image/*" style="display:none;">
+      <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap;">
         <button id="smart-paste-btn" onclick="runSmartPaste()" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;padding:8px 18px;cursor:pointer;">✨ AI বিশ্লেষণ করো</button>
+        <button id="smart-paste-mic" type="button" onclick="spToggleVoice()" title="ভয়েসে বলুন" style="background:var(--bg3);border:1px solid rgba(124,58,237,.5);border-radius:8px;color:var(--text);font-size:12px;font-weight:600;padding:8px 12px;cursor:pointer;">🎤 ভয়েস</button>
+        <select id="smart-paste-lang" title="ভয়েসের ভাষা" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text3);font-size:11px;padding:7px 6px;"><option value="bn-BD">বাংলা</option><option value="en-US">English</option></select>
+        <button type="button" onclick="document.getElementById('smart-paste-file').click()" style="background:var(--bg3);border:1px solid rgba(124,58,237,.5);border-radius:8px;color:var(--text);font-size:12px;font-weight:600;padding:8px 12px;cursor:pointer;">🖼 ছবি</button>
         <button onclick="clearSmartPaste()" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text3);font-size:12px;padding:8px 12px;cursor:pointer;">🗑 ক্লিয়ার</button>
         <span id="smart-paste-status" style="font-size:12px;color:var(--text3);"></span>
       </div>
+      <div id="smart-paste-result" style="display:none;margin-top:10px;padding:10px;border-radius:8px;background:rgba(0,0,0,.18);font-size:12px;line-height:1.7;"></div>
     </div>
 
     <div class="modal-body">
@@ -5898,7 +5908,7 @@ tbody td.muted{color:var(--text3);}
 // ═══════════════════════════════════════════════════════════════
 
 // ⚠️ এখানে আপনার Google Apps Script Web App URL বসান (Deploy > New Deployment > Web App)
-      const API_URL = "https://script.google.com/macros/s/AKfycbxBwdo-EBQp2jTvz3QXtd5Ekjj3B4O1hdbRr86kCYgadInsuFYaEBynz0_NjIpJLXoI/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
+      const API_URL = "https://script.google.com/macros/s/AKfycbzIQgk2ahiGI82GHtd94ReoNZi0_owyqdES0w8HINXIhyuqt4wwE9pz8u9F-ke6zfEG/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
 
 // ─── CONNECTION STATE ────────────────────────────────────────
 let apiConnected = false;
@@ -11127,175 +11137,236 @@ function openEditOrder(r){
 }
 
 // ═══════════════════════════════════════════════════════════
-// AI SMART PASTE — WhatsApp/Facebook message → Order form
+// AI SMART PASTE v2 — টেক্সট / ভয়েস / ছবি → Order form
+//   সার্ভার (GS aiParseOrder) AI দিয়ে বোঝে + ঠিকানা/পণ্যের বানান fuzzy-ঠিক করে।
+//   AI key না থাকলে বা সার্ভার ব্যর্থ হলে পুরনো local regex fallback চলে।
 // ═══════════════════════════════════════════════════════════
+window._spImage = null; window._spRec = null; window._spBusy = false;
+
 function openSmartPaste(){
   const panel = document.getElementById('smart-paste-panel');
   if(panel) panel.style.display = 'block';
+  spInitOnce();
   setTimeout(()=>document.getElementById('smart-paste-input')?.focus(), 100);
 }
 function closeSmartPaste(){
+  try{ spStopVoice(true); }catch(_e){}
   const panel = document.getElementById('smart-paste-panel');
   if(panel) panel.style.display = 'none';
 }
 function clearSmartPaste(){
-  const inp = document.getElementById('smart-paste-input');
-  if(inp) inp.value = '';
+  try{ spStopVoice(true); }catch(_e){}
+  const inp = document.getElementById('smart-paste-input'); if(inp) inp.value = '';
+  const st = document.getElementById('smart-paste-status'); if(st) st.textContent = '';
+  const rs = document.getElementById('smart-paste-result'); if(rs){ rs.style.display='none'; rs.innerHTML=''; }
+  spRemoveImage();
+}
+function _spEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+// ── ছবি: ফাইল / পেস্ট / ড্রপ → ছোট করে JPEG base64 ──
+function spInitOnce(){
+  if(window._spInit) return; window._spInit = true;
+  const f = document.getElementById('smart-paste-file');
+  if(f) f.addEventListener('change', e=>{ const file=e.target.files&&e.target.files[0]; if(file) spLoadImage(file); e.target.value=''; });
+  const ta = document.getElementById('smart-paste-input');
+  if(ta){
+    ta.addEventListener('paste', e=>{
+      const items = (e.clipboardData&&e.clipboardData.items)||[];
+      for(const it of items){ if(it.type && it.type.indexOf('image/')===0){ const file=it.getAsFile(); if(file){ e.preventDefault(); spLoadImage(file); return; } } }
+    });
+  }
+  const panel = document.getElementById('smart-paste-panel');
+  if(panel){
+    panel.addEventListener('dragover', e=>{ e.preventDefault(); });
+    panel.addEventListener('drop', e=>{
+      const file = e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
+      if(file && file.type.indexOf('image/')===0){ e.preventDefault(); spLoadImage(file); }
+    });
+  }
+}
+function spLoadImage(file){
   const st = document.getElementById('smart-paste-status');
-  if(st) st.textContent = '';
+  if(!file || file.type.indexOf('image/')!==0){ showToast('শুধু ছবি (PNG/JPG) দিন','warning'); return; }
+  const url = URL.createObjectURL(file), img = new Image();
+  img.onload = function(){
+    try{
+      const MAX = 1600; let w = img.naturalWidth, h = img.naturalHeight;
+      const k = Math.min(1, MAX/Math.max(w,h)); w = Math.max(1,Math.round(w*k)); h = Math.max(1,Math.round(h*k));
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      const cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0,0,w,h); cx.drawImage(img,0,0,w,h);
+      let q = 0.85, dataUrl = c.toDataURL('image/jpeg', q);
+      while(dataUrl.length > 2600000 && q > 0.4){ q -= 0.15; dataUrl = c.toDataURL('image/jpeg', q); }
+      window._spImage = { data: dataUrl.split(',')[1], mime: 'image/jpeg' };
+      const th = document.getElementById('smart-paste-thumb'); if(th) th.src = dataUrl;
+      const ib = document.getElementById('smart-paste-imgbox'); if(ib) ib.style.display = 'flex';
+      const ii = document.getElementById('smart-paste-imginfo'); if(ii) ii.textContent = w+'×'+h+' · '+Math.round(dataUrl.length*0.75/1024)+' KB — "বিশ্লেষণ করো" চাপুন';
+      if(st) st.textContent = '';
+    }catch(err){ showToast('ছবি পড়া যায়নি','error'); }
+    URL.revokeObjectURL(url);
+  };
+  img.onerror = function(){ URL.revokeObjectURL(url); showToast('ছবি খোলা যায়নি','error'); };
+  img.src = url;
+}
+function spRemoveImage(){
+  window._spImage = null;
+  const ib = document.getElementById('smart-paste-imgbox'); if(ib) ib.style.display = 'none';
+  const th = document.getElementById('smart-paste-thumb'); if(th) th.removeAttribute('src');
+}
+
+// ── ভয়েস (ব্রাউজারের Web Speech API — Chrome/Edge/Android) ──
+function spToggleVoice(){ if(window._spRec) spStopVoice(false); else spStartVoice(); }
+function spStartVoice(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ showToast('এই ব্রাউজারে ভয়েস চলে না — Chrome ব্যবহার করুন (অথবা কিবোর্ডের মাইক চাপুন)','warning'); return; }
+  const ta = document.getElementById('smart-paste-input'), mic = document.getElementById('smart-paste-mic'), st = document.getElementById('smart-paste-status');
+  const rec = new SR();
+  rec.lang = (document.getElementById('smart-paste-lang')||{}).value || 'bn-BD';
+  rec.continuous = true; rec.interimResults = true;
+  const base = ta.value ? ta.value.replace(/\s+$/,'') + ' ' : '';
+  let finalTxt = '';
+  rec.onresult = function(ev){
+    let interim = '';
+    for(let i=ev.resultIndex;i<ev.results.length;i++){
+      const r = ev.results[i];
+      if(r.isFinal) finalTxt += r[0].transcript + ' '; else interim += r[0].transcript;
+    }
+    ta.value = base + finalTxt + interim;
+  };
+  rec.onerror = function(ev){
+    const m = {'not-allowed':'মাইক্রোফোনের অনুমতি দিন','service-not-allowed':'মাইক্রোফোনের অনুমতি দিন','no-speech':'কোনো কথা শোনা যায়নি','audio-capture':'মাইক পাওয়া যায়নি','network':'ইন্টারনেট দরকার (ভয়েসের জন্য)'}[ev.error] || ('ভয়েস সমস্যা: '+ev.error);
+    if(st) st.innerHTML = '<span style="color:var(--red);">⚠️ '+m+'</span>';
+  };
+  rec.onend = function(){
+    const wasManual = rec._manual, auto = !rec._silent;
+    window._spRec = null;
+    if(mic){ mic.textContent = '🎤 ভয়েস'; mic.style.background = 'var(--bg3)'; }
+    if(rec._silent) return;
+    if(ta.value.trim() && (finalTxt.trim() || wasManual)){ if(st) st.textContent = ''; runSmartPaste(); }
+  };
+  try{
+    rec.start(); window._spRec = rec;
+    if(mic){ mic.textContent = '⏹ থামান'; mic.style.background = 'rgba(239,68,68,.35)'; }
+    if(st) st.innerHTML = '<span style="color:var(--red);">🔴 শুনছি... বলুন, শেষ হলে ⏹ চাপুন</span>';
+  }catch(e){ window._spRec = null; showToast('ভয়েস চালু করা যায়নি','error'); }
+}
+function spStopVoice(silent){
+  const rec = window._spRec; if(!rec) return;
+  rec._silent = !!silent; rec._manual = true;
+  try{ rec.stop(); }catch(_e){ window._spRec = null; }
+}
+
+// ── ফর্মের বর্তমান অবস্থা (AI-কে প্রসঙ্গ হিসেবে দেওয়া হয়) ──
+function _spSelOptions(id, skipBlank){
+  const el = document.getElementById(id); if(!el) return [];
+  return Array.from(el.options).map(o=>(o.value||o.text||'').trim()).filter(v=>v && !(skipBlank && /^(select|—)/i.test(v)));
+}
+function _spCtx(){
+  const g = id => { const e=document.getElementById(id); return e ? String(e.value||'') : ''; };
+  const items = (window._orderItems||[]).filter(i=>i.product).map(i=>({product:i.product,qty:i.qty,unit_price:i.price}));
+  return {
+    products: (window._orderProductNames||[]).map(String),
+    payments: _spSelOptions('order-payment'), couriers: _spSelOptions('order-courier', true),
+    statuses: _spSelOptions('order-status'), salesmen: _spSelOptions('order-salesman', true),
+    current: { customer_name:g('order-customer'), phone:g('order-phone'), division:g('order-division'), district:g('district-select'), thana:g('thana-select'),
+      address:g('order-address'), items, delivery:g('order-delivery'), paid:g('order-paid'), payment:g('order-payment'), courier:g('order-courier'),
+      status:g('order-status'), salesman:g('order-salesman'), notes:g('order-notes'), description:g('order-description') }
+  };
+}
+
+// ── মান বসানো (change/input ইভেন্ট সহ, যাতে বাকি লজিক চলে) ──
+function _spSet(id, val){
+  const el = document.getElementById(id); if(!el) return false;
+  el.value = val; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); return true;
+}
+function _spSetSelect(id, val){
+  const el = document.getElementById(id); if(!el || !val) return false;
+  const v = String(val).toLowerCase().trim();
+  const opt = Array.from(el.options).find(o=>(o.value||o.text).toLowerCase().trim()===v) || Array.from(el.options).find(o=>o.text.toLowerCase().trim()===v);
+  if(!opt) return false;
+  el.value = opt.value || opt.text; el.dispatchEvent(new Event('change',{bubbles:true})); return true;
+}
+function _spApply(d){
+  const done = [], g = id => document.getElementById(id);
+  if(d.customer_name){ if(_spSet('order-customer', d.customer_name)) done.push('নাম'); }
+  if(d.phone){ if(_spSet('order-phone', String(d.phone).replace(/[^0-9]/g,'').slice(0,11))) done.push('ফোন'); }
+  // বিভাগ → জেলা → থানা (cascade সিঙ্ক্রোনাস)
+  if(d.division){
+    const ds = g('order-division');
+    if(ds && _spSetSelect('order-division', d.division)){ updateDistricts(ds); done.push('বিভাগ');
+      if(d.district){ const dis = g('district-select');
+        if(dis && _spSetSelect('district-select', d.district)){ updateThanas(dis); done.push('জেলা');
+          if(d.thana && _spSetSelect('thana-select', d.thana)) done.push('থানা'); } } }
+  }
+  if(d.address){ if(_spSet('order-address', d.address)) done.push('ঠিকানা'); }
+  if(Array.isArray(d.items) && d.items.length){
+    let list = (window._orderItems||[]).filter(i=>i.product);
+    d.items.forEach(n=>{
+      const hit = n.matched ? list.find(i=>i.product===n.product) : null;
+      if(hit){ if(n.qty) hit.qty = n.qty; if(n.unit_price) hit.price = n.unit_price; }
+      else list.push({ product:n.product, qty:n.qty||1, price:n.unit_price||0 });
+    });
+    window._orderItems = list.length ? list : [{product:'',qty:1,price:0}];
+    _renderOrderItems();
+    d.items.forEach(n=>{ if(n.matched){ try{ onOrderProductChange(n.product); }catch(_e){} } });
+    done.push('পণ্য ('+d.items.length+')');
+  }
+  if(d.delivery!=null){ if(_spSet('order-delivery', d.delivery)) done.push('ডেলিভারি চার্জ'); }
+  if(d.paid!=null){ if(_spSet('order-paid', d.paid)) done.push('Paid'); }
+  if(d.payment && _spSetSelect('order-payment', d.payment)){ try{ toggleCodField(); }catch(_e){} done.push('পেমেন্ট'); }
+  if(d.courier && _spSetSelect('order-courier', d.courier)){ try{ toggleCodField(); }catch(_e){} done.push('কুরিয়ার'); }
+  if(d.status && _spSetSelect('order-status', d.status)) done.push('স্ট্যাটাস');
+  if(d.salesman && _spSetSelect('order-salesman', d.salesman)) done.push('সেলসম্যান');
+  if(d.notes){ if(_spSet('order-notes', d.notes)) done.push('Notes'); }
+  if(d.description){ if(_spSet('order-description', d.description)) done.push('Description'); }
+  try{ _recalcOrderSubtotal(); }catch(_e){}
+  try{ calcDue(); }catch(_e){}
+  return done;
+}
+
+function _spShowResult(done, warns, label){
+  const box = document.getElementById('smart-paste-result'); if(!box) return;
+  let h = '<div style="color:var(--green);font-weight:700;">✅ '+_spEsc(label)+': '+done.length+'টি অংশ পূরণ হয়েছে</div>';
+  if(done.length) h += '<div style="color:var(--text3);">'+_spEsc(done.join(' · '))+'</div>';
+  if(warns && warns.length) h += '<div style="margin-top:6px;color:var(--gold);font-weight:700;">⚠️ একবার দেখে নিন:</div>'+warns.map(w=>'<div style="color:var(--gold);">• '+_spEsc(w)+'</div>').join('');
+  h += '<div style="margin-top:6px;color:var(--text3);">ফর্মটা দেখে প্রয়োজনে ঠিক করে Save করুন।</div>';
+  box.innerHTML = h; box.style.display = 'block';
 }
 
 async function runSmartPaste(){
+  if(window._spBusy) return;
   const text = (document.getElementById('smart-paste-input')?.value||'').trim();
-  if(!text){ showToast('কিছু পেস্ট করুন আগে','warning'); return; }
-
-  const btn    = document.getElementById('smart-paste-btn');
-  const status = document.getElementById('smart-paste-status');
-  btn.disabled = true;
-  btn.textContent = '⏳ AI বিশ্লেষণ করছে...';
+  const img = window._spImage;
+  if(!text && !img){ showToast('কিছু লিখুন, বলুন বা ছবি দিন','warning'); return; }
+  const btn = document.getElementById('smart-paste-btn'), status = document.getElementById('smart-paste-status');
+  try{ spStopVoice(true); }catch(_e){}
+  window._spBusy = true; btn.disabled = true; btn.textContent = '⏳ AI বিশ্লেষণ করছে...';
   if(status) status.textContent = '';
-
-  try {
-    let res = null;
-
-    // ── GS-এর মাধ্যমে parse (CORS নেই, BD_LOCATIONS সম্পূর্ণ) ──
-    if(API_URL && API_URL.includes('script.google.com')){
-      res = await fetchFromAPI('smartParse&text='+encodeURIComponent(text));
-    }
-
-    // ── GS নেই বা fail — local regex ──
-    if(!res || res.status !== 'ok'){
-      const fb = parseOrderRegex(text);
-      if(status) status.innerHTML = `<span style="color:var(--gold);">⚡ Local: ${fb.filled}টি field</span>`;
-      showToast(`⚡ ${fb.filled}টি field পূরণ হয়েছে`,'info');
-      closeSmartPaste();
-      return;
-    }
-
-    const p = res.data;
-    const mode = res.mode || 'offline';
-    let filled = 0;
-
-    // ── Basic fields ──
-    if(p.name)    { setField('order-customer', p.name);  filled++; }
-    if(p.phone)   { setField('order-phone', String(p.phone).replace(/[^0-9]/g,'').slice(0,11)); filled++; }
-    if(p.address) { setField('order-address', p.address); filled++; }
-    if(p.note)    { const nEl=document.getElementById('order-notes'); if(nEl){ nEl.value=p.note; filled++; } }
-    if(parseInt(p.qty)>1) { setField('order-qty', String(p.qty)); setTimeout(calcTotal,150); filled++; }
-    if(parseFloat(p.price)>0) { setField('unit-price', String(p.price)); setTimeout(calcTotal,100); filled++; }
-    if(parseFloat(p.paid)>0)  { setField('order-paid',  String(p.paid));  setTimeout(calcDue,200);  filled++; }
-
-    // ── Delivery charge ──
-    if(parseFloat(p.delivery)>0) {
-      setField('order-delivery', String(p.delivery));
-      setTimeout(calcDue, 300);
-      filled++;
-    }
-
-    // ── Courier ──
-    if(p.courier) {
-      const courierSel = document.getElementById('order-courier');
-      if(courierSel) {
-        const cOpt = Array.from(courierSel.options).find(o=>
-          o.text.toLowerCase().includes(p.courier.toLowerCase()) ||
-          p.courier.toLowerCase().includes(o.text.toLowerCase())
-        );
-        if(cOpt) { courierSel.value = cOpt.value || cOpt.text; filled++; }
-      }
-    }
-
-    // ── Payment method ──
-    if(p.payment) {
-      const paymentSel = document.getElementById('order-payment');
-      if(paymentSel) {
-        const pOpt = Array.from(paymentSel.options).find(o=>
-          o.text.toLowerCase().includes(p.payment.toLowerCase()) ||
-          p.payment.toLowerCase().includes(o.text.toLowerCase())
-        );
-        if(pOpt) { paymentSel.value = pOpt.value || pOpt.text; filled++; }
-      }
-    }
-
-    // ── Product ── ✅ FIX (Multi-product order): প্রথম আইটেম-লাইনে বসাও
-    if(p.product){
-      const names = window._orderProductNames || [];
-      const pMatch = names.find(name =>
-        name.toLowerCase().includes(p.product.toLowerCase()) ||
-        p.product.toLowerCase().includes(name.toLowerCase().replace('amanah ',''))
-      );
-      if(pMatch && Array.isArray(window._orderItems) && window._orderItems.length){
-        window._orderItems[0].product = pMatch;
-        onOrderProductChange(pMatch);
-        _renderOrderItems();
-        filled++;
-      }
-    }
-
-    // ── Division → District → Thana (async cascade) ──
-    if(p.division){
-      const divSel = document.getElementById('order-division');
-      if(divSel){
-        const divOpt = Array.from(divSel.options).find(o=>
-          o.text.toLowerCase().trim()===String(p.division).toLowerCase().trim()
-        );
-        if(divOpt){
-          divSel.value = divOpt.value || divOpt.text;
-          divSel.dispatchEvent(new Event('change', {bubbles:true})); // ✅ ensures any listener also fires
-          updateDistricts(divSel);
-          filled++;
-          await new Promise(r=>setTimeout(r,400));
-
-          if(p.district){
-            const distSel = document.getElementById('district-select');
-            if(distSel){
-              const distOpt = Array.from(distSel.options).find(o=>
-                o.text.toLowerCase().trim()===String(p.district).toLowerCase().trim()
-              ) || Array.from(distSel.options).find(o=>
-                o.text.toLowerCase().includes(String(p.district).toLowerCase()) || String(p.district).toLowerCase().includes(o.text.toLowerCase())
-              );
-              if(distOpt){
-                distSel.value = distOpt.value || distOpt.text;
-                distSel.dispatchEvent(new Event('change', {bubbles:true}));
-                updateThanas(distSel);
-                filled++;
-                await new Promise(r=>setTimeout(r,400));
-
-                if(p.thana){
-                  const thanaSel = document.getElementById('thana-select');
-                  if(thanaSel){
-                    const thanaOpt = Array.from(thanaSel.options).find(o=>
-                      o.text.toLowerCase().trim()===String(p.thana).toLowerCase().trim()
-                    ) || Array.from(thanaSel.options).find(o=>
-                      o.text.toLowerCase().includes(String(p.thana).toLowerCase())
-                    );
-                    if(thanaOpt){
-                      thanaSel.value = thanaOpt.value || thanaOpt.text;
-                      thanaSel.dispatchEvent(new Event('change', {bubbles:true}));
-                      filled++;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    const modeLabel = mode==='ai' ? '🤖 AI' : '⚡ Smart';
-    if(status) status.innerHTML = `<span style="color:var(--green);">✅ ${modeLabel}: ${filled}টি field পূরণ হয়েছে</span>`;
-    showToast(`✅ ${filled}টি field পূরণ হয়েছে!`,'success');
-    closeSmartPaste();
-
-  } catch(err){
-    console.error('SmartPaste:', err);
+  const box = document.getElementById('smart-paste-result'); if(box){ box.style.display='none'; }
+  const local = ()=>{
+    if(!text){ showToast('ছবি বিশ্লেষণে AI key লাগে — Script Properties-এ ANTHROPIC_API_KEY/GEMINI_API_KEY দিন','warning'); return; }
     const fb = parseOrderRegex(text);
-    if(status) status.innerHTML = `<span style="color:var(--gold);">⚡ Local: ${fb.filled}টি field</span>`;
-    showToast(`⚡ ${fb.filled}টি field পূরণ হয়েছে`,'info');
-    closeSmartPaste();
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '✨ AI বিশ্লেষণ করো';
+    if(status) status.innerHTML = '<span style="color:var(--gold);">⚡ Local: '+fb.filled+'টি field (AI বন্ধ)</span>';
+    showToast('⚡ '+fb.filled+'টি field পূরণ হয়েছে (AI ছাড়া)','info');
+  };
+  try{
+    if(!(API_URL && API_URL.includes('script.google.com'))){ local(); return; }
+    const res = await postToAPI({ action:'aiParseOrder', text, image: img||undefined, ctx:_spCtx() });
+    if(!res){ local(); return; }
+    if(res.mode==='nokey'){ if(status) status.innerHTML = '<span style="color:var(--gold);">'+_spEsc(res.message)+'</span>'; local(); return; }
+    if(res.mode==='error'){ if(status) status.innerHTML = '<span style="color:var(--red);">'+_spEsc(res.message)+'</span>'; local(); return; }
+    const d = res.data || {};
+    const done = _spApply(d);
+    if(!done.length){ if(status) status.innerHTML = '<span style="color:var(--gold);">কিছু বোঝা যায়নি — আরেকটু স্পষ্ট করে লিখুন/বলুন</span>'; return; }
+    _spShowResult(done, res.warnings||[], '🤖 AI');
+    if(status) status.textContent = '';
+    showToast('✅ '+done.length+'টি অংশ পূরণ হয়েছে!','success');
+    const inp = document.getElementById('smart-paste-input'); if(inp) inp.value = '';
+    spRemoveImage();
+  }catch(err){
+    console.error('SmartPaste:', err);
+    local();
+  }finally{
+    window._spBusy = false; btn.disabled = false; btn.textContent = '✨ AI বিশ্লেষণ করো';
   }
 }
 
