@@ -11262,6 +11262,7 @@ function spAmount(s){
   m = s.match(/\d+(?:\.\d+)?/); return m?parseFloat(m[0]):null;
 }
 const _SP_KEYS = [
+  ['req',  /রিকোয়ারমেন্টস?|রিকুয়ারমেন্ট|রিকোয়ার্মেন্ট|রেকুইরমেন্ট|রিকোয়ারমেন্ট|requirements?|\brqmt\b|\breq\b/gi],
   ['desc', /(?:ডেস|ডিস|ডেস্|ডিস্)ক্রিপশন|description|descripsion|\bdesc\b|বিবরণ|ইন্টারনাল|internal/gi],
   ['note', /নোট|\bnotes?\b|মন্তব্য|কমেন্ট|comment|বিশেষ\s*নির্দেশ/gi],
   ['name', /(?:কাস্টমার(?:ের)?|গ্রাহকের|ক্রেতার)\s*নাম(?!্)|নাম(?!্)|customer\s*name|\bname\b|\bnam\b/gi],
@@ -11337,6 +11338,7 @@ function spFindProduct(text, names){
 const _SP_KEYS_NG = _SP_KEYS.filter(x=>x[0]!=='courier').map(([k,re])=>[k,new RegExp(re.source,re.flags.replace('g',''))]);
 function spLabelKey(label, KP){
   const L=String(label||'');
+  if(/রিকোয়ারমেন্ট|রিকুয়ারমেন্ট|রিকোয়ার্মেন্ট|রেকুইরমেন্ট|requirement|rqmt|\breq\b/i.test(L)) return 'req';
   if(/পণ্য|প্রোডাক্ট|প্রডাক্ট|আইটেম|product|item/i.test(L)) return 'prod';
   if(/কুরিয়ার|courier/i.test(L) && !/চার্জ|charge/i.test(L)) return 'courierv';
   if(/ক্যাশ\s*কালেকশন|কালেকশন|collection|cod\s*amount|মোট\s*(?:টাকা|মূল্য|দাম)|total/i.test(L)) return 'cash';
@@ -11368,7 +11370,8 @@ function spLocalParse(text, ctx){
     delete seg.courierv;
   } else {
   const hits=[]; _SP_KEYS.forEach(([k,re])=>{ re.lastIndex=0; let x; while((x=re.exec(t))){ if(!x[0]) {re.lastIndex++; continue;} hits.push({k,s:x.index,e:x.index+x[0].length,raw:x[0]}); } });
-    hits.sort((a,b)=>a.s-b.s||(b.e-b.s)-(a.e-a.s)); const mk=[]; let last=-1; hits.forEach(h=>{ if(h.s>=last){ mk.push(h); last=h.e; } });
+    hits.sort((a,b)=>a.s-b.s||(b.e-b.s)-(a.e-a.s)); const mk=[]; let last=-1, inReq=false; const WEAK=['prod','price','paid','dlv','note','desc','sman','stat'];
+    hits.forEach(h=>{ if(h.s>=last){ if(inReq && WEAK.includes(h.k)) return; inReq=(h.k==='req'); mk.push(h); last=h.e; } });
     preTxt = t.slice(0, mk.length?mk[0].s:t.length);
     mk.forEach((h,i)=>{ const body=t.slice(h.e, i+1<mk.length?mk[i+1].s:t.length);
       if(['dlv','paid','price'].includes(h.k) && !/\d|হাজার|শ\b/.test(body) && order.length){ seg[order[order.length-1]] += ' '+h.raw+' '+body; return; }
@@ -11382,6 +11385,7 @@ function spLocalParse(text, ctx){
   const g=k=>_spClean(seg[k]||'');
   if(g('name')) o.customer_name=g('name').replace(/\d+/g,'').replace(/\s+(?:তার|এর|এই|ওর|এবং|ও|হচ্ছে)\s*$/,'').replace(/\s+/g,' ').trim();
   if(g('desc')) o.description=g('desc'); if(g('note')) o.notes=g('note');
+  if(seg.req!=null){ const rq=String(seg.req).split('\n').map(s=>_spClean(s)).filter(Boolean).join('\n').trim(); if(rq) o.description=(o.description?o.description+'\n':'')+'Requirement: '+rq; }
   if(seg.dlv!=null){ const a=/ফ্রি|free|বিনামূল্যে/i.test(seg.dlv)?0:spAmount(seg.dlv); if(a!=null) o.delivery=a; }
   if(seg.paid!=null && o.paid==null){ const a=spAmount(seg.paid); if(a!=null) o.paid=a; }
   // ঠিকানা + লোকেশন
@@ -11501,7 +11505,7 @@ function _spApply(d){
   if(d.status && _spSetSelect('order-status', d.status)) done.push('স্ট্যাটাস');
   if(d.salesman && _spSetSelect('order-salesman', d.salesman)) done.push('সেলসম্যান');
   // Notes ঘরে কিছু বসানো হয় না — সব Description ঘরে যায় (কুরিয়ারে যাওয়ার ঝুঁকি এড়াতে)
-  const _desc=[d.description,d.notes].filter(x=>x&&String(x).trim()).join(' | ');
+  const _desc=[d.description,d.notes].filter(x=>x&&String(x).trim()).join('\n');
   if(_desc){ if(_spSet('order-description', _desc)) done.push('Description'); }
   try{ _recalcOrderSubtotal(); }catch(_e){}
   try{ calcDue(); }catch(_e){}
