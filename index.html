@@ -11500,8 +11500,9 @@ function _spApply(d){
   if(d.courier && _spSetSelect('order-courier', d.courier)){ try{ toggleCodField(); }catch(_e){} done.push('কুরিয়ার'); }
   if(d.status && _spSetSelect('order-status', d.status)) done.push('স্ট্যাটাস');
   if(d.salesman && _spSetSelect('order-salesman', d.salesman)) done.push('সেলসম্যান');
-  if(d.notes){ if(_spSet('order-notes', d.notes)) done.push('Notes'); }
-  if(d.description){ if(_spSet('order-description', d.description)) done.push('Description'); }
+  // Notes ঘরে কিছু বসানো হয় না — সব Description ঘরে যায় (কুরিয়ারে যাওয়ার ঝুঁকি এড়াতে)
+  const _desc=[d.description,d.notes].filter(x=>x&&String(x).trim()).join(' | ');
+  if(_desc){ if(_spSet('order-description', _desc)) done.push('Description'); }
   try{ _recalcOrderSubtotal(); }catch(_e){}
   try{ calcDue(); }catch(_e){}
   return done;
@@ -11523,6 +11524,7 @@ function _spApplyGuarded(d, snap){
   const map={customer_name:'order-customer',phone:'order-phone',address:'order-address',delivery:'order-delivery',paid:'order-paid',payment:'order-payment',courier:'order-courier',status:'order-status',salesman:'order-salesman',notes:'order-notes',description:'order-description'};
   const x={}; Object.keys(d).forEach(k=>{ x[k]=d[k]; });
   Object.keys(map).forEach(k=>{ if(x[k]!==undefined && !same(map[k])) delete x[k]; });
+  if(x.notes!==undefined && !same('order-description')){ delete x.notes; }
   if(!(same('order-division')&&same('district-select')&&same('thana-select'))){ delete x.division; delete x.district; delete x.thana; }
   if(JSON.stringify(window._orderItems||[])!==snap.items) delete x.items;
   return _spApply(x);
