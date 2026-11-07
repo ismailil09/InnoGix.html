@@ -2116,6 +2116,27 @@ tbody td.muted{color:var(--text3);}
 }
 .conn-banner.show{display:flex;}
 .conn-banner a{color:var(--gold);font-weight:700;cursor:pointer;text-decoration:underline;}
+/* ── 🏭 Production page ── */
+.pr-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px;}
+.pr-kpi{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;}
+.pr-kpi.clk{cursor:pointer;transition:.15s;}
+.pr-kpi.clk:hover{border-color:var(--accent,#58a6ff);transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.25);}
+.pr-kpi .h{font-size:10px;color:var(--text3);margin-top:2px;}
+.pr-kpi .l{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;}
+.pr-kpi .v{font-size:22px;font-weight:800;margin-top:2px;}
+.pr-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.pr-tab{background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;}
+.pr-tab.active{background:var(--gold);border-color:var(--gold);color:#000;}
+.pr-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--border);}
+.pr-chk{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;}
+.pr-err{margin-top:12px;padding:10px 12px;border-radius:8px;background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.45);color:#ff8b85;font-size:12.5px;white-space:pre-wrap;line-height:1.6;}
+.pr-ok{color:var(--green);}.pr-bad{color:var(--red);}.pr-warn{color:var(--gold);}
+.pr-bomcard{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;}
+.pr-bomcard h4{margin:0 0 6px;font-size:14px;}
+.pr-line{display:grid;grid-template-columns:1fr 110px 34px;gap:8px;margin-bottom:6px;align-items:center;}
+.pr-line.s{grid-template-columns:1fr 90px 1fr 34px;}
+.pr-pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:var(--bg3);}
+.pr-mini{padding:3px 7px !important;font-size:11px !important;}
 </style>
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo"><img class="innogix-logo-img" alt="InnoGix" data-logo="1"></div>
@@ -2125,6 +2146,7 @@ tbody td.muted{color:var(--text3);}
   <div class="nav-item" onclick="showPage('sales',this)"><span class="nav-icon">🛒</span>Sales & Orders<span class="nav-badge" id="sales-badge">—</span></div>
   <div class="nav-item" onclick="showPage('baki',this)"><span class="nav-icon">📒</span>বাকি (Due)<span class="nav-badge" id="baki-badge" style="display:none;"></span></div>
   <div class="nav-item" onclick="showPage('inventory',this)"><span class="nav-icon">📦</span>Inventory<span class="nav-badge red" id="inv-badge" style="background:var(--red);">—</span></div>
+  <div class="nav-item" onclick="showPage('production',this)"><span class="nav-icon">🏭</span>Production<span class="nav-badge red" id="prod-badge" style="display:none;background:var(--red);"></span></div>
   <div class="nav-item" onclick="showPage('expense',this)"><span class="nav-icon">💸</span>Expenses</div>
   <div class="nav-item" onclick="showPage('cashflow',this)"><span class="nav-icon">💰</span>Cash Flow</div>
   <div class="nav-item" onclick="showPage('purchases',this)"><span class="nav-icon">🧾</span>Purchase Tracker</div>
@@ -2249,6 +2271,7 @@ tbody td.muted{color:var(--text3);}
     ══════════════════════════════ -->
     <div class="page active" id="page-dashboard">
       <div class="breadcrumb">InnoGix OS / <span>Dashboard</span></div>
+      <div id="dash-lowstock" style="display:none;margin:10px 0 14px;padding:12px 14px;border:1px solid rgba(248,81,73,.45);background:rgba(248,81,73,.08);border-radius:12px;cursor:pointer;" onclick="window.prGoRM&&prGoRM()"></div>
 
       <!-- ═══ DASHBOARD KPI FILTER BAR ═══ -->
       <div class="dash-filter-bar" id="dash-filter-bar">
@@ -3192,6 +3215,9 @@ tbody td.muted{color:var(--text3);}
       #page-purchases .pt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px 14px;}
       #page-purchases .pt-grid label,#page-purchases .pt-filters label,#modal-pt-edit label{font-size:11px;color:var(--text3);font-weight:600;display:block;margin-bottom:4px;}
       #page-purchases .pt-items-h{display:grid;grid-template-columns:minmax(160px,3fr) 90px 120px 130px 40px;gap:8px;margin:16px 0 6px;font-size:11px;color:var(--text3);font-weight:600;}
+      #modal-pt-ledger{z-index:10050 !important;}
+      #page-purchases .pt-i-rm{grid-column:1/-1;font-size:12px;padding:5px 8px;border-style:dashed;}
+      #page-purchases .pt-rmw{display:none;margin:10px 0 0;padding:10px 12px;border:1px dashed rgba(88,166,255,.5);border-radius:10px;font-size:12.5px;}
       #page-purchases .pt-item{display:grid;grid-template-columns:minmax(160px,3fr) 90px 120px 130px 40px;gap:8px;margin-bottom:8px;align-items:center;}
       #page-purchases .pt-line{font-family:'IBM Plex Mono',monospace,sans-serif;font-weight:700;text-align:right;color:var(--pt);padding:0 6px;white-space:nowrap;}
       #page-purchases .pt-err{color:var(--red);font-size:12px;margin-top:10px;display:none;}
@@ -3262,6 +3288,7 @@ tbody td.muted{color:var(--text3);}
             <div><label>Payment Source *</label>
               <select class="form-select" id="pt-source"><option value="">— বেছে নিন —</option><option>Company Main Account</option><option>Petty Cash</option><option>Partner Capital</option></select></div>
           </div>
+          <div class="pt-rmw" id="pt-rm-wrap"><b>📦 Raw Material স্টকে যোগ হবে</b> — কোন আইটেমের নিচে Raw Material বেছে নিলে সেই পরিমাণ Production স্টকে যোগ হবে (ঐচ্ছিক)। <div style="margin-top:8px;max-width:320px;"><label>Worker / গ্রহণকারী *</label><select class="form-select" id="pt-rm-worker"></select></div></div>
           <div class="pt-items-h"><span>Product / Item Name *</span><span>Quantity *</span><span>Unit Price (৳) *</span><span style="text-align:right;">Total (৳)</span><span></span></div>
           <div id="pt-items"></div>
           <button class="btn btn-sm" type="button" onclick="ptAddItem()">＋ Add Another Item</button>
@@ -3391,6 +3418,167 @@ tbody td.muted{color:var(--text3);}
       #page-salesmen .page-title,#page-baki .page-title{font-size:20px;font-weight:700;}
       #page-salesmen .page-sub,#page-baki .page-sub{font-size:12px;color:var(--text3);margin-top:2px;}
     </style>
+
+    <!-- ═══════════ 🏭 PRODUCTION / RAW MATERIAL PAGE ═══════════ -->
+    <div class="page" id="page-production">
+      <div class="page-header">
+        <div>
+          <div class="page-title">🏭 Production & Raw Materials</div>
+          <div class="page-sub">Raw Material স্টক · BOM রেসিপি · Assembly · Movement History · Physical Audit</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn primary" onclick="prOpenRm(null)">＋ Raw Material</button>
+          <button class="btn" onclick="prOpenWorkers()">👷 Workers</button>
+          <button class="btn" onclick="prExportXlsx()">📊 Export Excel</button>
+          <button class="btn" onclick="prOpenImport()">📥 Import CSV</button>
+          <button class="btn" onclick="prLoad(true)">🔄 রিফ্রেশ</button>
+        </div>
+      </div>
+      <div class="pr-kpis" id="pr-kpis"></div>
+      <div class="pr-tabs" id="pr-tabs">
+        <button class="pr-tab active" data-t="rm" onclick="prTab('rm')">🧱 Raw Materials</button>
+        <button class="pr-tab" data-t="bom" onclick="prTab('bom')">🧩 BOM / Recipe</button>
+        <button class="pr-tab" data-t="asm" onclick="prTab('asm')">🏭 Assembly</button>
+        <button class="pr-tab" data-t="mov" onclick="prTab('mov')">📜 Movement History</button>
+        <button class="pr-tab" data-t="aud" onclick="prTab('aud')">🔍 Physical Audit</button>
+        <button class="pr-tab" data-t="wrk" onclick="prTab('wrk')">👷 Worker রিপোর্ট</button>
+        <button class="pr-tab" data-t="plan" onclick="prTab('plan')">📋 Production Plan</button>
+        <button class="pr-tab" data-t="trc" onclick="prTab('trc')">🔎 Trace (Serial/Lot)</button>
+      </div>
+
+      <div class="pr-panel" id="pr-p-rm">
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div class="pr-bar">
+            <input class="form-input" id="pr-rm-q" placeholder="🔍 নাম / ID / সাপ্লায়ার" oninput="prRenderRM()" style="max-width:240px;">
+            <select class="form-select" id="pr-rm-cat" onchange="prRenderRM()" style="max-width:180px;"></select>
+            <label class="pr-chk"><input type="checkbox" id="pr-rm-low" onchange="prRenderRM()"> শুধু Low/Out of Stock</label>
+          </div>
+          <div class="table-wrap"><table class="data-table">
+            <thead><tr><th>ID</th><th>নাম</th><th>ক্যাটাগরি</th><th style="text-align:right;">স্টক</th><th style="text-align:right;">ইউনিট কস্ট</th><th style="text-align:right;">স্টক মূল্য</th><th style="text-align:right;">Reorder</th><th>সাপ্লায়ার</th><th>স্ট্যাটাস</th><th>অ্যাকশন</th></tr></thead>
+            <tbody id="pr-rm-body"></tbody><tfoot id="pr-rm-foot"></tfoot>
+          </table></div>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden;margin-top:16px;">
+          <div class="pr-bar"><b>📦 Finished Goods (Inventory পেজের স্টক — শুধু দেখা)</b></div>
+          <div class="table-wrap"><table class="data-table">
+            <thead><tr><th>ID</th><th>প্রোডাক্ট</th><th style="text-align:right;">স্টক</th><th style="text-align:right;">Cost</th><th style="text-align:right;">Sell</th><th>BOM</th></tr></thead>
+            <tbody id="pr-fg-body"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <div class="pr-panel" id="pr-p-bom" style="display:none;">
+        <div style="margin-bottom:12px;"><button class="btn primary" onclick="prOpenBom(null)">＋ নতুন BOM / Recipe</button> <span style="color:var(--text3);font-size:12px;">একই প্রোডাক্টের একাধিক রেসিপি (যেমন Standard / Alt Battery) রাখা যায়</span></div>
+        <div id="pr-bom-list"></div>
+      </div>
+
+      <div class="pr-panel" id="pr-p-asm" style="display:none;">
+        <div class="card" style="padding:16px;">
+          <div style="font-weight:700;margin-bottom:12px;">🏭 নতুন Assembly / Production Entry</div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">Finished Product *</label><select class="form-select" id="pr-a-prod" onchange="prAsmProdChange()"></select></div>
+            <div class="form-group"><label class="form-label">Recipe (BOM) *</label><select class="form-select" id="pr-a-rec" onchange="prAsmPreview()"></select></div>
+            <div class="form-group"><label class="form-label">উৎপাদিত ইউনিট *</label><input class="form-input" type="number" id="pr-a-units" min="1" step="1" value="1" oninput="prAsmPreview()"></div>
+            <div class="form-group"><label class="form-label">Worker / Technician *</label><input class="form-input" id="pr-a-worker" list="pr-workers-dl" placeholder="নাম বেছে নিন বা লিখুন"></div>
+            <div class="form-group" style="grid-column:1/-1;"><label class="form-label">Note</label><input class="form-input" id="pr-a-note" placeholder="ঐচ্ছিক"></div>
+          </div>
+          <div id="pr-a-preview" style="margin:14px 0;"></div>
+          <div style="font-weight:600;margin:6px 0;">🗑️ Scrap / Wastage (ঐচ্ছিক — নষ্ট বা ত্রুটিপূর্ণ যন্ত্রাংশ)</div>
+          <div id="pr-a-scrap"></div>
+          <button class="btn" type="button" onclick="prScrapAdd()" style="margin-top:6px;">＋ Scrap লাইন</button>
+          <label class="pr-chk" style="display:block;margin-top:12px;"><input type="checkbox" id="pr-a-updcost"> Inventory-র Cost Price এই ব্যাচের ইউনিট খরচে আপডেট করো</label>
+          <div id="pr-a-err" class="pr-err" style="display:none;"></div>
+          <div style="margin-top:14px;"><button class="btn primary" id="pr-a-btn" onclick="prProduce()">✅ Production সম্পন্ন করুন</button></div>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden;margin-top:16px;">
+          <div class="pr-bar"><b>📋 Production Batches</b></div>
+          <div class="table-wrap"><table class="data-table">
+            <thead><tr><th>Batch</th><th>সময়</th><th>প্রোডাক্ট</th><th style="text-align:right;">ইউনিট</th><th>Worker</th><th style="text-align:right;">মোট খরচ</th><th style="text-align:right;">ইউনিট খরচ</th><th>স্ট্যাটাস</th><th>অ্যাকশন</th></tr></thead>
+            <tbody id="pr-batch-body"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <div class="pr-panel" id="pr-p-mov" style="display:none;">
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div class="pr-bar">
+            <input class="form-input" id="pr-m-q" placeholder="🔍 আইটেম / Worker / Ref / Note" oninput="prRenderMov()" style="max-width:240px;">
+            <select class="form-select" id="pr-m-act" onchange="prRenderMov()" style="max-width:200px;"></select>
+            <select class="form-select" id="pr-m-wk" onchange="prRenderMov()" style="max-width:180px;"></select>
+            <button class="btn" onclick="prLoadMov()">🔄 লোড</button>
+            <button class="btn" onclick="prHealth()">🛡️ লেজার যাচাই</button>
+            <button class="btn" onclick="prMovCsv()">📥 CSV</button>
+            <span style="color:var(--text3);font-size:12px;">🔒 Append-only: এখানে কিছু মোছা/বদলানো যায় না</span>
+          </div>
+          <div class="table-wrap"><table class="data-table">
+            <thead><tr><th>সময়</th><th>Action</th><th>Type</th><th>Item</th><th style="text-align:right;">Qty ±</th><th style="text-align:right;">Balance</th><th>Worker</th><th>Ref</th><th>Note</th><th>By</th></tr></thead>
+            <tbody id="pr-mov-body"><tr><td colspan="10" style="text-align:center;color:var(--text3);padding:30px;">“🔄 লোড” চাপুন</td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <div class="pr-panel" id="pr-p-plan" style="display:none;">
+        <div class="card" style="padding:16px;">
+          <div style="font-weight:700;margin-bottom:4px;">📋 Production Plan — কী কী বানাতে চান?</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">প্রোডাক্ট ও সংখ্যা দিন — সিস্টেম BOM থেকে হিসাব করে দেখাবে কোন Raw Material কতটা কম পড়বে। একাধিক প্রোডাক্ট দিলে একই উপাদান মিলিয়ে হিসাব হয়। (স্টকে কোনো পরিবর্তন হয় না)</div>
+          <div id="pr-pl-rows"></div>
+          <div style="margin:8px 0 14px;display:flex;gap:8px;flex-wrap:wrap;"><button class="btn" onclick="prPlanAdd()">＋ আরেকটি প্রোডাক্ট</button><button class="btn primary" onclick="prPlanCalc()">🧮 হিসাব করুন</button></div>
+          <div id="pr-pl-out"></div>
+        </div>
+      </div>
+
+      <div class="pr-panel" id="pr-p-trc" style="display:none;">
+        <div class="card" style="padding:16px;">
+          <div style="font-weight:700;margin-bottom:4px;">🔎 Trace — কোন ডিভাইস কোন Batch-এর, কে বানিয়েছে?</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">সিরিয়াল নম্বর (যেমন P002-000012), Lot নম্বর বা Batch ID লিখুন। শুধু নতুন Production থেকে সিরিয়াল তৈরি হয়; পুরনো Batch-এ Batch ID দিয়ে খুঁজুন।</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;"><input class="form-input" id="pr-t-q" placeholder="P002-000012 / LOT-… / PB0007" style="max-width:340px;" onkeydown="if(event.key==='Enter')prTrace()"><button class="btn primary" onclick="prTrace()">🔎 খুঁজুন</button></div>
+          <div id="pr-t-out" style="margin-top:14px;"></div>
+        </div>
+      </div>
+
+      <div class="pr-panel" id="pr-p-wrk" style="display:none;">
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div class="pr-bar">
+            <b>👷 Worker-ভিত্তিক Production রিপোর্ট</b>
+            <input class="form-input" type="date" id="pr-w-from" onchange="prRenderWrk()" style="max-width:150px;">
+            <input class="form-input" type="date" id="pr-w-to" onchange="prRenderWrk()" style="max-width:150px;">
+            <button class="btn" onclick="document.getElementById('pr-w-from').value='';document.getElementById('pr-w-to').value='';prRenderWrk()">✕ ফিল্টার মুছুন</button>
+            <button class="btn" onclick="prWrkCsv()">📥 CSV</button>
+          </div>
+          <div class="table-wrap"><table class="data-table">
+            <thead><tr><th>Worker</th><th style="text-align:right;">Batch</th><th style="text-align:right;">মোট ইউনিট</th><th style="text-align:right;">Material খরচ</th><th style="text-align:right;">Scrap খরচ</th><th style="text-align:right;">Scrap %</th><th style="text-align:right;">ইউনিট প্রতি খরচ</th><th style="text-align:right;">বাতিল Batch</th></tr></thead>
+            <tbody id="pr-wrk-body"><tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px;">ডেটা নেই</td></tr></tbody>
+          </table></div>
+          <div style="padding:8px 14px;font-size:11.5px;color:var(--text3);">ℹ️ বাতিল (Cancelled) Batch ইউনিট/খরচের হিসাবে ধরা হয় না। শেষ ৩০০ Batch থেকে হিসাব।</div>
+        </div>
+      </div>
+
+      <div class="pr-panel" id="pr-p-aud" style="display:none;">
+        <div class="card" style="padding:16px;">
+          <div style="font-weight:700;margin-bottom:6px;">🔍 Physical Stock Audit / Reconciliation</div>
+          <div style="color:var(--text3);font-size:12px;margin-bottom:12px;">গুদামে হাতে গুনে আসল সংখ্যা লিখুন। খালি রাখলে ওই আইটেম বাদ। সিস্টেমের সাথে না মিললে 🚩 চিহ্ন আসবে।</div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">গণনাকারী (Auditor) *</label><input class="form-input" id="pr-au-who" list="pr-workers-dl" placeholder="কে গুনছে"></div>
+            <div class="form-group"><label class="form-label">কোনগুলো গুনবেন</label><select class="form-select" id="pr-au-type" onchange="prRenderAudit()"><option value="RM">🧱 Raw Materials</option><option value="FG">📦 Finished Goods</option><option value="ALL">সব</option></select></div>
+            <div class="form-group" style="grid-column:1/-1;"><label class="form-label">Note</label><input class="form-input" id="pr-au-note" placeholder="ঐচ্ছিক"></div>
+          </div>
+          <div class="table-wrap" style="margin-top:12px;"><table class="data-table">
+            <thead><tr><th>Type</th><th>ID</th><th>আইটেম</th><th style="text-align:right;">সিস্টেম স্টক</th><th style="text-align:right;">আসল গণনা</th><th style="text-align:right;">পার্থক্য</th><th style="text-align:right;">মূল্য</th></tr></thead>
+            <tbody id="pr-au-body"></tbody><tfoot id="pr-au-foot"></tfoot>
+          </table></div>
+          <label class="pr-chk" style="display:block;margin-top:12px;"><input type="checkbox" id="pr-au-adj"> গরমিল পাওয়া গেলে সিস্টেম স্টক গণনার সংখ্যায় সংশোধন করো (ঠিক না করলে শুধু ফ্ল্যাগ থাকবে)</label>
+          <div style="margin-top:12px;"><button class="btn primary" onclick="prAuditSubmit()">✅ অডিট সংরক্ষণ করুন</button></div>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden;margin-top:16px;">
+          <div class="pr-bar"><b>📋 অডিট ইতিহাস</b> <button class="btn" onclick="prLoadAudits()">🔄 লোড</button></div>
+          <div class="table-wrap"><table class="data-table">
+            <thead><tr><th>সময়</th><th>Type</th><th>আইটেম</th><th style="text-align:right;">সিস্টেম</th><th style="text-align:right;">গণনা</th><th style="text-align:right;">পার্থক্য</th><th style="text-align:right;">মূল্য</th><th>Auditor</th><th>ফলাফল</th><th>সংশোধিত</th></tr></thead>
+            <tbody id="pr-aud-hist"><tr><td colspan="10" style="text-align:center;color:var(--text3);padding:24px;">“🔄 লোড” চাপুন</td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+      <datalist id="pr-workers-dl"></datalist>
+    </div>
 
     <div class="page" id="page-salesmen">
       <div class="page-header">
@@ -5902,7 +6090,7 @@ tbody td.muted{color:var(--text3);}
 // ═══════════════════════════════════════════════════════════════
 
 // ⚠️ এখানে আপনার Google Apps Script Web App URL বসান (Deploy > New Deployment > Web App)
-      const API_URL = "https://script.google.com/macros/s/AKfycbwJENXDG1VSoKzBG5PHSR_9G9TDC_pDM4ckLO-vIwtXwuF-0a7Hr3kqCxsTeA1XbnYGXw/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
+      const API_URL = "https://script.google.com/macros/s/AKfycby4hh_5Gqgakx2jyy0oJRuLbn5En0lsey-0rhh7leH7qXSXImxKwOlFHA5he3_6b1CfJQ/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
 
 // ─── CONNECTION STATE ────────────────────────────────────────
 let apiConnected = false;
@@ -8330,7 +8518,7 @@ function updateDashLowStockAlert(rows) {
 // ─── NAVIGATION ──────────────────────────────────────────────
 const pageTitles = {
   dashboard:['Dashboard','— Live Overview'], sales:['Sales & Orders','— Order Management'],
-  inventory:['Inventory','— Stock Management'], expense:['Expenses','— Cost Tracking'],
+  inventory:['Inventory','— Stock Management'], production:['Production','— Raw Material, BOM ও Assembly'], expense:['Expenses','— Cost Tracking'],
   partner:['Partners','— Accounting'], crm:['Customers','— CRM'], calculator:['Order Calculator','— Price Calculator'],
   investors:['Investors','— বিনিয়োগ ব্যবস্থাপনা'],
   'delivery-analytics':['Delivery Analytics','— ডেলিভারি বিশ্লেষণ'],
@@ -8370,6 +8558,7 @@ function showPage(id, el) {
   if(id==='recycle-bin') loadRecycleBin();
   if(id==='strategy-hub') loadStrategyHubAll();
   if(id==='salesmen' && window.smOpenPage) smOpenPage();
+  if(id==='production' && window.prOpenPage) prOpenPage();
   if(id==='baki' && window.bakiOpenPage) bakiOpenPage();
   if(window.innerWidth<=900) closeSidebarMobile();
   if(id !== 'activity-log' && id !== 'recycle-bin') logAction(`"${pageTitles[id]?.[0] || id}" পেজ ভিজিট করেছেন`);
@@ -16850,11 +17039,26 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
       <input type="number" class="form-input pt-i-price" min="0" step="any" inputmode="decimal" placeholder="Unit Price" oninput="ptCalc()">
       <div class="pt-line">৳0</div>
       <button type="button" class="btn btn-sm pt-i-del" title="আইটেম সরান" onclick="ptRemoveItem(this)">🗑️</button>
+      <select class="form-select pt-i-rm" onchange="ptRmChanged()" title="ঐচ্ছিক — Production Raw Material স্টকে যোগ করতে"><option value="">📦 Raw Material স্টকে যোগ করবেন না</option></select>
     </div>`;
+  }
+  function rmChanged() {
+    const any = Array.from(document.querySelectorAll('#pt-items .pt-i-rm')).some(x => x.value);
+    const w = $('pt-rm-wrap'); if (w) w.style.display = any ? 'block' : 'none';
+  }
+  function refreshRm() {
+    let rms = [], wk = [];
+    try { const d = window.prGetData ? window.prGetData() : null; if (d) { rms = d.rm.filter(x => x.active); wk = d.workers.filter(x => x.active); } } catch (e) {}
+    document.querySelectorAll('#pt-items .pt-i-rm').forEach(sel => {
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">📦 Raw Material স্টকে যোগ করবেন না</option>' + rms.map(x => `<option value="${esc(x.id)}">📦 স্টকে যোগ → ${esc(x.name)} (${x.cur} ${esc(x.unit)})</option>`).join('');
+      sel.value = cur;
+    });
+    const ws = $('pt-rm-worker'); if (ws) { const cw = ws.value; ws.innerHTML = '<option value="">— বেছে নিন —</option>' + wk.map(w => `<option>${esc(w.name)}</option>`).join(''); ws.value = cw; }
   }
   function addItem(focus) {
     $('pt-items').insertAdjacentHTML('beforeend', itemRowHTML(++PT.n));
-    refreshDel(); calc();
+    refreshDel(); calc(); refreshRm();
     if (focus) { const r = $('pt-items').lastElementChild; try { r.querySelector('.pt-i-name').focus(); } catch (e) {} }
   }
   function removeItem(btn) {
@@ -16878,7 +17082,7 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
     PT.sid = '';
     if (!keepHeader) { ['pt-supplier', 'pt-phone', 'pt-invoice', 'pt-note'].forEach(i => $(i).value = ''); $('pt-method').value = ''; $('pt-source').value = ''; }
     $('pt-date').value = todayBD(); $('pt-paid').value = '';
-    $('pt-items').innerHTML = ''; addItem(false); showErr('pt-err', '');
+    $('pt-items').innerHTML = ''; addItem(false); showErr('pt-err', ''); rmChanged();
   }
 
   // ── Save (এক সাবমিশন = ১..N row; sid দিয়ে retry-নিরাপদ) ──
@@ -16901,7 +17105,13 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
       if (!item) return showErr('pt-err', tag + 'পণ্যের নাম দিন');
       if (!isFinite(q) || q <= 0) return showErr('pt-err', tag + 'পরিমাণ ০ এর বেশি হতে হবে');
       if (pv === '' || !isFinite(p) || p < 0) return showErr('pt-err', tag + 'একক মূল্য সঠিক দিন (ঋণাত্মক নয়)');
-      items.push({ item, qty: q, price: p });
+      const rmv = rows[i].querySelector('.pt-i-rm') ? rows[i].querySelector('.pt-i-rm').value : '';
+      items.push(rmv ? { item, qty: q, price: p, rmId: rmv } : { item, qty: q, price: p });
+    }
+    if (items.some(x => x.rmId)) {
+      h.rmWorker = ($('pt-rm-worker').value || '').trim();
+      if (!h.rmWorker) return showErr('pt-err', 'Raw Material স্টকে যোগ করতে Worker/গ্রহণকারী বেছে নিন');
+      h.by = (typeof currentPartner !== 'undefined' && currentPartner) ? currentPartner : '';
     }
     let paidIn = null; const praw = $('pt-paid').value.trim();
     if (praw !== '') {
@@ -16922,7 +17132,9 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
     try {
       const r = await netPost(Object.assign({ action: 'ptAddPurchase', sid: PT.sid, items }, h, paidIn != null ? { paid: paidIn } : {}));
       if (!r) { showErr('pt-err', '❌ সেভ হয়নি — ইন্টারনেট/API চেক করে আবার চাপুন (ডাবল সেভ হবে না)'); toast('❌ Purchase সেভ হয়নি', 'error'); return; }
-      toast(`✅ ${r.count || items.length}টি আইটেম সেভ হয়েছে`, 'success');
+      toast(`✅ ${r.count || items.length}টি আইটেম সেভ হয়েছে` + (r.stockAdded ? ` · 📦 ${r.stockAdded}টি Raw Material স্টকে যোগ হয়েছে` : ''), 'success');
+      if (r.stockWarn && r.stockWarn.length) alert('⚠️ Purchase সেভ হয়েছে, কিন্তু কিছু স্টক যোগ হয়নি:\n\n' + r.stockWarn.join('\n') + '\n\nProduction পেজ থেকে হাতে স্টক-ইন করুন।');
+      if (r.stockAdded && window.prLoad) { try { window.prLoad(false); } catch (e) {} }
       try { logAction(`Purchase Tracker যোগ: ${h.supplier}${h.invoice ? ' · ' + h.invoice : ''} (${items.length}টি আইটেম)`); } catch (e) {}
       resetForm(false);
       await load(false);
@@ -17029,7 +17241,7 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   function editCalc() { const q = Number($('pt-e-qty').value), p = Number($('pt-e-price').value); $('pt-e-total').textContent = money((isFinite(q) && isFinite(p) && q > 0 && p >= 0) ? cents(q, p) / 100 : 0); }
   async function saveEdit() {
     if (PT.saving || !PT.editId) return;
-    const pl = { action: 'ptUpdatePurchase', id: PT.editId, date: $('pt-e-date').value, supplier: $('pt-e-supplier').value.trim(), phone: $('pt-e-phone').value.trim(),
+    const pl = { action: 'ptUpdatePurchase', by: (typeof currentPartner !== 'undefined' && currentPartner) ? currentPartner : '', id: PT.editId, date: $('pt-e-date').value, supplier: $('pt-e-supplier').value.trim(), phone: $('pt-e-phone').value.trim(),
       invoice: $('pt-e-invoice').value.trim(), item: $('pt-e-item').value.trim(), qty: Number($('pt-e-qty').value), price: Number($('pt-e-price').value),
       method: $('pt-e-method').value, source: $('pt-e-source').value, note: $('pt-e-note').value.trim() };
     const E = m => showErr('pt-e-err', m);
@@ -17051,7 +17263,7 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   async function del(id) {
     const r = PT.rows.find(x => x.id === id); if (!r) return;
     if (!confirm(`এই ক্রয় রেকর্ড মুছে ফেলবেন?\n\n${id} · ${r.supplier}\n${r.item} — ${money(r.total)}\nইনভয়েস: ${r.invoice || '—'}\n\n(শুধু এই একটি row যাবে; Recycle Bin থেকে ৩০ দিন Restore করা যাবে। কোনো হিসাব/ব্যালেন্স বদলাবে না।)`)) return;
-    const res = await netPost({ action: 'ptDeletePurchase', id });
+    const res = await netPost({ action: 'ptDeletePurchase', id, by: (typeof currentPartner !== 'undefined' && currentPartner) ? currentPartner : '' });
     if (!res) return toast('❌ মোছা যায়নি', 'error');
     toast('🗑️ Recycle Bin-এ পাঠানো হয়েছে', 'success');
     try { logAction(`Purchase Tracker ডিলিট: ${id}`); } catch (e) {}
@@ -17223,7 +17435,7 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   function ledger(enc) {
     const list = ledgerSuppliers(); if (!list.length) return toast('এখনো কোনো ক্রয় রেকর্ড নেই', 'info');
     const n = enc ? supKey(decodeURIComponent(enc)) : ''; LED.key = list.some(s => s.key === n) ? n : list[0].key; LED.year = '';
-    renderLedger(); $('modal-pt-ledger').classList.add('open');
+    renderLedger(); $('modal-pt-ledger').classList.add('open'); try{ const lb=$('pt-l-body'); if(lb) lb.scrollTop=0; }catch(_e){}
   }
   function ledgerFromView() { const rows = viewRows(); if (rows.length) ledger(encodeURIComponent(rows[0].supplier)); }
   function ledgerSet(k, v) { LED[k] = v; if (k === 'key') LED.year = ''; renderLedger(); }
@@ -17432,7 +17644,7 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   Object.assign(window, { ptKpi: kpi, ptOpen: open, ptFilterSupplier: filterSupplier, ptViewSel: viewSel, ptViewSelAll: viewSelAll, ptViewSetDate: viewSetDate, ptViewSaveInfo: viewSaveInfo,
     ptViewToggleEdit: () => { VIEW.editOpen = !VIEW.editOpen; renderView(); }, ptViewDeleteAll: viewDeleteAll, ptLedger: ledger, ptLedgerFromView: ledgerFromView, ptLedgerSet: ledgerSet, ptLedgerFilter: ledgerFilter, ptLedgerPrint: ledgerPrint, ptViewSetPaid: viewSetPaid, ptViewAddItem: viewAddItem, ptChart: renderChart, ptChartPick: chartPick, ptViewPrint: viewPrint, ptOpenImport: impOpen, ptCloseImport: impClose, ptImpRead: impRead, ptImpSubmit: impSubmit, ptLoad: load, ptAddItem: () => addItem(true), ptRemoveItem: removeItem, ptCalc: calc, ptSave: save, ptResetForm: () => resetForm(false),
     ptFilterChanged: filterChanged, ptClearFilters: clearFilters, ptEdit: edit, ptSaveEdit: saveEdit, ptDelete: del, ptExport: exportCSV, ptPrint: printIt,
-    ptPage: d => { PT.page += d; render(); } });
+    ptPage: d => { PT.page += d; render(); }, ptRmChanged: rmChanged, ptRefreshRm: refreshRm });
   ['pt-e-qty', 'pt-e-price'].forEach(i => { const e = $(i); if (e) e.addEventListener('input', editCalc); });
   resetForm(false);
 
@@ -17442,7 +17654,7 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
     const orig = window.showPage;
     window.showPage = function (id) {
       const r = orig.apply(this, arguments);
-      try { if (id === 'purchases') load(false); } catch (e) { console.error('purchases hook:', e); }
+      try { if (id === 'purchases') { load(false); refreshRm(); if (window.prGetData && !window.prGetData().loaded && window.prLoad) window.prLoad(false); } } catch (e) { console.error('purchases hook:', e); }
       return r;
     };
   }
@@ -18519,6 +18731,612 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
     try{ if(window.logAction) logAction(o.title+' প্রিন্ট করেছেন'); }catch(e){}
   };
 })();
+</script>
+<!-- ═══════ 🏭 Production modals ═══════ -->
+<div class="modal-overlay" id="modal-pr-rm"><div class="modal">
+  <div class="modal-header"><span class="modal-title" id="pr-rm-title">🧱 Raw Material</span><button class="modal-close" onclick="closeModal('pr-rm')">✕</button></div>
+  <div class="modal-body">
+    <input type="hidden" id="pr-rm-id">
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">নাম *</label><input class="form-input" id="pr-rm-name"></div>
+      <div class="form-group"><label class="form-label">ক্যাটাগরি</label><input class="form-input" id="pr-rm-category" list="pr-rm-catdl" placeholder="BMS / Motor / Battery..."><datalist id="pr-rm-catdl"><option>BMS</option><option>Motor</option><option>Battery</option><option>Body</option><option>Circuit</option><option>Wire & Cable</option><option>Packaging</option><option>Other</option></datalist></div>
+      <div class="form-group"><label class="form-label">ইউনিট</label><input class="form-input" id="pr-rm-unit" value="pcs"></div>
+      <div class="form-group"><label class="form-label">ইউনিট কস্ট (৳)</label><input class="form-input" type="number" step="0.01" min="0" id="pr-rm-cost" value="0"></div>
+      <div class="form-group" id="pr-rm-open-g"><label class="form-label">Opening স্টক</label><input class="form-input" type="number" step="any" min="0" id="pr-rm-open" value="0"></div>
+      <div class="form-group"><label class="form-label">Reorder Level (Low-stock alert)</label><input class="form-input" type="number" step="any" min="0" id="pr-rm-reorder" value="5"></div>
+      <div class="form-group"><label class="form-label">সাপ্লায়ার</label><input class="form-input" id="pr-rm-sup"></div>
+      <div class="form-group"><label class="form-label">সাপ্লায়ার ফোন</label><input class="form-input" id="pr-rm-phone"></div>
+      <div class="form-group" style="grid-column:1/-1;"><label class="form-label">Notes</label><input class="form-input" id="pr-rm-notes"></div>
+      <div class="form-group" id="pr-rm-act-g" style="display:none;"><label class="pr-chk"><input type="checkbox" id="pr-rm-active" checked> সক্রিয়</label></div>
+    </div>
+    <div style="color:var(--text3);font-size:12px;margin-top:8px;" id="pr-rm-hint">স্টক সরাসরি এডিট করা যায় না — 📥 Stock In / 📤 Issue / 🔍 Audit ব্যবহার করুন, যাতে প্রতিটি পরিবর্তনের ইতিহাস থাকে।</div>
+  </div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('pr-rm')">Cancel</button><button class="btn primary" onclick="prSaveRm()">✅ সংরক্ষণ</button></div>
+</div></div>
+
+<div class="modal-overlay" id="modal-pr-move"><div class="modal">
+  <div class="modal-header"><span class="modal-title" id="pr-mv-title">📥 Stock In</span><button class="modal-close" onclick="closeModal('pr-move')">✕</button></div>
+  <div class="modal-body">
+    <input type="hidden" id="pr-mv-id"><input type="hidden" id="pr-mv-act">
+    <div style="margin-bottom:10px;font-weight:600;" id="pr-mv-name"></div>
+    <div id="pr-mv-ptwarn" style="font-size:11.5px;color:var(--text3);margin-bottom:8px;">ℹ️ Purchase Tracker থেকে ইতিমধ্যে স্টকে যোগ করা মালের জন্য এখানে আবার স্টক-ইন করবেন না (ডাবল হবে)।</div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">পরিমাণ *</label><input class="form-input" type="number" step="any" min="0" id="pr-mv-qty"></div>
+      <div class="form-group"><label class="form-label" id="pr-mv-wl">Worker / গ্রহণকারী *</label><input class="form-input" id="pr-mv-worker" list="pr-workers-dl"></div>
+      <div class="form-group" id="pr-mv-cost-g"><label class="form-label">ক্রয়মূল্য প্রতি ইউনিট (৳)</label><input class="form-input" type="number" step="0.01" min="0" id="pr-mv-cost" placeholder="খালি = কস্ট অপরিবর্তিত"></div>
+      <div class="form-group" id="pr-mv-sup-g"><label class="form-label">সাপ্লায়ার</label><input class="form-input" id="pr-mv-sup"></div>
+      <div class="form-group" id="pr-mv-inv-g"><label class="form-label">ইনভয়েস / মেমো নং</label><input class="form-input" id="pr-mv-inv"></div>
+      <div class="form-group" style="grid-column:1/-1;"><label class="form-label">Note / উদ্দেশ্য</label><input class="form-input" id="pr-mv-note"></div>
+    </div>
+    <div id="pr-mv-err" class="pr-err" style="display:none;"></div>
+  </div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('pr-move')">Cancel</button><button class="btn primary" id="pr-mv-btn" onclick="prSaveMove()">✅ নিশ্চিত করুন</button></div>
+</div></div>
+
+<div class="modal-overlay" id="modal-pr-bom"><div class="modal" style="max-width:720px;">
+  <div class="modal-header"><span class="modal-title">🧩 BOM / Recipe</span><button class="modal-close" onclick="closeModal('pr-bom')">✕</button></div>
+  <div class="modal-body">
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Finished Product *</label><select class="form-select" id="pr-b-prod"></select></div>
+      <div class="form-group"><label class="form-label">Recipe নাম</label><input class="form-input" id="pr-b-rec" value="Standard" placeholder="Standard"></div>
+    </div>
+    <div style="font-weight:600;margin:12px 0 6px;">১ ইউনিট বানাতে যা লাগে:</div>
+    <div id="pr-b-lines"></div>
+    <button class="btn" type="button" onclick="prBomLineAdd()" style="margin-top:6px;">＋ উপাদান যোগ</button>
+    <div id="pr-b-cost" style="margin-top:10px;color:var(--text3);font-size:12px;"></div>
+    <div id="pr-b-err" class="pr-err" style="display:none;"></div>
+  </div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('pr-bom')">Cancel</button><button class="btn primary" onclick="prSaveBom()">✅ BOM সংরক্ষণ</button></div>
+</div></div>
+
+<div class="modal-overlay" id="modal-pr-list"><div class="modal" style="max-width:820px;">
+  <div class="modal-header"><h3 id="pr-ls-title">Batch তালিকা</h3><button class="modal-close" onclick="closeModal('pr-list')">✕</button></div>
+  <div class="modal-body"><div class="table-wrap" style="max-height:60vh;overflow:auto;"><table class="data-table"><thead id="pr-ls-head"></thead><tbody id="pr-ls-body"></tbody></table></div></div>
+</div></div>
+<div class="modal-overlay" id="modal-pr-imp"><div class="modal" style="max-width:860px;">
+  <div class="modal-header"><h3>📥 Raw Material — CSV Import</h3><button class="modal-close" onclick="closeModal('pr-imp')">✕</button></div>
+  <div class="modal-body">
+    <div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;">কলাম: <b>Name</b> (বাধ্যতামূলক), Category, Unit, Unit Cost, Opening Stock, Reorder Level, Supplier, Phone। একই নামে আগে থেকে থাকলে সেই রো <b>বাদ</b> যাবে (ডাবল হবে না)। <a href="#" onclick="prImpTemplate();return false;" style="color:var(--accent,#58a6ff);">📄 নমুনা CSV নামান</a></div>
+    <input type="file" id="pr-imp-file" accept=".csv,text/csv" onchange="prImpParse(this)" class="form-input">
+    <div id="pr-imp-sum" style="margin:10px 0;font-size:13px;"></div>
+    <div class="table-wrap" style="max-height:38vh;overflow:auto;"><table class="data-table"><thead><tr><th>#</th><th>Name</th><th>Category</th><th>Unit</th><th style="text-align:right;">Cost</th><th style="text-align:right;">Opening</th><th style="text-align:right;">Reorder</th><th>অবস্থা</th></tr></thead><tbody id="pr-imp-body"></tbody></table></div>
+  </div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('pr-imp')">বাতিল</button><button class="btn primary" id="pr-imp-go" onclick="prImpRun()" disabled>✅ Import শুরু</button></div>
+</div></div>
+<div class="modal-overlay" id="modal-pr-cancel"><div class="modal" style="max-width:480px;">
+  <div class="modal-header"><span class="modal-title">↩️ Batch বাতিল (Rollback)</span><button class="modal-close" onclick="closeModal('pr-cancel')">✕</button></div>
+  <div class="modal-body">
+    <input type="hidden" id="pr-c-id">
+    <div id="pr-c-info" style="margin-bottom:10px;"></div>
+    <div class="form-group"><label class="form-label">বাতিলের কারণ *</label><input class="form-input" id="pr-c-reason" placeholder="যেমন: ভুল সংখ্যা লিখেছি"></div>
+    <div style="color:var(--text3);font-size:12px;margin-top:8px;">ব্যবহৃত ও Scrap সব Raw Material স্টকে ফেরত আসবে, Finished স্টক কমবে। ইতিহাসে বিপরীত এন্ট্রি (ROLLBACK) থাকবে।</div>
+    <div id="pr-c-err" class="pr-err" style="display:none;"></div>
+  </div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('pr-cancel')">বন্ধ</button><button class="btn" style="background:var(--red);border-color:var(--red);color:#fff;" id="pr-c-btn" onclick="prDoCancel()">↩️ বাতিল করুন</button></div>
+</div></div>
+
+<div class="modal-overlay" id="modal-pr-workers"><div class="modal" style="max-width:560px;">
+  <div class="modal-header"><span class="modal-title">👷 Workers / Technicians</span><button class="modal-close" onclick="closeModal('pr-workers')">✕</button></div>
+  <div class="modal-body">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+      <input class="form-input" id="pr-w-name" placeholder="নাম *" style="flex:1;min-width:140px;">
+      <input class="form-input" id="pr-w-role" placeholder="ভূমিকা (Technician)" style="flex:1;min-width:120px;">
+      <input class="form-input" id="pr-w-phone" placeholder="ফোন" style="flex:1;min-width:110px;">
+      <button class="btn primary" onclick="prAddWorker()">＋ যোগ</button>
+    </div>
+    <div id="pr-w-list"></div>
+  </div>
+</div></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// 🏭 PRODUCTION & RAW MATERIAL MODULE (Dual inventory + BOM + Audit)
+//   ডেটা GS-এর নতুন শিটে (Raw_Materials, BOM_Recipes, Production_Log, Stock_Movements,
+//   Physical_Audit, Workers); Finished Goods = আগের Inventory শিট।
+// ═══════════════════════════════════════════════════════════
+(function(){
+  const S = { rm:[], boms:[], batches:[], workers:[], fg:[], moves:[], audits:[], loaded:false, loading:false, tab:'rm' };
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const num = v => { const n = Number(String(v==null?'':v).replace(/,/g,'')); return isFinite(n)?n:0; };
+  const r2 = n => Math.round(n*100)/100;
+  const fmt = n => (Math.round(n*100)/100).toLocaleString('en-US');
+  const by = () => (typeof currentPartner!=='undefined' && currentPartner) ? currentPartner : 'Unknown';
+  const rid = () => 'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+  const rmById = id => S.rm.find(x=>x.id===id);
+
+  // postToAPI-র টোস্টের বদলে ত্রুটির বার্তা নিজের বক্সে দেখানোর জন্য ক্যাপচার
+  let BUSY = false;
+  function busyBar(on){
+    let b = $('pr-busy'); if(!b){ b = document.createElement('div'); b.id='pr-busy'; b.style.cssText='position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:99999;background:var(--gold,#D4A017);color:#111;padding:8px 18px;border-radius:20px;font-weight:700;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.4);display:none;'; b.textContent='⏳ সেভ হচ্ছে… একটু অপেক্ষা করুন (আবার ক্লিক করবেন না)'; document.body.appendChild(b); }
+    b.style.display = on?'block':'none';
+    document.querySelectorAll('.modal-overlay .btn.primary').forEach(x=>{ x.style.opacity = on?'.55':''; x.style.pointerEvents = on?'none':''; });
+  }
+  async function post(payload, errBoxId){
+    if(BUSY){ showToast('আগের সেভ চলছে — অপেক্ষা করুন','info'); return null; }
+    BUSY = true; busyBar(true);
+    try{ return await post_(payload, errBoxId); } finally { BUSY = false; busyBar(false); }
+  }
+  async function post_(payload, errBoxId){
+    payload.by = by(); if(!payload.reqId) payload.reqId = rid();
+    let captured = '';
+    const orig = window.showToast;
+    window.showToast = function(m,t){ if(t==='error'){ captured = String(m).replace(/^Backend error:\s*/,''); } else orig(m,t); };
+    let res;
+    try{ res = await postToAPI(payload); } finally { window.showToast = orig; }
+    if(!res){
+      const msg = captured || window.__lastAPIErrorReason || 'সংযোগ ব্যর্থ — আবার চেষ্টা করুন';
+      if(errBoxId && $(errBoxId)){ $(errBoxId).textContent = '❌ '+msg; $(errBoxId).style.display='block'; }
+      else showToast(msg.split('\n')[0],'error');
+      return null;
+    }
+    if(errBoxId && $(errBoxId)) $(errBoxId).style.display='none';
+    return res;
+  }
+
+  function applyData(d){
+    S.rm = d.rm||[]; S.boms = d.boms||[]; S.batches = d.batches||[]; S.workers = d.workers||[]; S.fg = d.fg||[]; S.loaded = true;
+    renderAll(); try { if (window.ptRefreshRm) window.ptRefreshRm(); } catch (e) {} try { window.dashLowStock && window.dashLowStock(); } catch (e) {}
+  }
+  async function load(force){
+    if(S.loading) return; S.loading = true;
+    try{
+      const d = await fetchFromAPI('prodData');
+      if(!d){ if(force) showToast('Production ডেটা লোড হয়নি — GS নতুন ভার্সন ডিপ্লয় করেছেন?','error'); return; }
+      applyData(d);
+    } finally { S.loading = false; }
+  }
+  // সেভের সাথেই সার্ভার নতুন ডেটা পাঠায় (snap) → আলাদা রিলোডের অপেক্ষা নেই; না এলে আগের মতো রিলোড
+  async function after(res){ if(res && res.snap && res.snap.rm){ applyData(res.snap); } else { await load(true); } S.moves = []; if(S.tab==='mov'){ try{ loadMov(); }catch(_e){} } }
+  function renderAll(){ renderKpis(); renderRM(); renderBOM(); renderBatches(); renderWorkersDL(); fillAsmProducts(); renderAudit(); renderMovFilters(); badge(); try{ if(window.prRenderWrk && $('pr-wrk-body')) window.prRenderWrk(); }catch(e){} }
+
+  function badge(){
+    const low = S.rm.filter(x=>x.active && x.cur<=x.reorder).length, b = $('prod-badge');
+    if(b){ b.textContent = low; b.style.display = low?'inline-block':'none'; b.className='nav-badge red'; b.style.background='var(--red)'; }
+  }
+  function renderKpis(){
+    const act = S.rm.filter(x=>x.active), low = act.filter(x=>x.cur<=x.reorder).length;
+    const val = act.reduce((s,x)=>s+x.cur*x.cost,0);
+    const today = new Date(Date.now()+6*3600e3).toISOString().slice(0,10);
+    const done = S.batches.filter(b=>b.status==='Completed');
+    const todayUnits = done.filter(b=>b.ts && new Date(b.ts+6*3600e3).toISOString().slice(0,10)===today).reduce((s,b)=>s+b.units,0);
+    const k = (l,v,c,a,h)=>`<div class="pr-kpi clk" onclick="${a}" title="ক্লিক করে বিস্তারিত দেখুন"><div class="l">${l}</div><div class="v ${c||''}">${v}</div><div class="h">${h||'বিস্তারিত →'}</div></div>`;
+    $('pr-kpis').innerHTML = k('Raw Material আইটেম',act.length,'',"prKpi('rm')")+k('Low / Out of Stock',low,low?'pr-bad':'pr-ok',"prKpi('low')",low?'শুধু এগুলো দেখুন →':'সব ঠিক আছে')+k('Raw Material মূল্য','৳'+fmt(val),'',"prKpi('val')",'মূল্য অনুযায়ী সাজানো →')+k('আজকের উৎপাদন',todayUnits+' ইউনিট','',"prKpi('today')",'আজকের Batch →')+k('মোট Batch',done.length,'',"prKpi('batch')",'সব Batch →')+k('BOM Recipe',S.boms.length,'',"prKpi('bom')");
+  }
+  window.prKpi = function(t){
+    if(t==='bom'){ prTab('bom'); return; }
+    if(t==='today'||t==='batch'){
+      const today = new Date(Date.now()+6*3600e3).toISOString().slice(0,10);
+      const rows = S.batches.filter(b=>t==='batch' ? true : (b.ts && new Date(b.ts+6*3600e3).toISOString().slice(0,10)===today)).sort((a,b)=>b.ts-a.ts);
+      $('pr-ls-title').textContent = t==='today' ? '🏭 আজকের Batch ('+rows.length+')' : '🏭 সব Batch ('+rows.length+')';
+      $('pr-ls-head').innerHTML = '<tr><th>Batch</th><th>সময়</th><th>প্রোডাক্ট</th><th style="text-align:right;">ইউনিট</th><th>Worker</th><th style="text-align:right;">মোট খরচ</th><th>অবস্থা</th></tr>';
+      $('pr-ls-body').innerHTML = rows.length ? rows.map(b=>`<tr><td>${esc(b.id)}</td><td>${b.ts?new Date(b.ts).toLocaleString('en-GB',{timeZone:'Asia/Dhaka'}):''}</td><td>${esc(b.product)}</td><td style="text-align:right;">${fmt(b.units)}</td><td>${esc(b.worker)}</td><td style="text-align:right;">৳${fmt(b.totalCost)}</td><td>${b.status==='Completed'?'✅ '+esc(b.status):'❌ '+esc(b.status)}</td></tr>`).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:24px;">কোনো Batch নেই</td></tr>';
+      openModal('pr-list'); return;
+    }
+    $('pr-rm-q').value=''; $('pr-rm-cat').value=''; $('pr-rm-low').checked = (t==='low'); S.rmSortVal = (t==='val');
+    prTab('rm'); renderRM();
+    const el = $('pr-p-rm'); if(el && el.scrollIntoView) el.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+
+  // ── Raw Materials ──
+  function renderRM(){
+    const q = ($('pr-rm-q').value||'').toLowerCase(), cat = $('pr-rm-cat').value, lowOnly = $('pr-rm-low').checked;
+    const cats = Array.from(new Set(S.rm.map(x=>x.cat).filter(Boolean))).sort();
+    const sel = $('pr-rm-cat'), cur = sel.value; sel.innerHTML = '<option value="">সব ক্যাটাগরি</option>'+cats.map(c=>`<option>${esc(c)}</option>`).join(''); sel.value = cats.includes(cur)?cur:'';
+    let rows = S.rm.filter(x=>(!q || (x.name+x.id+x.supplier).toLowerCase().includes(q)) && (!sel.value || x.cat===sel.value) && (!lowOnly || (x.active && x.cur<=x.reorder)));
+    if(S.rmSortVal) rows = rows.slice().sort((a,b)=>b.cur*b.cost-a.cur*a.cost);
+    $('pr-rm-body').innerHTML = rows.length ? rows.map(x=>{
+      const st = !x.active?'<span class="pr-pill">⚪ নিষ্ক্রিয়</span>':(x.cur<=0?'<span class="pr-pill pr-bad">🔴 Out of Stock</span>':(x.cur<=x.reorder?'<span class="pr-pill pr-warn">🟡 Low Stock</span>':'<span class="pr-pill pr-ok">🟢 In Stock</span>'));
+      return `<tr style="${x.active?'':'opacity:.55;'}"><td>${esc(x.id)}</td><td><b>${esc(x.name)}</b></td><td>${esc(x.cat)}</td><td style="text-align:right;font-weight:700;">${fmt(x.cur)} ${esc(x.unit)}</td><td style="text-align:right;">৳${fmt(x.cost)}</td><td style="text-align:right;">৳${fmt(x.cur*x.cost)}</td><td style="text-align:right;">${fmt(x.reorder)}</td><td>${esc(x.supplier)}${x.phone?'<br><small style="color:var(--text3);">'+esc(x.phone)+'</small>':''}</td><td>${st}</td>
+      <td style="white-space:nowrap;"><button class="btn pr-mini" onclick="prOpenMove('${esc(x.id)}','rmStockIn')">📥 In</button> <button class="btn pr-mini" onclick="prOpenMove('${esc(x.id)}','rmIssue')">📤 Issue</button> <button class="btn pr-mini" onclick="prOpenMove('${esc(x.id)}','rmReturn')">↩ Return</button> <button class="btn pr-mini" onclick="prOpenRm('${esc(x.id)}')">✏️</button></td></tr>`;
+    }).join('') : '<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:30px;">কোনো Raw Material নেই — “＋ Raw Material” চাপুন</td></tr>';
+    const tv = rows.filter(x=>x.active).reduce((s,x)=>s+x.cur*x.cost,0);
+    $('pr-rm-foot').innerHTML = `<tr><td colspan="5" style="text-align:right;font-weight:700;">মোট স্টক মূল্য</td><td style="text-align:right;font-weight:800;">৳${fmt(tv)}</td><td colspan="4"></td></tr>`;
+    const hasBom = new Set(S.boms.map(b=>b.product));
+    $('pr-fg-body').innerHTML = S.fg.length ? S.fg.map(f=>`<tr><td>${esc(f.id)}</td><td><b>${esc(f.name)}</b></td><td style="text-align:right;font-weight:700;">${fmt(f.cur)}</td><td style="text-align:right;">৳${fmt(f.cost)}</td><td style="text-align:right;">৳${fmt(f.sell)}</td><td>${hasBom.has(f.name)?'<span class="pr-ok">✔ আছে</span>':'<span style="color:var(--text3);">—</span>'}</td></tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px;">Inventory খালি</td></tr>';
+  }
+  window.prOpenRm = function(id){
+    const x = id ? rmById(id) : null;
+    $('pr-rm-title').textContent = x ? '✏️ Raw Material এডিট' : '＋ নতুন Raw Material';
+    $('pr-rm-id').value = x?x.id:''; $('pr-rm-name').value = x?x.name:''; $('pr-rm-category').value = x?x.cat:''; $('pr-rm-unit').value = x?x.unit:'pcs';
+    $('pr-rm-cost').value = x?x.cost:0; $('pr-rm-open').value = 0; $('pr-rm-reorder').value = x?x.reorder:5; $('pr-rm-sup').value = x?x.supplier:''; $('pr-rm-phone').value = x?x.phone:''; $('pr-rm-notes').value = x?x.notes:'';
+    $('pr-rm-open-g').style.display = x?'none':''; $('pr-rm-act-g').style.display = x?'':'none'; $('pr-rm-active').checked = x?x.active:true;
+    openModal('pr-rm');
+  };
+  window.prSaveRm = async function(){
+    const name = $('pr-rm-name').value.trim(); if(!name){ showToast('নাম দিন','error'); return; }
+    const res = await post({ action:'rmSave', id:$('pr-rm-id').value, name, cat:$('pr-rm-category').value.trim(), unit:$('pr-rm-unit').value.trim(), cost:num($('pr-rm-cost').value), opening:num($('pr-rm-open').value), reorder:num($('pr-rm-reorder').value), supplier:$('pr-rm-sup').value.trim(), phone:$('pr-rm-phone').value.trim(), notes:$('pr-rm-notes').value.trim(), active:$('pr-rm-active').checked });
+    if(res){ showToast(res.message||'সংরক্ষিত','success'); closeModal('pr-rm'); try{logAction('Raw Material সংরক্ষণ: '+name);}catch(_e){} await after(res); }
+  };
+  window.prOpenMove = function(id, act){
+    const x = rmById(id); if(!x) return;
+    const T = { rmStockIn:['📥 Stock In (ক্রয়/গ্রহণ)','Worker / গ্রহণকারী *'], rmIssue:['📤 Material Issue (ওয়ার্কারকে দেওয়া)','Worker / যাকে দেওয়া হলো *'], rmReturn:['↩ Return (অব্যবহৃত ফেরত)','Worker / ফেরতদাতা *'] }[act];
+    $('pr-mv-title').textContent = T[0]; $('pr-mv-wl').textContent = T[1]; $('pr-mv-id').value = id; $('pr-mv-act').value = act;
+    $('pr-mv-name').innerHTML = `${esc(x.name)} <span style="color:var(--text3);font-weight:400;">— বর্তমান স্টক: ${fmt(x.cur)} ${esc(x.unit)}</span>`;
+    ['qty','worker','cost','sup','inv','note'].forEach(k=>$('pr-mv-'+k).value=''); const isIn = act==='rmStockIn';
+    ['cost','sup','inv'].forEach(k=>$('pr-mv-'+k+'-g').style.display = isIn?'':'none'); if(isIn) $('pr-mv-sup').value = x.supplier||'';
+    $('pr-mv-err').style.display='none'; openModal('pr-move');
+  };
+  window.prSaveMove = async function(){
+    const act = $('pr-mv-act').value, qty = num($('pr-mv-qty').value), worker = $('pr-mv-worker').value.trim();
+    if(!(qty>0)){ showToast('পরিমাণ দিন','error'); return; } if(!worker){ showToast('Worker/Technician-এর নাম বাধ্যতামূলক','error'); return; }
+    const btn = $('pr-mv-btn'); btn.disabled = true;
+    try{
+      const res = await post({ action:act, rmId:$('pr-mv-id').value, qty, worker, unitCost:$('pr-mv-cost').value, supplier:$('pr-mv-sup').value.trim(), invoice:$('pr-mv-inv').value.trim(), note:$('pr-mv-note').value.trim() }, 'pr-mv-err');
+      if(res){ showToast(res.message,'success'); closeModal('pr-move'); try{logAction('Raw Material '+act+': '+$('pr-mv-id').value+' × '+qty+' ('+worker+')');}catch(_e){} await after(res); }
+    } finally { btn.disabled = false; }
+  };
+
+  // ── Workers ──
+  function renderWorkersDL(){
+    const act = S.workers.filter(w=>w.active);
+    $('pr-workers-dl').innerHTML = act.map(w=>`<option value="${esc(w.name)}">`).join('');
+    const l = $('pr-w-list'); if(l) l.innerHTML = S.workers.length ? S.workers.map(w=>`<div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);"><span style="flex:1;${w.active?'':'opacity:.5;'}"><b>${esc(w.name)}</b> <small style="color:var(--text3);">${esc(w.role)} ${esc(w.phone)}</small></span><button class="btn pr-mini" onclick="prToggleWorker('${esc(w.id)}')">${w.active?'নিষ্ক্রিয় করুন':'সক্রিয় করুন'}</button></div>`).join('') : '<div style="color:var(--text3);">কোনো ওয়ার্কার নেই</div>';
+    const fw = $('pr-m-wk'); if(fw){ const cur = fw.value; fw.innerHTML = '<option value="">সব Worker</option>'+S.workers.map(w=>`<option>${esc(w.name)}</option>`).join(''); fw.value = cur; }
+  }
+  window.prOpenWorkers = function(){ renderWorkersDL(); openModal('pr-workers'); };
+  window.prAddWorker = async function(){
+    const name = $('pr-w-name').value.trim(); if(!name){ showToast('নাম দিন','error'); return; }
+    const res = await post({ action:'workerSave', name, role:$('pr-w-role').value.trim(), phone:$('pr-w-phone').value.trim() });
+    if(res){ ['name','role','phone'].forEach(k=>$('pr-w-'+k).value=''); showToast(res.message,'success'); await after(res); }
+  };
+  window.prToggleWorker = async function(id){
+    const w = S.workers.find(x=>x.id===id); if(!w) return;
+    const res = await post({ action:'workerSave', id, name:w.name, role:w.role, phone:w.phone, active:!w.active }); if(res){ await after(res); }
+  };
+
+  // ── BOM ──
+  function estCost(lines){ return lines.reduce((s,l)=>{ const r = rmById(l.rmId); return s + (r?r.cost*l.qty:0); },0); }
+  function renderBOM(){
+    const el = $('pr-bom-list'); if(!el) return;
+    el.innerHTML = S.boms.length ? S.boms.map((b,i)=>`<div class="pr-bomcard"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><h4 style="flex:1;margin:0;">${esc(b.product)} <span class="pr-pill">${esc(b.recipe)}</span></h4>
+      <span style="font-size:12px;color:var(--text3);">আনুমানিক খরচ: <b style="color:var(--gold);">৳${fmt(estCost(b.lines))}</b>/ইউনিট</span>
+      <button class="btn pr-mini" onclick="prAsmFrom(${i})">🏭 Produce</button><button class="btn pr-mini" onclick="prOpenBom(${i})">✏️ Edit</button><button class="btn pr-mini" onclick="prDelBom(${i})">🗑️</button></div>
+      <table class="data-table" style="margin-top:8px;"><thead><tr><th>Raw Material</th><th style="text-align:right;">প্রতি ইউনিটে</th><th style="text-align:right;">বর্তমান স্টক</th><th style="text-align:right;">কয় ইউনিট বানানো যাবে</th></tr></thead><tbody>${b.lines.map(l=>{ const r = rmById(l.rmId); return `<tr><td>${esc(l.rmName)}</td><td style="text-align:right;">${fmt(l.qty)} ${esc(r?r.unit:'')}</td><td style="text-align:right;">${r?fmt(r.cur):'<span class="pr-bad">মুছে গেছে</span>'}</td><td style="text-align:right;">${r&&l.qty>0?Math.floor(r.cur/l.qty):0}</td></tr>`; }).join('')}</tbody></table>
+      <div style="margin-top:6px;font-size:12px;color:var(--text3);">সর্বোচ্চ বানানো সম্ভব: <b>${maxBuild(b)}</b> ইউনিট</div></div>`).join('') : '<div class="card" style="padding:30px;text-align:center;color:var(--text3);">কোনো BOM নেই — “＋ নতুন BOM” চাপুন</div>';
+  }
+  function maxBuild(b){ let m = Infinity; b.lines.forEach(l=>{ const r = rmById(l.rmId); m = Math.min(m, r&&l.qty>0 ? Math.floor(r.cur/l.qty) : 0); }); return m===Infinity?0:m; }
+  function rmOptions(sel){ return '<option value="">— Raw Material —</option>'+S.rm.filter(x=>x.active||x.id===sel).map(x=>`<option value="${esc(x.id)}" ${x.id===sel?'selected':''}>${esc(x.name)} (${fmt(x.cur)} ${esc(x.unit)})</option>`).join(''); }
+  window.prOpenBom = function(i){
+    const b = (i===null||i===undefined) ? null : S.boms[i];
+    $('pr-b-prod').innerHTML = '<option value="">— Finished Product —</option>'+S.fg.map(f=>`<option ${b&&b.product===f.name?'selected':''}>${esc(f.name)}</option>`).join('');
+    $('pr-b-rec').value = b?b.recipe:'Standard'; $('pr-b-lines').innerHTML = ''; (b?b.lines:[{rmId:'',qty:1}]).forEach(l=>prBomLineAdd(l)); $('pr-b-err').style.display='none'; bomCost(); openModal('pr-bom');
+  };
+  window.prBomLineAdd = function(l){
+    l = l||{rmId:'',qty:1}; const d = document.createElement('div'); d.className = 'pr-line';
+    d.innerHTML = `<select class="form-select" onchange="prBomCost()">${rmOptions(l.rmId)}</select><input class="form-input" type="number" step="any" min="0" value="${l.qty}" oninput="prBomCost()"><button class="btn pr-mini" type="button" onclick="this.parentNode.remove();prBomCost()">✕</button>`;
+    $('pr-b-lines').appendChild(d);
+  };
+  function bomLines(){ return Array.from($('pr-b-lines').children).map(d=>({rmId:d.children[0].value, qty:num(d.children[1].value)})).filter(l=>l.rmId); }
+  function bomCost(){ const c = estCost(bomLines()); $('pr-b-cost').innerHTML = `আনুমানিক Raw Material খরচ: <b style="color:var(--gold);">৳${fmt(c)}</b> প্রতি ইউনিট`; }
+  window.prBomCost = bomCost;
+  window.prSaveBom = async function(){
+    const product = $('pr-b-prod').value, lines = bomLines();
+    if(!product){ showToast('Finished Product বেছে নিন','error'); return; } if(!lines.length){ showToast('কমপক্ষে একটি উপাদান দিন','error'); return; }
+    if(lines.some(l=>!(l.qty>0))){ showToast('সব উপাদানের পরিমাণ ০-এর বেশি হতে হবে','error'); return; }
+    const res = await post({ action:'bomSave', product, recipe:$('pr-b-rec').value.trim()||'Standard', lines }, 'pr-b-err');
+    if(res){ showToast(res.message,'success'); closeModal('pr-bom'); try{logAction('BOM সংরক্ষণ: '+product);}catch(_e){} await after(res); }
+  };
+  window.prDelBom = async function(i){
+    const b = S.boms[i]; if(!b || !confirm('"'+b.product+' ('+b.recipe+')" BOM মুছবেন? (ইতিহাস অক্ষুণ্ণ থাকবে)')) return;
+    const res = await post({ action:'bomDelete', key:b.key }); if(res){ showToast(res.message,'success'); await after(res); }
+  };
+
+  // ── Assembly ──
+  function fillAsmProducts(){
+    const sel = $('pr-a-prod'), cur = sel.value, prods = Array.from(new Set(S.boms.map(b=>b.product)));
+    sel.innerHTML = '<option value="">— BOM আছে এমন প্রোডাক্ট —</option>'+prods.map(p=>`<option>${esc(p)}</option>`).join(''); if(prods.includes(cur)) sel.value = cur; asmProdChange(true);
+  }
+  function asmProdChange(keep){
+    const p = $('pr-a-prod').value, recs = S.boms.filter(b=>b.product===p), sel = $('pr-a-rec'), cur = sel.value;
+    sel.innerHTML = recs.map(b=>`<option>${esc(b.recipe)}</option>`).join(''); if(keep && recs.some(b=>b.recipe===cur)) sel.value = cur; asmPreview();
+  }
+  window.prAsmProdChange = () => asmProdChange(false);
+  function curBom(){ return S.boms.find(b=>b.product===$('pr-a-prod').value && b.recipe===$('pr-a-rec').value); }
+  function scrapRows(){ return Array.from($('pr-a-scrap').children).map(d=>({rmId:d.children[0].value, qty:num(d.children[1].value), reason:d.children[2].value.trim()})).filter(s=>s.rmId&&s.qty>0); }
+  function needMap(){
+    const b = curBom(), units = Math.floor(num($('pr-a-units').value)), need = {}; if(!b || !(units>=1)) return {need, units, b};
+    b.lines.forEach(l=>{ need[l.rmId] = r2((need[l.rmId]||0) + l.qty*units); }); scrapRows().forEach(s=>{ need[s.rmId] = r2((need[s.rmId]||0)+s.qty); }); return {need, units, b};
+  }
+  function asmPreview(){
+    const {need, units, b} = needMap(), box = $('pr-a-preview');
+    if(!b){ box.innerHTML = '<div style="color:var(--text3);font-size:12px;">প্রোডাক্ট ও রেসিপি বেছে নিন</div>'; return; }
+    let ok = true, cost = 0, scrapC = 0; const sc = {}; scrapRows().forEach(s=>sc[s.rmId]=(sc[s.rmId]||0)+s.qty);
+    const rows = b.lines.map(l=>{ const r = rmById(l.rmId), n = r2(l.qty*(units||0)), tot = need[l.rmId]||n, have = r?r.cur:0, good = r && have+1e-9>=tot; if(!good) ok = false; cost += (r?r.cost:0)*n; return `<tr><td>${esc(l.rmName)}</td><td style="text-align:right;">${fmt(l.qty)}</td><td style="text-align:right;">${fmt(tot)}${sc[l.rmId]?' <small style="color:var(--gold);">(+scrap)</small>':''}</td><td style="text-align:right;">${fmt(have)}</td><td style="text-align:center;">${good?'<span class="pr-ok">✔</span>':'<span class="pr-bad">✖ কম '+fmt(tot-have)+'</span>'}</td></tr>`; }).join('');
+    // বাড়তি scrap-only উপাদান
+    let extra = ''; Object.keys(sc).forEach(id=>{ if(!b.lines.some(l=>l.rmId===id)){ const r = rmById(id), have = r?r.cur:0, good = have>=sc[id]; if(!good) ok=false; extra += `<tr><td>${esc(r?r.name:id)} <small>(শুধু scrap)</small></td><td style="text-align:right;">—</td><td style="text-align:right;">${fmt(sc[id])}</td><td style="text-align:right;">${fmt(have)}</td><td style="text-align:center;">${good?'<span class="pr-ok">✔</span>':'<span class="pr-bad">✖</span>'}</td></tr>`; } });
+    Object.keys(sc).forEach(id=>{ const r = rmById(id); scrapC += (r?r.cost:0)*sc[id]; });
+    const total = cost+scrapC, unitC = units>0 ? total/units : 0;
+    box.innerHTML = `<table class="data-table"><thead><tr><th>Raw Material</th><th style="text-align:right;">প্রতি ইউনিট</th><th style="text-align:right;">মোট লাগবে</th><th style="text-align:right;">স্টকে আছে</th><th></th></tr></thead><tbody>${rows}${extra}</tbody></table>
+      <div style="margin-top:8px;font-size:13px;">আনুমানিক খরচ: Material ৳${fmt(cost)} + Scrap ৳${fmt(scrapC)} = <b>৳${fmt(total)}</b> · ইউনিট খরচ <b style="color:var(--gold);">৳${fmt(unitC)}</b> ${ok?'':'<span class="pr-bad" style="margin-left:8px;">⚠️ স্টক অপর্যাপ্ত — Production আটকাবে</span>'}</div>`;
+  }
+  window.prAsmPreview = asmPreview;
+  window.prScrapAdd = function(){
+    const d = document.createElement('div'); d.className = 'pr-line s';
+    d.innerHTML = `<select class="form-select" onchange="prAsmPreview()">${rmOptions('')}</select><input class="form-input" type="number" step="any" min="0" placeholder="পরিমাণ" oninput="prAsmPreview()"><input class="form-input" placeholder="কারণ (পোড়া/ভাঙা...)"><button class="btn pr-mini" type="button" onclick="this.parentNode.remove();prAsmPreview()">✕</button>`;
+    $('pr-a-scrap').appendChild(d);
+  };
+  window.prAsmFrom = function(i){ const b = S.boms[i]; prTab('asm'); $('pr-a-prod').value = b.product; asmProdChange(false); $('pr-a-rec').value = b.recipe; asmPreview(); window.scrollTo({top:0,behavior:'smooth'}); };
+  window.prProduce = async function(){
+    const b = curBom(), units = Math.floor(num($('pr-a-units').value)), worker = $('pr-a-worker').value.trim(), err = $('pr-a-err');
+    const bad = m => { err.textContent = '❌ '+m; err.style.display = 'block'; };
+    if(!b) return bad('প্রোডাক্ট ও রেসিপি বেছে নিন'); if(!(units>=1)) return bad('ইউনিট ১ বা তার বেশি পূর্ণসংখ্যা হতে হবে'); if(!worker) return bad('Worker/Technician-এর নাম বাধ্যতামূলক');
+    const {need} = needMap(), short = []; Object.keys(need).forEach(id=>{ const r = rmById(id); if(!r || r.cur+1e-9<need[id]) short.push((r?r.name:id)+': দরকার '+fmt(need[id])+', আছে '+fmt(r?r.cur:0)); });
+    if(short.length) return bad('Raw Material অপর্যাপ্ত — Production আটকানো হয়েছে:\n'+short.join('\n'));
+    if(!confirm(b.product+' × '+units+' ইউনিট তৈরি করবেন?\nWorker: '+worker+'\nRaw Material স্টক কমবে, Finished স্টক বাড়বে।')) return;
+    err.style.display = 'none'; const btn = $('pr-a-btn'); btn.disabled = true; btn.textContent = '⏳ প্রসেস হচ্ছে...';
+    try{
+      const res = await post({ action:'produce', product:b.product, recipe:b.recipe, units, worker, note:$('pr-a-note').value.trim(), scrap:scrapRows(), updateCost:$('pr-a-updcost').checked }, 'pr-a-err');
+      if(res){ showToast(res.message,'success'); try{logAction('Production: '+b.product+' × '+units+' ('+worker+')');}catch(_e){} $('pr-a-scrap').innerHTML=''; $('pr-a-units').value=1; $('pr-a-note').value=''; await after(res); try{ if(typeof loadLiveInventory==='function') loadLiveInventory(); }catch(_e){} }
+    } finally { btn.disabled = false; btn.textContent = '✅ Production সম্পন্ন করুন'; }
+  };
+  function renderBatches(){
+    $('pr-batch-body').innerHTML = S.batches.length ? S.batches.map(b=>`<tr style="${b.status==='Cancelled'?'opacity:.55;':''}"><td><b>${esc(b.id)}</b>${b.lot?`<br><small style="color:var(--text3);">${esc(b.lot)}</small><br><small style="color:var(--gold);">${esc(b.serialFrom)} → ${esc(b.serialTo)}</small>`:''}</td><td>${esc(b.time)}</td><td>${esc(b.product)} <small style="color:var(--text3);">${esc(b.recipe)}</small>${b.note?'<br><small style="color:var(--text3);">'+esc(b.note)+'</small>':''}</td><td style="text-align:right;">${fmt(b.units)}</td><td>${esc(b.worker)}</td><td style="text-align:right;">৳${fmt(b.totalCost)}${b.scrapCost?'<br><small class="pr-warn">scrap ৳'+fmt(b.scrapCost)+'</small>':''}</td><td style="text-align:right;">৳${fmt(b.unitCost)}</td>
+      <td>${b.status==='Completed'?'<span class="pr-pill pr-ok">✔ Completed</span>':'<span class="pr-pill pr-bad">↩ Cancelled</span><br><small style="color:var(--text3);">'+esc(b.cancelledBy)+': '+esc(b.cancelReason)+'</small>'}</td>
+      <td>${b.status==='Completed'?`<button class="btn pr-mini" onclick="prOpenCancel('${esc(b.id)}')">↩ বাতিল</button>`:''} <button class="btn pr-mini" onclick="prMovFor('${esc(b.id)}')">📜</button></td></tr>`).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:24px;">এখনো কোনো Batch নেই</td></tr>';
+  }
+  window.prOpenCancel = function(id){ const b = S.batches.find(x=>x.id===id); if(!b) return; $('pr-c-id').value = id; $('pr-c-reason').value = ''; $('pr-c-err').style.display = 'none'; $('pr-c-info').innerHTML = `<b>${esc(b.id)}</b> — ${esc(b.product)} × ${fmt(b.units)} (${esc(b.worker)})`; openModal('pr-cancel'); };
+  window.prDoCancel = async function(){
+    const reason = $('pr-c-reason').value.trim(); if(!reason){ showToast('কারণ লিখুন','error'); return; }
+    const btn = $('pr-c-btn'); btn.disabled = true;
+    try{ const pin = await _askPartnerPin('Batch বাতিল করতে আপনার PIN দিন'); if(!pin){ btn.disabled=false; return; }
+      const res = await post({ action:'cancelBatch', batchId:$('pr-c-id').value, reason, pin }, 'pr-c-err');
+      if(res){ showToast(res.message,'success'); closeModal('pr-cancel'); try{logAction('Production Batch বাতিল: '+$('pr-c-id').value);}catch(_e){} await after(res); try{ if(typeof loadLiveInventory==='function') loadLiveInventory(); }catch(_e){} } }
+    finally{ btn.disabled = false; }
+  };
+
+  // ── Movement history ──
+  const ACTS = ['OPENING','PURCHASE','PURCHASE_ADJUST','PURCHASE_REVERSE','ISSUE','RETURN','PRODUCTION_CONSUME','PRODUCTION_OUTPUT','SCRAP','ROLLBACK_CONSUME','ROLLBACK_SCRAP','ROLLBACK_OUTPUT','AUDIT_ADJUST'];
+  function renderMovFilters(){ const a = $('pr-m-act'); if(a && !a.options.length) a.innerHTML = '<option value="">সব Action</option>'+ACTS.map(x=>`<option>${x}</option>`).join(''); }
+  async function loadMov(extra){
+    const d = await fetchFromAPI('stockMoves', Object.assign({limit:800}, extra||{})); if(!d){ showToast('Movement লোড হয়নি','error'); return; }
+    S.moves = d.data||[]; renderMov();
+  }
+  window.prLoadMov = () => loadMov();
+  window.prMovFor = function(ref){ prTab('mov'); loadMov({ref}); };
+  function renderMov(){
+    const q = ($('pr-m-q').value||'').toLowerCase(), act = $('pr-m-act').value, wk = $('pr-m-wk').value;
+    const rows = S.moves.filter(m=>(!act||m.action===act)&&(!wk||m.worker===wk)&&(!q||(m.name+m.itemId+m.worker+m.ref+m.note).toLowerCase().includes(q)));
+    $('pr-mov-body').innerHTML = rows.length ? rows.map(m=>`<tr><td style="white-space:nowrap;">${esc(m.time)}</td><td><span class="pr-pill ${m.action.startsWith('ROLLBACK')||m.action==='SCRAP'?'pr-warn':''}">${esc(m.action)}</span></td><td>${esc(m.type)}</td><td>${esc(m.name)} <small style="color:var(--text3);">${esc(m.itemId)}</small></td><td style="text-align:right;font-weight:700;" class="${m.change<0?'pr-bad':'pr-ok'}">${m.change>0?'+':''}${fmt(m.change)}</td><td style="text-align:right;">${fmt(m.balance)}</td><td>${esc(m.worker)}</td><td>${esc(m.ref)}</td><td>${esc(m.note)}</td><td>${esc(m.by)}</td></tr>`).join('') : '<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:30px;">কিছু পাওয়া যায়নি</td></tr>';
+  }
+  window.prRenderMov = renderMov;
+  window.prMovCsv = function(){
+    if(!S.moves.length){ showToast('আগে লোড করুন','info'); return; }
+    const H = ['Time','Action','Type','ItemID','Item','Change','Balance','Worker','Ref','Note','By'], q = v => '"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+    const csv = '﻿'+[H.join(',')].concat(S.moves.map(m=>[m.time,m.action,m.type,m.itemId,m.name,m.change,m.balance,m.worker,m.ref,m.note,m.by].map(q).join(','))).join('\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download = 'stock_movements.csv'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  };
+  window.prHealth = async function(){
+    const d = await fetchFromAPI('invHealth'); if(!d){ showToast('যাচাই ব্যর্থ','error'); return; }
+    if(!d.mismatches.length) showToast('✅ লেজার ও স্টক সম্পূর্ণ মিলেছে ('+d.checked+'টি Raw Material)','success');
+    else alert('⚠️ লেজার ও স্টকে গরমিল:\n\n'+d.mismatches.map(m=>m.name+' — শিটে: '+m.stored+', লেজার: '+m.ledger+' (পার্থক্য '+m.diff+')').join('\n')+'\n\nশিটে সরাসরি স্টক বদলানো হয়েছে কি না দেখুন। Physical Audit দিয়ে সংশোধন করুন।');
+  };
+
+  // ── Physical audit ──
+  function auditItems(){
+    const t = $('pr-au-type').value, out = [];
+    if(t==='RM'||t==='ALL') S.rm.filter(x=>x.active).forEach(x=>out.push({type:'RM',id:x.id,name:x.name,sys:x.cur,cost:x.cost,unit:x.unit}));
+    if(t==='FG'||t==='ALL') S.fg.forEach(x=>out.push({type:'FG',id:x.id,name:x.name,sys:x.cur,cost:x.cost,unit:'pcs'}));
+    return out;
+  }
+  function renderAudit(){
+    const body = $('pr-au-body'); if(!body) return; const keep = {}; body.querySelectorAll('input').forEach(i=>keep[i.dataset.k] = i.value);
+    const items = auditItems();
+    body.innerHTML = items.map(x=>`<tr><td>${x.type}</td><td>${esc(x.id)}</td><td><b>${esc(x.name)}</b></td><td style="text-align:right;">${fmt(x.sys)} ${esc(x.unit)}</td><td style="text-align:right;"><input class="form-input" style="width:110px;text-align:right;display:inline-block;" type="number" step="any" min="0" data-k="${x.type}|${esc(x.id)}" data-sys="${x.sys}" data-cost="${x.cost}" value="${esc(keep[x.type+'|'+x.id]||'')}" oninput="prAuditCalc()"></td><td style="text-align:right;" id="pr-av-${x.type}-${esc(x.id)}"></td><td style="text-align:right;" id="pr-avv-${x.type}-${esc(x.id)}"></td></tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:20px;">আইটেম নেই</td></tr>';
+    auditCalc();
+  }
+  window.prRenderAudit = renderAudit;
+  function auditCalc(){
+    let flagged = 0, loss = 0, counted = 0;
+    $('pr-au-body').querySelectorAll('input').forEach(i=>{
+      const [t,id] = i.dataset.k.split('|'), c = $('pr-av-'+t+'-'+id), v = $('pr-avv-'+t+'-'+id); if(!c) return;
+      if(i.value===''){ c.textContent=''; v.textContent=''; return; } counted++;
+      const d = r2(num(i.value)-num(i.dataset.sys)), val = r2(d*num(i.dataset.cost));
+      c.innerHTML = d===0 ? '<span class="pr-ok">✔ মিলেছে</span>' : `<b class="${d<0?'pr-bad':'pr-warn'}">${d<0?'🚩 ':'⬆ '}${d>0?'+':''}${fmt(d)}</b>`; v.innerHTML = d===0?'':`<span class="${d<0?'pr-bad':'pr-warn'}">৳${fmt(val)}</span>`;
+      if(d!==0) flagged++; if(d<0) loss += -val;
+    });
+    $('pr-au-foot').innerHTML = `<tr><td colspan="7" style="font-weight:700;">গণনা করা: ${counted}টি · গরমিল: <span class="${flagged?'pr-bad':'pr-ok'}">${flagged}টি</span> · ঘাটতির মূল্য: <span class="${loss?'pr-bad':''}">৳${fmt(loss)}</span></td></tr>`;
+  }
+  window.prAuditCalc = auditCalc;
+  window.prAuditSubmit = async function(){
+    const who = $('pr-au-who').value.trim(); if(!who){ showToast('গণনাকারীর নাম বাধ্যতামূলক','error'); return; }
+    const counts = []; $('pr-au-body').querySelectorAll('input').forEach(i=>{ if(i.value!==''){ const [type,id] = i.dataset.k.split('|'); counts.push({type,id,counted:num(i.value)}); } });
+    if(!counts.length){ showToast('কমপক্ষে একটি আইটেমের গণনা দিন','error'); return; }
+    const adj = $('pr-au-adj').checked; if(adj && !confirm('গরমিলপ্রাপ্ত আইটেমের সিস্টেম স্টক গণনার সংখ্যায় বদলে যাবে। নিশ্চিত?')) return;
+    let pin = ''; if(adj){ pin = await _askPartnerPin('স্টক সংশোধনের জন্য আপনার PIN দিন'); if(!pin) return; }
+    const res = await post(Object.assign({ action:'auditSave', counter:who, note:$('pr-au-note').value.trim(), adjust:adj, counts }, adj?{pin}:{}));
+    if(res){ showToast(res.message,'success'); try{logAction('Physical Audit: '+counts.length+' আইটেম ('+who+')');}catch(_e){} $('pr-au-body').querySelectorAll('input').forEach(i=>i.value=''); await after(res); loadAudits(); try{ if(adj && typeof loadLiveInventory==='function') loadLiveInventory(); }catch(_e){} }
+  };
+  async function loadAudits(){
+    const d = await fetchFromAPI('prodAudits'); if(!d){ showToast('অডিট ইতিহাস লোড হয়নি','error'); return; }
+    S.audits = d.data||[];
+    $('pr-aud-hist').innerHTML = S.audits.length ? S.audits.map(a=>`<tr><td style="white-space:nowrap;">${esc(a.time)}</td><td>${esc(a.type)}</td><td>${esc(a.name)}</td><td style="text-align:right;">${fmt(a.system)}</td><td style="text-align:right;">${fmt(a.counted)}</td><td style="text-align:right;" class="${a.variance<0?'pr-bad':(a.variance>0?'pr-warn':'pr-ok')}">${a.variance>0?'+':''}${fmt(a.variance)}</td><td style="text-align:right;">${a.variance?'৳'+fmt(a.value):''}</td><td>${esc(a.counter)}</td><td>${a.result==='OK'?'<span class="pr-ok">✔ OK</span>':(a.result==='SHORTAGE'?'<span class="pr-bad">🚩 SHORTAGE</span>':'<span class="pr-warn">SURPLUS</span>')}</td><td>${esc(a.adjusted)}</td></tr>`).join('') : '<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:20px;">অডিট ইতিহাস নেই</td></tr>';
+  }
+  window.prLoadAudits = loadAudits;
+
+  // ── tabs / entry ──
+  window.prTab = function(t){
+    S.tab = t; document.querySelectorAll('.pr-tab').forEach(b=>b.classList.toggle('active', b.dataset.t===t)); document.querySelectorAll('.pr-panel').forEach(p=>p.style.display = (p.id==='pr-p-'+t)?'':'none');
+    if(t==='wrk') window.prRenderWrk(); if(t==='plan' && !$('pr-pl-rows').children.length) window.prPlanAdd(); if(t==='mov' && !S.moves.length) loadMov(); if(t==='aud'){ renderAudit(); if(!S.audits.length) loadAudits(); }
+  };
+  window.prLoad = load; window.prRenderRM = renderRM;
+  window.prGetData = () => S;
+  // ── Production Plan ──
+  function planProds(){ return Array.from(new Set(S.boms.map(b=>b.product))); }
+  window.prPlanAdd = function(){
+    const d = document.createElement('div'); d.className='pr-line'; d.style.cssText='display:grid;grid-template-columns:2fr 1.4fr 1fr auto;gap:8px;margin-bottom:6px;';
+    d.innerHTML = `<select class="form-select" onchange="prPlanProd(this)"><option value="">— প্রোডাক্ট —</option>${planProds().map(x=>`<option>${esc(x)}</option>`).join('')}</select><select class="form-select"></select><input class="form-input" type="number" min="1" step="1" value="10" placeholder="সংখ্যা"><button class="btn pr-mini" type="button" onclick="this.parentNode.remove()">🗑️</button>`;
+    $('pr-pl-rows').appendChild(d);
+  };
+  window.prPlanProd = function(sel){ const r = S.boms.filter(b=>b.product===sel.value); sel.parentNode.children[1].innerHTML = r.map(b=>`<option>${esc(b.recipe)}</option>`).join(''); };
+  let PLAN = null;
+  window.prPlanCalc = function(){
+    const need = {}, lines = [];
+    Array.from($('pr-pl-rows').children).forEach(d=>{
+      const prod = d.children[0].value, rec = d.children[1].value, u = Math.floor(num(d.children[2].value)); if(!prod || !(u>0)) return;
+      const b = S.boms.find(x=>x.product===prod && x.recipe===rec); if(!b) return;
+      let maxU = Infinity; b.lines.forEach(l=>{ need[l.rmId] = (need[l.rmId]||0) + l.qty*u; const rm = rmById(l.rmId); if(rm && l.qty>0) maxU = Math.min(maxU, Math.floor(rm.cur/l.qty+1e-9)); });
+      lines.push({prod, rec, u, maxU: isFinite(maxU)?maxU:0});
+    });
+    if(!lines.length){ $('pr-pl-out').innerHTML = '<div class="pr-err" style="display:block;">কমপক্ষে একটি প্রোডাক্ট ও সংখ্যা দিন</div>'; return; }
+    const rows = Object.keys(need).map(id=>{ const rm = rmById(id) || {name:id,unit:'',cur:0,cost:0,supplier:'',phone:''}; const sh = Math.max(0, r2(need[id]-rm.cur)); return { id, name:rm.name, unit:rm.unit, need:r2(need[id]), cur:rm.cur, short:sh, cost:r2(sh*rm.cost), sup:rm.supplier||'', ph:rm.phone||'' }; }).sort((a,b)=>b.short-a.short);
+    PLAN = { lines, rows };
+    const totShort = r2(rows.reduce((s,x)=>s+x.cost,0)), nShort = rows.filter(x=>x.short>0).length;
+    $('pr-pl-out').innerHTML = `
+      <div style="margin-bottom:10px;">${lines.map(l=>`<div style="font-size:13px;">• <b>${esc(l.prod)}</b> (${esc(l.rec)}) × ${fmt(l.u)} — এখনকার স্টকে একা সর্বোচ্চ <b style="color:${l.maxU>=l.u?'var(--green)':'var(--red)'};">${fmt(l.maxU)}</b>টি বানানো সম্ভব</div>`).join('')}</div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th>Raw Material</th><th style="text-align:right;">দরকার</th><th style="text-align:right;">স্টকে আছে</th><th style="text-align:right;">ঘাটতি</th><th style="text-align:right;">ঘাটতির আনুমানিক খরচ</th><th>সাপ্লায়ার</th></tr></thead><tbody>${rows.map(x=>`<tr style="${x.short>0?'background:rgba(248,81,73,.07);':''}"><td><b>${esc(x.name)}</b></td><td style="text-align:right;">${fmt(x.need)} ${esc(x.unit)}</td><td style="text-align:right;">${fmt(x.cur)}</td><td style="text-align:right;${x.short>0?'color:var(--red);font-weight:700;':'color:var(--green);'}">${x.short>0?fmt(x.short):'✔ ঠিক আছে'}</td><td style="text-align:right;">${x.short>0?'৳'+fmt(x.cost):'—'}</td><td>${esc(x.sup)} ${x.ph?'<small style="color:var(--text3);">'+esc(x.ph)+'</small>':''}</td></tr>`).join('')}</tbody><tfoot><tr><td colspan="4" style="text-align:right;font-weight:700;">মোট কিনতে হবে (আনুমানিক)</td><td style="text-align:right;font-weight:800;color:var(--gold);">৳${fmt(totShort)}</td><td></td></tr></tfoot></table></div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">${nShort?`<span class="pr-pill pr-bad">${nShort}টি উপাদানের ঘাটতি</span><button class="btn" onclick="prPlanCopy()">📋 ঘাটতির তালিকা কপি</button><button class="btn" onclick="prPlanCsv()">📥 CSV</button>`:'<span class="pr-pill pr-ok">✔ সব উপাদান যথেষ্ট — এখনই Production শুরু করা যায়</span>'}</div>`;
+  };
+  function planShortRows(){ return PLAN ? PLAN.rows.filter(x=>x.short>0) : []; }
+  window.prPlanCopy = function(){
+    const t = 'Raw Material ঘাটতি (Production Plan):\n'+planShortRows().map(x=>`• ${x.name}: ${fmt(x.short)} ${x.unit}${x.sup?' — '+x.sup:''}`).join('\n');
+    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>showToast('✅ কপি হয়েছে','success')).catch(()=>{ prompt('কপি করুন:', t); });
+  };
+  window.prPlanCsv = function(){
+    const q = v => '"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+    const csv = '\ufeffMaterial,Unit,Need,In Stock,Shortage,Est. Cost,Supplier\n'+planShortRows().map(x=>[x.name,x.unit,x.need,x.cur,x.short,x.cost,x.sup].map(q).join(',')).join('\n');
+    dlBlob('production_shortage.csv', new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  };
+  // ── Trace ──
+  window.prTrace = async function(){
+    const q = $('pr-t-q').value.trim(), out = $('pr-t-out'); if(!q){ showToast('সিরিয়াল / Lot / Batch ID লিখুন','error'); return; }
+    out.innerHTML = '<span style="color:var(--text3);">⏳ খোঁজা হচ্ছে…</span>';
+    const d = await fetchFromAPI('prodTrace',{q});
+    if(!d){ out.innerHTML = '<div class="pr-err" style="display:block;">খোঁজা যায়নি — GS-এর নতুন ভার্সন ডিপ্লয় করেছেন?</div>'; return; }
+    if(!d.found){ out.innerHTML = `<div class="pr-err" style="display:block;">${esc(d.message||'পাওয়া যায়নি')}</div>`; return; }
+    const b = d.batch, cancelled = b.status!=='Completed';
+    const mats = d.materials.filter(m=>m.action==='PRODUCTION_CONSUME'||m.action==='SCRAP');
+    out.innerHTML = `
+      <div style="border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--bg2);">
+        <div style="font-size:15px;font-weight:800;margin-bottom:6px;">${d.matchType==='Serial'?'🔖 '+esc(d.serial)+' →':''} ${esc(b.product)} <small style="color:var(--text3);font-weight:400;">(${esc(b.recipe)})</small> ${cancelled?'<span class="pr-pill pr-bad">↩ Batch বাতিল</span>':'<span class="pr-pill pr-ok">✔ Completed</span>'}</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px;font-size:13px;">
+          <div>📦 Batch: <b>${esc(b.id)}</b></div><div>🏷️ Lot: <b>${esc(b.lot||'—')}</b></div><div>👷 Worker: <b>${esc(b.worker)}</b></div><div>🕒 সময়: ${esc(b.time)}</div>
+          <div>🔢 ইউনিট: <b>${fmt(b.units)}</b></div><div>💰 ইউনিট খরচ: ৳${fmt(b.unitCost)}</div><div>🔖 সিরিয়াল রেঞ্জ: <b>${b.serialFrom?esc(b.serialFrom)+' → '+esc(b.serialTo):'—'}</b></div><div>✍️ এন্ট্রি: ${esc(b.by)}</div>
+        </div>
+        ${cancelled?`<div style="margin-top:8px;color:var(--red);font-size:13px;">বাতিলের কারণ: ${esc(b.cancelReason)}</div>`:''}
+        ${b.note?`<div style="margin-top:6px;font-size:12.5px;color:var(--text2);">নোট: ${esc(b.note)}</div>`:''}
+      </div>
+      <div style="font-weight:700;margin:12px 0 6px;">🧩 এই Batch-এ ব্যবহৃত উপাদান</div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th>Raw Material</th><th style="text-align:right;">পরিমাণ</th><th>ধরন</th><th>নোট</th></tr></thead><tbody>${mats.length?mats.map(m=>`<tr><td>${esc(m.name)}</td><td style="text-align:right;">${fmt(Math.abs(m.qty))}</td><td>${m.action==='SCRAP'?'🗑️ Scrap':'✔ ব্যবহৃত'}</td><td>${esc(m.note)}</td></tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text3);">তথ্য নেই</td></tr>'}</tbody></table></div>
+      ${b.serialFrom?`<div style="margin-top:10px;"><button class="btn" onclick="prSerialCsv('${esc(b.id)}')">📥 এই Batch-এর সব সিরিয়াল (CSV, লেবেল ছাপার জন্য)</button></div>`:''}`;
+    window.__lastTrace = d;
+  };
+  window.prSerialCsv = function(){
+    const d = window.__lastTrace; if(!d) return; const b = d.batch, m1 = b.serialFrom.match(/^(.+)-(\d+)$/), m2 = b.serialTo.match(/^(.+)-(\d+)$/); if(!m1||!m2) return;
+    const w = m1[2].length, a = parseInt(m1[2],10), z = parseInt(m2[2],10); let csv = '\ufeffSerial,Product,Batch,Lot,Worker,Date\n';
+    for(let i=a;i<=z;i++) csv += [m1[1]+'-'+String(i).padStart(w,'0'), '"'+b.product+'"', b.id, b.lot, '"'+b.worker+'"', '"'+b.time+'"'].join(',')+'\n';
+    dlBlob('serials_'+b.id+'.csv', new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  };
+  // ── Export Excel (SheetJS লোড হলে .xlsx, না হলে CSV) ──
+  function loadXlsx(){ return new Promise(res=>{ if(window.XLSX) return res(true); const sc=document.createElement('script'); sc.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; sc.onload=()=>res(!!window.XLSX); sc.onerror=()=>res(false); document.head.appendChild(sc); setTimeout(()=>res(!!window.XLSX),8000); }); }
+  function dlBlob(name,blob){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); }
+  window.prExportXlsx = async function(){
+    if(!S.loaded){ showToast('আগে ডেটা লোড হতে দিন','info'); return; }
+    const sheets = {
+      'Raw Materials': [['ID','Name','Category','Unit','Unit Cost','Current Stock','Stock Value','Reorder Level','Supplier','Phone','Status','Active']].concat(S.rm.map(x=>[x.id,x.name,x.cat,x.unit,x.cost,x.cur,r2(x.cur*x.cost),x.reorder,x.supplier||'',x.phone||'',x.status||'',x.active?'Yes':'No'])),
+      'BOM': [['BOM ID','Product','Recipe','Material ID','Material','Qty/Unit']].concat([].concat(...S.boms.map(b=>(b.lines||[]).map(l=>[b.key,b.product,b.recipe||'',l.rmId,l.rmName||'',l.qty])))),
+      'Batches': [['Batch','Time','Product','Units','Worker','Material Cost','Scrap Cost','Total Cost','Unit Cost','Status']].concat(S.batches.map(b=>[b.id,b.ts?new Date(b.ts+6*3600e3).toISOString().slice(0,16).replace('T',' '):'',b.product,b.units,b.worker,b.matCost,b.scrapCost,b.totalCost,b.unitCost,b.status])),
+      'Movements': [['Time','Action','Type','Item ID','Item','Change','Balance','Worker','Ref','Note','By']].concat(S.moves.map(m=>[m.time,m.action,m.type,m.itemId,m.name,m.change,m.balance,m.worker,m.ref,m.note,m.by]))
+    };
+    const d = new Date(Date.now()+6*3600e3).toISOString().slice(0,10);
+    showToast('⏳ Excel তৈরি হচ্ছে...','info');
+    const ok = await loadXlsx();
+    if(ok){
+      const wb = XLSX.utils.book_new();
+      Object.keys(sheets).forEach(n=>{ const ws = XLSX.utils.aoa_to_sheet(sheets[n]); ws['!cols'] = sheets[n][0].map(()=>({wch:18})); XLSX.utils.book_append_sheet(wb, ws, n); });
+      XLSX.writeFile(wb, 'InnoGix_Production_'+d+'.xlsx');
+      showToast('✅ Excel ডাউনলোড হয়েছে'+(S.moves.length?'':' (Movement শিট ফাঁকা — Movement History ট্যাব একবার খুললে ভরবে)'),'success');
+    } else {
+      const q = v => '"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+      const csv = '\ufeff'+sheets['Raw Materials'].map(r=>r.map(q).join(',')).join('\n');
+      dlBlob('Raw_Materials_'+d+'.csv', new Blob([csv],{type:'text/csv;charset=utf-8'}));
+      showToast('ইন্টারনেট/Excel লাইব্রেরি পাওয়া যায়নি — Raw Material CSV নামানো হয়েছে (Excel-এ খোলে)','info');
+    }
+  };
+  // ── Import CSV (Raw Material) ──
+  let IMP = [];
+  function parseCsv(t){ t=t.replace(/^\ufeff/,''); const rows=[]; let row=[],f='',q=false; for(let i=0;i<t.length;i++){ const c=t[i]; if(q){ if(c==='"'){ if(t[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; } else if(c==='"') q=true; else if(c===','){row.push(f);f='';} else if(c==='\n'||c==='\r'){ if(c==='\r'&&t[i+1]==='\n')i++; row.push(f);f=''; if(row.some(x=>x.trim()!==''))rows.push(row); row=[]; } else f+=c; } row.push(f); if(row.some(x=>x.trim()!==''))rows.push(row); return rows; }
+  window.prImpTemplate = function(){ dlBlob('raw_material_template.csv', new Blob(['\ufeffName,Category,Unit,Unit Cost,Opening Stock,Reorder Level,Supplier,Phone\nBMS Board,BMS,pcs,120,50,10,Mokka,01700000000\n'],{type:'text/csv;charset=utf-8'})); };
+  window.prOpenImport = function(){ IMP=[]; $('pr-imp-file').value=''; $('pr-imp-body').innerHTML=''; $('pr-imp-sum').textContent=''; $('pr-imp-go').disabled=true; openModal('pr-imp'); };
+  window.prImpParse = function(inp){
+    const f = inp.files && inp.files[0]; if(!f) return; const rd = new FileReader();
+    rd.onload = () => {
+      const rows = parseCsv(String(rd.result||'')); if(rows.length<2){ $('pr-imp-sum').innerHTML='<span class="pr-bad">ফাইলে ডেটা নেই</span>'; return; }
+      const norm = h => String(h).toLowerCase().replace(/[^a-z\u0980-\u09ff]/g,'');
+      const alias = { name:['name','নাম','materialname','item','rawmaterial'], cat:['category','ক্যাটাগরি','cat'], unit:['unit','একক','ইউনিট'], cost:['unitcost','cost','দাম','কস্ট','price'], opening:['openingstock','opening','stock','স্টক','qty','quantity'], reorder:['reorderlevel','reorder','রিঅর্ডার','minstock'], supplier:['supplier','সাপ্লায়ার'], phone:['phone','ফোন','mobile'] };
+      const hd = rows[0].map(norm), ix = {}; Object.keys(alias).forEach(k=>{ ix[k]=hd.findIndex(h=>alias[k].includes(h)); });
+      if(ix.name<0){ $('pr-imp-sum').innerHTML='<span class="pr-bad">❌ "Name" কলাম পাওয়া যায়নি। নমুনা CSV দেখুন।</span>'; return; }
+      const exist = new Set(S.rm.filter(x=>x.active).map(x=>x.name.trim().toLowerCase())), seen = new Set(); IMP = [];
+      rows.slice(1).forEach((r,i)=>{
+        const g = k => ix[k]>=0 ? String(r[ix[k]]||'').trim() : '', nn = x => { const v = parseFloat(String(x).replace(/[,৳\s]/g,'')); return isFinite(v)?v:0; };
+        const o = { n:i+2, name:g('name'), cat:g('cat'), unit:g('unit'), cost:nn(g('cost')), opening:nn(g('opening')), reorder:nn(g('reorder')), supplier:g('supplier'), phone:g('phone'), st:'ok', msg:'✅ নতুন' };
+        const key = o.name.toLowerCase();
+        if(!o.name){ o.st='skip'; o.msg='⚠️ নাম নেই'; } else if(o.cost<0||o.opening<0||o.reorder<0){ o.st='skip'; o.msg='⚠️ ঋণাত্মক সংখ্যা'; } else if(exist.has(key)){ o.st='skip'; o.msg='⏭️ আগে থেকেই আছে'; } else if(seen.has(key)){ o.st='skip'; o.msg='⏭️ ফাইলে ডুপ্লিকেট'; }
+        seen.add(key); IMP.push(o);
+      });
+      const ok = IMP.filter(x=>x.st==='ok').length;
+      $('pr-imp-body').innerHTML = IMP.map(o=>`<tr style="${o.st==='skip'?'opacity:.55;':''}"><td>${o.n}</td><td>${esc(o.name)}</td><td>${esc(o.cat)}</td><td>${esc(o.unit)}</td><td style="text-align:right;">${fmt(o.cost)}</td><td style="text-align:right;">${fmt(o.opening)}</td><td style="text-align:right;">${fmt(o.reorder)}</td><td>${o.msg}</td></tr>`).join('');
+      $('pr-imp-sum').innerHTML = `মোট ${IMP.length}টি রো — <b style="color:var(--green);">${ok}টি Import হবে</b>, ${IMP.length-ok}টি বাদ যাবে।`;
+      $('pr-imp-go').disabled = !ok;
+    };
+    rd.readAsText(f,'utf-8');
+  };
+  window.prImpRun = async function(){
+    const todo = IMP.filter(x=>x.st==='ok'); if(!todo.length) return;
+    if(!confirm(todo.length+'টি Raw Material যোগ হবে। এগিয়ে যাবেন?')) return;
+    const btn = $('pr-imp-go'); btn.disabled = true; let done = 0, fail = 0;
+    for(const o of todo){
+      btn.textContent = '⏳ '+(done+fail+1)+'/'+todo.length;
+      const res = await post({ action:'rmSave', noSnap:true, name:o.name, cat:o.cat, unit:o.unit, cost:o.cost, opening:o.opening, reorder:o.reorder, supplier:o.supplier, phone:o.phone });
+      if(res){ done++; o.st='done'; o.msg='✅ যোগ হয়েছে'; } else { fail++; o.msg='❌ ব্যর্থ'; }
+      $('pr-imp-body').innerHTML = IMP.map(x=>`<tr style="${x.st==='skip'?'opacity:.55;':''}"><td>${x.n}</td><td>${esc(x.name)}</td><td>${esc(x.cat)}</td><td>${esc(x.unit)}</td><td style="text-align:right;">${fmt(x.cost)}</td><td style="text-align:right;">${fmt(x.opening)}</td><td style="text-align:right;">${fmt(x.reorder)}</td><td>${x.msg}</td></tr>`).join('');
+    }
+    btn.textContent = '✅ Import শুরু';
+    $('pr-imp-sum').innerHTML = `<b>শেষ:</b> ${done}টি যোগ হয়েছে${fail?`, <span class="pr-bad">${fail}টি ব্যর্থ</span>`:''}।`;
+    showToast('Import শেষ: '+done+'টি যোগ'+(fail?' / '+fail+'টি ব্যর্থ':''), fail?'error':'success');
+    try{ logAction('Raw Material CSV Import: '+done+'টি'); }catch(_e){} await load(true);
+  };
+  window.prGoRM = function(){ const el = document.querySelector('.nav-item[onclick*="production"]'); if(window.showPage) showPage('production', el); if(window.prTab) prTab('rm'); };
+  function wrkRows(){
+    const f = $('pr-w-from').value, t = $('pr-w-to').value, map = {};
+    S.batches.forEach(b=>{
+      const d = b.ts ? new Date(b.ts+6*3600e3).toISOString().slice(0,10) : '';
+      if(f && d < f) return; if(t && d > t) return;
+      const w = b.worker || '—'; const o = map[w] || (map[w] = {w, n:0, units:0, mat:0, scrap:0, canc:0});
+      if(b.status==='Completed'){ o.n++; o.units += b.units; o.mat += b.matCost; o.scrap += b.scrapCost; } else o.canc++;
+    });
+    return Object.values(map).sort((a,b)=>b.units-a.units);
+  }
+  window.prRenderWrk = function(){
+    const rows = wrkRows(), tb = $('pr-wrk-body'); if(!tb) return;
+    tb.innerHTML = rows.length ? rows.map(o=>{ const tot = o.mat+o.scrap, pct = tot>0 ? (o.scrap/tot*100) : 0, uc = o.units>0 ? tot/o.units : 0;
+      return `<tr><td><b>${esc(o.w)}</b></td><td style="text-align:right;">${o.n}</td><td style="text-align:right;">${fmt(o.units)}</td><td style="text-align:right;">৳${fmt(o.mat)}</td><td style="text-align:right;">৳${fmt(o.scrap)}</td><td style="text-align:right;${pct>10?'color:var(--red);font-weight:700;':''}">${pct.toFixed(1)}%</td><td style="text-align:right;">৳${fmt(uc)}</td><td style="text-align:right;">${o.canc}</td></tr>`; }).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px;">এই সময়ে কোনো Batch নেই</td></tr>';
+  };
+  window.prWrkCsv = function(){
+    const rows = wrkRows(), q = v => '"'+String(v).replace(/"/g,'""')+'"';
+    const csv = '\ufeffWorker,Batches,Units,Material Cost,Scrap Cost,Scrap %,Cost/Unit,Cancelled\n' + rows.map(o=>{ const tot=o.mat+o.scrap; return [q(o.w),o.n,o.units,r2(o.mat),r2(o.scrap),(tot>0?o.scrap/tot*100:0).toFixed(1),(o.units>0?r2(tot/o.units):0),o.canc].join(','); }).join('\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download = 'worker_report.csv'; a.click();
+  };
+  window.dashLowStock = function(){
+    const el = $('dash-lowstock'); if(!el) return;
+    const low = S.rm.filter(x=>x.active && x.cur<=x.reorder);
+    if(!low.length){ el.style.display='none'; return; }
+    const out = low.filter(x=>x.cur<=0).length;
+    el.innerHTML = `<div style="font-weight:700;color:var(--red);">🔴 Raw Material Low Stock সতর্কতা — ${low.length}টি${out?` (${out}টি স্টক শেষ)`:''}</div><div style="font-size:12.5px;margin-top:4px;color:var(--text2);">`+low.slice(0,8).map(x=>`${esc(x.name)}: <b>${fmt(x.cur)}</b>/${fmt(x.reorder)} ${esc(x.unit)}`).join(' · ')+(low.length>8?` · +${low.length-8}টি`:'')+`</div><div style="font-size:11px;color:var(--text3);margin-top:3px;">ক্লিক করে Production পেজে দেখুন</div>`;
+    el.style.display='block';
+  };
+  // অ্যাপ চালু হলে (লগইনের পর) নিঃশব্দে একবার লোড + প্রতি ৫ মিনিটে রিফ্রেশ → লাল ব্যাজ সব পেজে দেখায়
+  (function autoBadge(){
+    let tries = 0;
+    const t = setInterval(() => {
+      tries++;
+      if (typeof currentPartner !== 'undefined' && currentPartner) { clearInterval(t); load(false).then(()=>{ try{ if(window.dashLowStock) dashLowStock(); }catch(e){} }); setInterval(()=>{ if(!document.hidden) load(false).then(()=>{ try{ if(window.dashLowStock) dashLowStock(); }catch(e){} }); }, 300000); }
+      else if (tries > 120) clearInterval(t);
+    }, 2000);
+  })();
+  window.prOpenPage = function(){ renderMovFilters(); if(!S.loaded) load(); else renderAll(); };
+})();
+
 </script>
 </body>
 </html>
