@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>InnoGix Business OS</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;600&family=Playfair+Display:ital,wght@0,700;0,900;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;600&family=Playfair+Display:ital,wght@0,700;0,900;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 /* ═══════════════════════════════════════
@@ -611,13 +611,18 @@ tbody td.muted{color:var(--text3);}
   #modal-invoice .modal-header{ display:none!important; }
   #invoice-print-area{
     background:#fff!important;color:#000!important;
-    padding:20px!important;
+    padding:0!important;width:100%!important;max-width:none!important;margin:0!important;zoom:.76;
   }
-  #invoice-print-area *{ color:inherit; }
+  #inv-war-ctrl{ display:none!important; }
+  html,body{ background:#fff!important; height:auto!important; min-height:0!important; overflow:visible!important; }
+  #modal-invoice .modal,#modal-invoice .modal-body{ max-height:none!important; height:auto!important; overflow:visible!important; background:#fff!important; transform:none!important; }
+  #modal-invoice{ inset:auto!important; height:auto!important; }
+  @page{ size:A4; margin:8mm; }
+  #invoice-print-area *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   #invoice-print-area [style*="color:var(--gold)"]{ color:#8B6914!important; }
   #invoice-print-area [style*="color:var(--green)"]{ color:#1a7a2e!important; }
   #invoice-print-area [style*="color:var(--text3)"]{ color:#555!important; }
-  #invoice-print-area table thead tr{ background:#1a3a6b!important; }
+  #invoice-print-area table thead tr{ background:#0f2a5c!important; }
   #invoice-print-area #inv-brand-logo{ display:block!important; width:150px!important; height:auto!important; max-height:none!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   #invoice-print-area .inv-header-left{ display:flex!important; align-items:center!important; }
 }
@@ -1762,7 +1767,7 @@ tbody td.muted{color:var(--text3);}
 
 <!-- ═══ MODULE 2: Invoice / Cash Memo Modal ═══ -->
 <div class="modal-overlay" id="modal-invoice" style="z-index:10000;">
-  <div class="modal" style="max-width:560px;width:96%;">
+  <div class="modal" style="max-width:880px;width:96%;">
     <div class="modal-header">
       <span class="modal-title">🖨️ ক্যাশ মেমো / Invoice</span>
       <div style="display:flex;gap:8px;">
@@ -1773,99 +1778,189 @@ tbody td.muted{color:var(--text3);}
         <button class="modal-close" onclick="closeModal('invoice')">✕</button>
       </div>
     </div>
-    <div class="modal-body" style="padding:0;">
-      <div id="invoice-print-area" style="padding:34px 40px;background:#ffffff;font-family:'Noto Sans Bengali','IBM Plex Sans',sans-serif;color:#111;">
+    <div class="modal-body" style="padding:0;overflow-x:auto;">
+      <div id="inv-war-ctrl" style="padding:10px 16px;background:var(--bg3,#161b22);border-bottom:1px solid var(--border,#30363d);display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:12px;color:var(--text,#e6edf3);">
+        <b>🛡️ ওয়ারেন্টি ও গ্যারান্টি:</b>
+        <label style="cursor:pointer;"><input type="checkbox" id="iw-master" onchange="IGXW.ui()"> ইনভয়েসে দেখাও</label>
+        <span id="iw-opts" style="display:inline-flex;gap:6px 12px;flex-wrap:wrap;align-items:center;">
+          <label style="cursor:pointer;"><input type="checkbox" id="iw-war" onchange="IGXW.ui()"> ওয়ারেন্টি</label>
+          <label style="cursor:pointer;"><input type="checkbox" id="iw-rep" onchange="IGXW.ui()"> রিপ্লেসমেন্ট</label>
+          <label style="cursor:pointer;"><input type="checkbox" id="iw-exp" onchange="IGXW.ui()"> মেয়াদ শেষের তারিখ</label>
+          <label style="cursor:pointer;"><input type="checkbox" id="iw-cov" onchange="IGXW.ui()"> আওতাভুক্ত বিষয়</label>
+          <label style="cursor:pointer;"><input type="checkbox" id="iw-not" onchange="IGXW.ui()"> আওতার বাইরে</label>
+          <label style="cursor:pointer;"><input type="checkbox" id="iw-claim" onchange="IGXW.ui()"> যোগাযোগ নোট</label>
+          <select id="iw-mode" onchange="IGXW.ui()" class="form-select" style="padding:3px 8px;font-size:12px;width:auto;"><option value="">সময়: প্রোডাক্ট অনুযায়ী</option><option value="months">সময়: মাসে (১২ মাস)</option><option value="years">সময়: বছরে (১ বছর)</option></select>
+        </span>
+        <button class="btn" style="padding:4px 10px;font-size:12px;" onclick="IGXW.openSettings()">⚙️ ওয়ারেন্টি সেটিংস / টেমপ্লেট</button>
+      </div>
+      <div id="invoice-print-area" style="width:794px;max-width:100%;margin:0 auto;box-sizing:border-box;padding:0;background:#ffffff;font-family:'Plus Jakarta Sans','Inter','Hind Siliguri','Noto Sans Bengali',sans-serif;font-size:13px;line-height:1.6;color:#1b2437;letter-spacing:0;">
+        <style>
+          .iv-lbl{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:#9a7b2f;font-weight:700;margin-bottom:3px;}
+          .iv-card{background:#f8f9fc;border:1px solid #e8ecf4;border-radius:10px;padding:14px 18px;}
+          .iv-badge{display:inline-block;padding:3px 14px;border-radius:20px;font-size:10.5px;font-weight:700;letter-spacing:.9px;}
+          .iv-sec{display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:700;color:#0f2a5c;margin:0 0 8px;letter-spacing:.3px;}
+          .iv-sec:after{content:"";flex:1;height:1px;background:#e4e8f0;}
+          .iv-intro{font-size:11px;color:#6b7690;margin-bottom:8px;line-height:1.65;}
+          .iv-wt{width:100%;border-collapse:collapse;font-size:12px;}
+          .iv-wt th{padding:5px 8px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.6px;color:#6b7690 !important;background:transparent !important;border-bottom:1px solid #0f2a5c;}
+          .iv-wt td{padding:7px 8px;border-bottom:1px solid #eceff5;color:#1b2437;}
+          .iv-rep{margin-top:10px;padding:7px 14px;background:#fbf8ef;border-left:3px solid #c9a24a;font-size:11px;line-height:1.65;color:#3a3f4d;}
+          .iv-cov{display:flex;gap:12px;margin-top:10px;}
+          .iv-cov>div{flex:1;border-radius:8px;padding:9px 14px;font-size:11px;line-height:1.7;}
+          .iv-ok{background:#f3f8f5;border:1px solid #d6e8dc;} .iv-no{background:#fbf8ef;border:1px solid #efe3bd;}
+          .iv-cov ul{margin:3px 0 0;padding:0;list-style:none;} .iv-cov li{padding-left:15px;position:relative;color:#3a3f4d;}
+          .iv-ok li:before{content:"✓";color:#1b7a3d;position:absolute;left:0;font-weight:800;}
+          .iv-no li:before{content:"•";color:#a77b00;position:absolute;left:3px;font-weight:800;}
+          .iv-claim{margin-top:10px;padding:10px 16px;background:#0f2a5c;border-radius:8px;font-size:11.5px;line-height:1.7;color:#ffffff;}
+          .iv-grp{font-size:11px;font-weight:700;color:#0f2a5c;margin-top:10px;}
+        </style>
+        <div style="height:4px;background:linear-gradient(90deg,#0f2a5c 0,#0f2a5c 72%,#c9a24a 100%);"></div>
+        <div style="padding:34px 44px 28px;">
 
         <!-- ══ HEADER ══ -->
-        <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:18px;margin-bottom:20px;border-bottom:3px solid #0f2a5c;">
-          <div>
-            <img id="inv-brand-logo" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="InnoGix" data-logo-black="1" width="150" style="width:150px;height:auto;display:block;object-fit:contain;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div style="max-width:360px;">
+            <img id="inv-brand-logo" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="InnoGix" data-logo-black="1" width="144" style="width:144px;height:auto;display:block;object-fit:contain;margin:0 0 10px -2px;">
             <div id="inv-brand-name" style="display:none;">InnoGix</div>
             <span id="inv-brand-icon" style="display:none;"></span>
-            <div id="inv-brand-tagline" style="font-size:12px;color:#0f2a5c;margin-top:8px;font-weight:700;letter-spacing:.2px;"></div>
-            <div style="font-size:11px;color:#333;margin-top:3px;line-height:1.6;">কালিয়াকৈর, গাজীপুর, ঢাকা</div>
-          </div>
-          <div style="text-align:right;font-size:11px;color:#222;line-height:1.85;">
-            <div style="font-size:22px;font-weight:800;color:#0f2a5c;letter-spacing:4px;margin-bottom:4px;line-height:1.2;">INVOICE</div>
-            <div>+8801530088886</div>
-            <div>+8801560-016179</div>
-            <div>innogix.official@gmail.com</div>
-          </div>
-        </div>
-
-        <!-- ══ INVOICE META ══ -->
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:11px 16px;border:1px solid #d5dcea;border-radius:6px;background:#f6f8fc;">
-          <div>
-            <div style="color:#555;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px;font-weight:600;">Invoice No</div>
-            <div id="inv-id" style="font-family:'IBM Plex Mono',monospace;color:#0f2a5c;font-weight:700;font-size:14px;">—</div>
+            <div id="inv-brand-tagline" style="font-size:11px;color:#0f2a5c;font-weight:600;letter-spacing:.3px;margin-bottom:6px;"></div>
+            <div style="font-size:11px;color:#6b7690;line-height:1.85;">কালিয়াকৈর, গাজীপুর, ঢাকা<br>WhatsApp: <span style="color:#1b2437;font-weight:600;">+8801530088886</span> &nbsp;·&nbsp; +8801560-016179<br>innogix.official@gmail.com</div>
           </div>
           <div style="text-align:right;">
-            <div style="color:#555;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px;font-weight:600;">তারিখ</div>
-            <div id="inv-date" style="font-family:'IBM Plex Mono',monospace;color:#111;font-weight:600;font-size:14px;">—</div>
+            <div style="font-size:26px;font-weight:800;color:#0f2a5c;letter-spacing:6px;line-height:1.1;margin-right:-6px;">INVOICE</div>
+            <div style="font-size:11px;color:#9a7b2f;letter-spacing:1.5px;margin-top:4px;font-weight:600;">ক্যাশ মেমো</div>
+            <div id="inv-status" class="iv-badge" style="margin-top:12px;background:#e6f4ea;color:#1b5e20;border:1px solid #b6dfc1;">—</div>
+            <div style="display:flex;gap:26px;justify-content:flex-end;margin-top:14px;">
+              <div><div class="iv-lbl">Invoice No</div><div id="inv-id" style="color:#0f2a5c;font-weight:700;font-size:13.5px;">—</div></div>
+              <div><div class="iv-lbl">তারিখ</div><div id="inv-date" style="color:#1b2437;font-weight:600;font-size:13.5px;">—</div></div>
+            </div>
           </div>
         </div>
+        <div style="height:1px;background:#e4e8f0;margin:26px 0 24px;position:relative;"><div style="position:absolute;left:0;top:-1px;width:56px;height:3px;background:#c9a24a;"></div></div>
 
-        <!-- ══ CUSTOMER INFO ══ -->
-        <div style="padding:12px 16px;margin-bottom:20px;border:1px solid #d5dcea;border-left:4px solid #0f2a5c;border-radius:6px;">
-          <div style="font-size:10px;color:#0f2a5c;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;">গ্রাহকের তথ্য</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;font-size:13px;color:#111;">
-            <div><span style="color:#555;">নাম: </span><strong id="inv-customer">—</strong></div>
-            <div><span style="color:#555;">ফোন: </span><strong id="inv-phone">—</strong></div>
-            <div style="grid-column:1/-1;"><span style="color:#555;">ঠিকানা: </span><span id="inv-address">—</span></div>
+        <!-- ══ BILL TO / ORDER INFO ══ -->
+        <div style="display:flex;gap:16px;margin-bottom:24px;">
+          <div class="iv-card" style="flex:1.4;">
+            <div class="iv-lbl">গ্রাহকের তথ্য · Bill To</div>
+            <div id="inv-customer" style="font-size:15px;font-weight:700;color:#0f2a5c;margin-bottom:4px;">—</div>
+            <div style="font-size:12.5px;color:#3a3f4d;line-height:1.8;"><span style="color:#6b7690;">ফোন: </span><strong id="inv-phone" style="color:#1b2437;">—</strong><br><span style="color:#6b7690;">ঠিকানা: </span><span id="inv-address">—</span></div>
+          </div>
+          <div class="iv-card" style="flex:1;">
+            <div class="iv-lbl">অর্ডার তথ্য</div>
+            <div style="font-size:12.5px;line-height:1.95;color:#3a3f4d;">
+              <div id="inv-row-pay"><span style="color:#6b7690;">পেমেন্ট: </span><strong id="inv-payment" style="color:#1b2437;">—</strong></div>
+              <div id="inv-row-courier"><span style="color:#6b7690;">কুরিয়ার: </span><strong id="inv-courier" style="color:#1b2437;">—</strong></div>
+              <div id="inv-row-track"><span style="color:#6b7690;">ট্র্যাকিং: </span><span id="inv-tracking" style="font-size:11.5px;letter-spacing:.4px;">—</span></div>
+            </div>
           </div>
         </div>
 
         <!-- ══ PRODUCT TABLE (border-radius/overflow নেই — html2canvas বাগ এড়াতে) ══ -->
-        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:22px;">
           <thead>
             <tr style="background:#0f2a5c;color:#ffffff;">
-              <th style="padding:11px 12px;text-align:left;font-weight:700;font-size:12px;letter-spacing:.5px;">পণ্য</th>
-              <th style="padding:11px 8px;text-align:center;font-weight:700;font-size:12px;letter-spacing:.5px;width:70px;">পরিমাণ</th>
-              <th style="padding:11px 8px;text-align:right;font-weight:700;font-size:12px;letter-spacing:.5px;width:100px;">একক মূল্য</th>
-              <th style="padding:11px 12px;text-align:right;font-weight:700;font-size:12px;letter-spacing:.5px;width:110px;">মোট</th>
+              <th style="background:#0f2a5c;color:#ffffff;padding:12px 10px;text-align:center;font-weight:600;font-size:11px;letter-spacing:.8px;width:42px;">#</th>
+              <th style="background:#0f2a5c;color:#ffffff;padding:12px 12px;text-align:left;font-weight:600;font-size:11px;letter-spacing:.8px;">পণ্যের বিবরণ</th>
+              <th style="background:#0f2a5c;color:#ffffff;padding:12px 8px;text-align:center;font-weight:600;font-size:11px;letter-spacing:.8px;width:72px;">পরিমাণ</th>
+              <th style="background:#0f2a5c;color:#ffffff;padding:12px 8px;text-align:right;font-weight:600;font-size:11px;letter-spacing:.8px;width:110px;">একক মূল্য</th>
+              <th style="background:#0f2a5c;color:#ffffff;padding:12px 14px;text-align:right;font-weight:600;font-size:11px;letter-spacing:.8px;width:120px;">মোট</th>
             </tr>
           </thead>
           <tbody id="inv-items">
-            <tr><td colspan="4" style="padding:10px;text-align:center;color:#999;">—</td></tr>
+            <tr><td colspan="5" style="padding:10px;text-align:center;color:#999;">—</td></tr>
           </tbody>
         </table>
 
         <!-- ══ TOTALS ══ -->
         <div id="inv-edit-hint" style="display:none;margin-bottom:8px;padding:6px 10px;background:#f3e8ff;border:1px dashed #7c3aed;border-radius:6px;font-size:11px;color:#7c3aed;">
-          ✏️ এডিট মোড চালু — নিচের যেকোনো সংখ্যা/লেখায় ক্লিক করে সরাসরি বদলাতে পারবেন (যেমন ডেলিভারি চার্জ, পরিশোধিত)।
+          ✏️ এডিট মোড চালু — নিচের যেকোনো সংখ্যা/লেখায় ক্লিক করে সরাসরি বদলাতে পারবেন (যেমন ডেলিভারি চার্জ, পরিশোধিত, ওয়ারেন্টির লেখা)।
         </div>
-        <div style="margin-left:auto;width:280px;font-size:13px;">
-          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e1e6f0;">
-            <span style="color:#333;">সাবটোটাল</span>
-            <span id="inv-subtotal" class="inv-editable" style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:#111;">৳ 0</span>
+        <div style="display:flex;gap:28px;align-items:flex-start;margin-bottom:6px;">
+          <div style="flex:1;padding-top:4px;">
+            <div class="iv-lbl">টাকার অঙ্ক কথায়</div>
+            <div id="inv-words" class="inv-editable" style="font-size:12.5px;color:#1b2437;font-weight:600;line-height:1.7;">—</div>
           </div>
-          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e1e6f0;">
-            <span style="color:#333;">ডেলিভারি চার্জ</span>
-            <span id="inv-delivery" class="inv-editable" style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:#111;">৳ 0</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e1e6f0;">
-            <span style="color:#1b5e20;font-weight:600;">পরিশোধিত</span>
-            <span id="inv-paid" class="inv-editable" style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:#1b5e20;">৳ 0</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0 4px 0;margin-top:5px;border-top:2px solid #0f2a5c;">
-            <span style="color:#0f2a5c;font-size:14px;font-weight:800;">বাকি পরিমাণ</span>
-            <span id="inv-due" class="inv-editable" style="font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:800;color:#c62828;">৳ 0</span>
+          <div style="width:300px;font-size:13px;flex-shrink:0;">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eceff5;"><span style="color:#6b7690;">সাবটোটাল</span><span id="inv-subtotal" class="inv-editable" style="font-weight:600;color:#1b2437;">৳ 0</span></div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eceff5;"><span style="color:#6b7690;">ডেলিভারি চার্জ</span><span id="inv-delivery" class="inv-editable" style="font-weight:600;color:#1b2437;">৳ 0</span></div>
+            <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #eceff5;"><span style="color:#0f2a5c;font-weight:700;">সর্বমোট</span><span id="inv-total" class="inv-editable" style="font-weight:800;color:#0f2a5c;font-size:14px;">৳ 0</span></div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;"><span style="color:#1b7a3d;font-weight:600;">পরিশোধিত</span><span id="inv-paid" class="inv-editable" style="font-weight:700;color:#1b7a3d;">৳ 0</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;margin-top:8px;background:#0f2a5c;border-radius:10px;border-bottom:3px solid #c9a24a;"><span style="color:#e6c874;font-size:12px;font-weight:700;letter-spacing:.6px;">বাকি পরিমাণ</span><span id="inv-due" class="inv-editable" style="font-size:22px;font-weight:800;color:#ffffff;letter-spacing:.3px;">৳ 0</span></div>
           </div>
         </div>
 
-        <!-- ══ FOOTER ══ -->
-        <div style="position:relative;margin-top:34px;padding:20px 80px 0;border-top:1px solid #c9d2e3;text-align:center;">
-          <div style="font-size:14px;font-weight:700;color:#0f2a5c;line-height:1.7;">আপনার বিশ্বাসের মর্যাদা রাখাই আমাদের অঙ্গীকার!</div>
-          <div style="font-size:12.5px;color:#222;line-height:1.8;margin-top:2px;">InnoGix-কে বেছে নেওয়ার জন্য আন্তরিক কৃতজ্ঞতা।</div>
-          <div style="font-size:12.5px;color:#222;line-height:1.8;">আপনার সন্তুষ্টিই আমাদের সাফল্য।</div>
-          <div style="font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:11px;color:#555;letter-spacing:.8px;margin-top:8px;">Thank you for trusting InnoGix.</div>
-          
+        <!-- ══ WARRANTY ══ -->
+        <div id="inv-warranty" style="margin-top:24px;page-break-inside:avoid;"></div>
+
+        <!-- ══ SIGNATURE ══ -->
+        <div style="display:flex;justify-content:space-between;margin-top:42px;padding:0 6px;page-break-inside:avoid;">
+          <div style="width:180px;text-align:center;border-top:1px solid #c9cfdc;padding-top:6px;font-size:10.5px;color:#6b7690;">গ্রাহকের স্বাক্ষর</div>
+          <div style="width:180px;text-align:center;border-top:1px solid #c9cfdc;padding-top:6px;font-size:10.5px;color:#6b7690;">কর্তৃপক্ষের স্বাক্ষর</div>
         </div>
+
+        <!-- ══ FOOTER ══ -->
+        <div style="margin-top:26px;text-align:center;page-break-inside:avoid;">
+          <div style="width:40px;height:2px;background:#c9a24a;margin:0 auto 12px;"></div>
+          <div class="inv-editable" style="font-size:15px;font-weight:700;color:#0f2a5c;line-height:1.7;">আপনার আস্থা আমাদের কাছে এক আমানত।</div>
+          <div class="inv-editable" style="font-size:12px;color:#6b7690;line-height:1.85;margin:2px auto 0;max-width:520px;">সততা ও আমানতদারিতার সঙ্গে সেবা দেওয়াই InnoGix-এর অঙ্গীকার। আল্লাহ আমাদের লেনদেনে বরকত দান করুন।</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:10px;">
+            <span style="width:36px;height:1px;background:#d9c28a;display:inline-block;"></span>
+            <span class="inv-editable" style="font-size:10.5px;color:#9a7b2f;letter-spacing:2px;font-weight:700;">JAZAKALLAHU KHAIRAN</span>
+            <span style="width:36px;height:1px;background:#d9c28a;display:inline-block;"></span>
+          </div>
+        </div>
+        </div>
+        <div style="height:4px;background:linear-gradient(90deg,#c9a24a 0,#0f2a5c 28%,#0f2a5c 100%);"></div>
 
       </div>
     </div>
   </div>
 </div>
+
+<!-- ═══ 🛡️ Warranty Settings Modal ═══ -->
+<div class="modal-overlay" id="modal-war" style="z-index:10010;"><div class="modal" style="max-width:980px;width:96%;">
+  <div class="modal-header"><span class="modal-title">🛡️ ওয়ারেন্টি / গ্যারান্টি টেমপ্লেট</span><button class="modal-close" onclick="closeModal('war')">✕</button></div>
+  <div class="modal-body" style="display:flex;gap:18px;flex-wrap:wrap;">
+    <div style="flex:1.1;min-width:320px;">
+      <div class="form-group"><label class="form-label">কোন প্রোডাক্টের জন্য?</label><select class="form-select" id="war-sel" onchange="IGXW.selChange()"></select><div style="font-size:11px;color:var(--text3);margin-top:3px;">● চিহ্নিত প্রোডাক্টের নিজস্ব আলাদা সেটিং আছে। বাকিগুলো "ডিফল্ট" ব্যবহার করে।</div></div>
+      <label style="font-size:13px;display:block;margin:8px 0;"><input type="checkbox" id="war-en" onchange="IGXW.edit()"> এই প্রোডাক্টে ওয়ারেন্টি/গ্যারান্টি দেখাও</label>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">ওয়ারেন্টির সময়কাল</label><input class="form-input" type="number" min="0" step="1" id="war-val" oninput="IGXW.edit()"></div>
+        <div class="form-group"><label class="form-label">একক</label><select class="form-select" id="war-unit" onchange="IGXW.edit()"><option value="month">মাস</option><option value="year">বছর</option><option value="day">দিন</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">ইনভয়েসে কীভাবে লেখা হবে?</label>
+        <select class="form-select" id="war-mode" onchange="IGXW.edit()"><option value="months">মাস ভিত্তিক — যেমন "১২ মাস"</option><option value="years">বছর ভিত্তিক — যেমন "১ বছর"</option><option value="text">নিজের লেখা — যেমন "এক বছরের ওয়ারেন্টি"</option></select>
+        <input class="form-input" id="war-text" placeholder="নিজের লেখা (শুধু উপরে 'নিজের লেখা' বেছে নিলে)" oninput="IGXW.edit()" style="margin-top:6px;"></div>
+      <label style="font-size:13px;display:block;margin:8px 0;"><input type="checkbox" id="war-rep-en" onchange="IGXW.edit()"> রিপ্লেসমেন্ট গ্যারান্টি আছে</label>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">রিপ্লেসমেন্ট (দিন)</label><input class="form-input" type="number" min="0" step="1" id="war-rep-days" oninput="IGXW.edit()"></div>
+        <div class="form-group"><label class="form-label">নিজের লেখা (ঐচ্ছিক, {days} = দিন)</label><input class="form-input" id="war-rep-text" oninput="IGXW.edit()" placeholder="খালি রাখলে স্বয়ংক্রিয় বাক্য"></div>
+      </div>
+      <div class="form-group"><label class="form-label">✓ ওয়ারেন্টির আওতায় (প্রতি লাইনে একটি)</label><textarea class="form-input" id="war-covers" rows="3" oninput="IGXW.edit()"></textarea></div>
+      <div class="form-group"><label class="form-label">• আওতার বাইরে (প্রতি লাইনে একটি)</label><textarea class="form-input" id="war-not" rows="4" oninput="IGXW.edit()"></textarea></div>
+      <details style="margin-bottom:10px;"><summary style="cursor:pointer;font-size:13px;font-weight:600;">সব ইনভয়েসের সাধারণ লেখা (ভূমিকা / যোগাযোগ নোট / সংখ্যার ধরন)</summary>
+        <div class="form-group" style="margin-top:8px;"><label class="form-label">ভূমিকার লাইন</label><input class="form-input" id="war-g-intro" oninput="IGXW.edit()"></div>
+        <div class="form-group"><label class="form-label">যোগাযোগ নোট</label><textarea class="form-input" id="war-g-claim" rows="2" oninput="IGXW.edit()"></textarea></div>
+        <div class="form-group"><label class="form-label">সেকশনের শিরোনাম</label><input class="form-input" id="war-g-title" oninput="IGXW.edit()"></div>
+        <div class="form-group"><label class="form-label">সংখ্যা</label><select class="form-select" id="war-g-digits" onchange="IGXW.edit()"><option value="bn">বাংলা (১২ মাস)</option><option value="en">ইংরেজি (12 মাস)</option></select></div>
+      </details>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn primary" onclick="IGXW.save()">💾 সেভ করুন</button>
+        <button class="btn" onclick="IGXW.resetForm()">↩️ রেডিমেড টেমপ্লেটে ফিরুন</button>
+        <button class="btn" onclick="IGXW.copyText()">📋 লেখা কপি</button>
+        <button class="btn" id="war-del" onclick="IGXW.delProd()">🗑 এই প্রোডাক্টের আলাদা সেটিং মুছুন</button>
+      </div>
+      <details style="margin-top:12px;"><summary style="cursor:pointer;font-size:13px;font-weight:600;">📑 এই সেটিং অন্য প্রোডাক্টেও প্রয়োগ করুন</summary>
+        <div id="war-many" style="max-height:140px;overflow:auto;margin:8px 0;font-size:12.5px;"></div>
+        <button class="btn" onclick="IGXW.applyMany()">নির্বাচিতগুলোতে প্রয়োগ + সেভ</button></details>
+    </div>
+    <div style="flex:1;min-width:320px;">
+      <div style="font-weight:700;margin-bottom:6px;">👁️ ইনভয়েসে যেমন দেখাবে (লাইভ প্রিভিউ)</div>
+      <div style="background:#fff;border-radius:8px;padding:16px;color:#111;font-family:'Plus Jakarta Sans','Inter','Hind Siliguri','Noto Sans Bengali',sans-serif;"><div id="war-prev"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;">ইনভয়েসের উপরের টগল দিয়ে প্রতিটি অংশ আলাদা করে লুকানো/দেখানো যায়।</div>
+    </div>
+  </div>
+</div></div>
 
 <!-- Change PIN Modal -->
 <div class="modal-overlay" id="modal-change-pin">
@@ -3429,7 +3524,7 @@ tbody td.muted{color:var(--text3);}
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn primary" onclick="prOpenRm(null)">＋ Raw Material</button>
           <button class="btn" onclick="prOpenWorkers()">👷 Workers</button>
-          <button class="btn" onclick="prExportXlsx()">📊 Export Excel</button>
+          <button class="btn" onclick="prOpenExport()">📊 Export Excel</button>
           <button class="btn" onclick="prOpenImport()">📥 Import CSV</button>
           <button class="btn" onclick="prLoad(true)">🔄 রিফ্রেশ</button>
         </div>
@@ -6090,7 +6185,7 @@ tbody td.muted{color:var(--text3);}
 // ═══════════════════════════════════════════════════════════════
 
 // ⚠️ এখানে আপনার Google Apps Script Web App URL বসান (Deploy > New Deployment > Web App)
-      const API_URL = "https://script.google.com/macros/s/AKfycby4hh_5Gqgakx2jyy0oJRuLbn5En0lsey-0rhh7leH7qXSXImxKwOlFHA5he3_6b1CfJQ/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
+      const API_URL = "https://script.google.com/macros/s/AKfycbyOnKPuWToaQsJojxsaPwYTG2d7uAPKVjHgeUgDW50aWNbBu6jWEaxkcgblVnqhmPI2jw/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
 
 // ─── CONNECTION STATE ────────────────────────────────────────
 let apiConnected = false;
@@ -7379,7 +7474,7 @@ function downloadInvoicePDF() {
   // ✅ FIX: এডিট মোড চালু থাকলেও প্রিন্ট/PDF-এ ড্যাশড আউটলাইন যেন না দেখায়
   if (typeof _setInvoiceEditMode === 'function') _setInvoiceEditMode(false);
   const w = window.open('','_blank');
-  w.document.write('<html><head><meta charset="UTF-8"><title>InnoGix Invoice</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;600;700&family=Playfair+Display:ital,wght@1,400&display=swap" rel="stylesheet"><style>body{margin:0;padding:0;font-family:"Noto Sans Bengali","IBM Plex Sans",sans-serif;background:#fff;}*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}@media print{body{margin:0;}}</style></head><body>');
+  w.document.write('<html><head><meta charset="UTF-8"><title>InnoGix Invoice</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;600;700&family=Playfair+Display:ital,wght@1,400&display=swap" rel="stylesheet"><style>body{margin:0;padding:0;font-family:"Plus Jakarta Sans","Inter","Hind Siliguri","Noto Sans Bengali",sans-serif;background:#fff;}*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}@page{size:A4;margin:8mm;}#invoice-print-area{width:100% !important;max-width:none !important;zoom:.76;}@media print{body{margin:0;}}</style></head><body>');
   w.document.write(area.outerHTML);
   w.document.write((window.__igxPngBtn||'')+'</body></html>');
   w.document.close();
@@ -8414,6 +8509,253 @@ function printInvestorReport() {
 
 // showPage-এ investor page লোড করো (নিচে মূল showPage ফাংশনে integrate করা আছে)
 
+/* ════════════════════════════════════════════════════════════
+   🛡️ WARRANTY / GUARANTEE MODULE (IGXW) — ইনভয়েসে ওয়ারেন্টি/রিপ্লেসমেন্ট
+   • প্রোডাক্ট-ভিত্তিক আলাদা সেটিং → না থাকলে "ডিফল্ট" → না থাকলে বিল্ট-ইন টেমপ্লেট
+   • সময় দেখানোর ধরন: মাস / বছর / নিজের লেখা
+   • ডেটা: Google Sheet "Warranty_Config" (+ localStorage ক্যাশ: igx_war_cfg)
+════════════════════════════════════════════════════════════ */
+const IGXW = (function(){
+  const LS='igx_war_cfg', LSU='igx_war_ui';
+  const DEF = {
+    enabled:true, wVal:12, wUnit:'month', wMode:'months', wText:'',
+    repEnabled:true, repDays:7, repText:'',
+    covers:['প্রস্তুতকারকজনিত ত্রুটিতে বিনামূল্যে মেরামত বা পরিবর্তন','স্বাভাবিক ব্যবহারে ভেতরের যন্ত্রাংশের সমস্যা'],
+    notCovers:['চার্জার, তার ও কেবল','পড়ে ভাঙা বা পানি/আর্দ্রতা লাগা','ভোল্টেজ সমস্যা বা ভুল চার্জারে পুড়ে যাওয়া','অনুমোদনহীন ব্যক্তি দ্বারা খোলা বা মেরামত'],
+    extra:''
+  };
+  const GDEF = {
+    digits:'bn',
+    title:'ওয়ারেন্টি ও গ্যারান্টি তথ্য',
+    intro:'প্রতিটি প্রোডাক্ট যাচাই করে সরবরাহ করা হয় — নিশ্চিন্ত ব্যবহারের জন্য রয়েছে আমাদের ওয়ারেন্টি ও বিক্রয়োত্তর সহায়তা।',
+    claimNote:'ওয়ারেন্টি বা রিপ্লেসমেন্ট সেবা পেতে এই ইনভয়েসটি সংরক্ষণ করুন এবং WhatsApp-এ যোগাযোগ করুন: +8801530088886। যেকোনো সমস্যায় আমরা পাশে আছি।'
+  };
+  const REP_DEF = 'ডেলিভারির {days} দিনের মধ্যে প্রস্তুতকারকজনিত ত্রুটি পেলে নতুন ডিভাইস দিয়ে বদলে দেওয়া হবে (মূল প্যাকেজিং সহ)।';
+  let store = {global:null, def:null, products:{}};
+  try{ const x=JSON.parse(localStorage.getItem(LS)||'null'); if(x&&typeof x==='object') store={global:x.global||null,def:x.def||null,products:x.products||{}}; }catch(e){}
+  const UIDEF={master:true,war:true,rep:true,exp:true,cov:true,not:true,claim:true,mode:''};
+  let ui = Object.assign({},UIDEF);
+  try{ const x=JSON.parse(localStorage.getItem(LSU)||'null'); if(x&&typeof x==='object') ui=Object.assign({},UIDEF,x); }catch(e){}
+
+  const $=id=>document.getElementById(id);
+  const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const clone=o=>JSON.parse(JSON.stringify(o));
+  const gl=()=>Object.assign({},GDEF,store.global||{});
+  const defCfg=()=>Object.assign(clone(DEF),store.def||{});
+  function prodKey(n){ n=String(n||'').trim().toLowerCase(); for(const k in store.products){ if(String(k).trim().toLowerCase()===n) return k; } return null; }
+  function resolve(name){ const k=prodKey(name); return k? Object.assign(clone(DEF),store.products[k]) : defCfg(); }
+  function persist(){ try{ localStorage.setItem(LS,JSON.stringify(store)); }catch(e){} }
+  function apply(d){ if(!d||d.status!=='ok') return false; store={global:d.global||null,def:d.def||null,products:d.products||{}}; persist(); return true; }
+
+  /* ── সংখ্যা/তারিখ হেল্পার ── */
+  const BN='০১২৩৪৫৬৭৮৯';
+  const dig=(v)=> gl().digits==='en' ? String(v) : String(v).replace(/\d/g,d=>BN[+d]);
+  const toEn=s=>String(s).replace(/[০-৯]/g,d=>BN.indexOf(d));
+  const MON=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const MONBN=['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+  const MONEN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function parseDate(v){
+    if(!v) return null; if(v instanceof Date) return isNaN(v)?null:v;
+    const s=toEn(v).trim(); let m;
+    if((m=s.match(/^(\d{1,2})[-\s\/.]([A-Za-z]{3})[a-z]*[-\s\/.,]*(\d{4})/))){ const mi=MON.indexOf(m[2].toLowerCase()); if(mi>-1) return new Date(+m[3],mi,+m[1]); }
+    if((m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return new Date(+m[1],+m[2]-1,+m[3]);
+    if((m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/))) return new Date(+m[3],+m[2]-1,+m[1]);
+    return null;
+  }
+  function addPeriod(d,cfg){
+    const n=Number(cfg.wVal)||0; if(n<=0) return null;
+    const x=new Date(d.getTime());
+    if(cfg.wUnit==='day'){ x.setDate(x.getDate()+n); return x; }
+    const mo=cfg.wUnit==='year'?n*12:n, day=x.getDate();
+    x.setDate(1); x.setMonth(x.getMonth()+mo); const last=new Date(x.getFullYear(),x.getMonth()+1,0).getDate(); x.setDate(Math.min(day,last));
+    return x;
+  }
+  function fmtDate(d){ return gl().digits==='en' ? `${String(d.getDate()).padStart(2,'0')} ${MONEN[d.getMonth()]} ${d.getFullYear()}` : `${dig(String(d.getDate()).padStart(2,'0'))} ${MONBN[d.getMonth()]} ${dig(d.getFullYear())}`; }
+  function durLabel(cfg,override){
+    const mode = override || cfg.wMode;
+    if(!override && mode==='text' && String(cfg.wText||'').trim()) return String(cfg.wText).trim();
+    const v=Number(cfg.wVal)||0; if(v<=0) return '';
+    if(cfg.wUnit==='day') return dig(v)+' দিন';
+    const months = cfg.wUnit==='year' ? v*12 : v;
+    if(mode==='years'){
+      if(months%12===0) return dig(months/12)+' বছর';
+      if(months>12) return dig(Math.floor(months/12))+' বছর '+dig(months%12)+' মাস';
+      return dig(months)+' মাস';
+    }
+    return dig(months)+' মাস';
+  }
+  function repSentence(cfg){ const t=String(cfg.repText||'').trim()||REP_DEF; return t.replace(/\{days\}/g,dig(Number(cfg.repDays)||0)); }
+  const sig=c=>JSON.stringify([c.covers,c.notCovers,c.extra,c.repEnabled?repSentence(c):'']);
+
+  /* ── ইনভয়েসে রেন্ডার ── */
+  function render(){
+    const box=$('inv-warranty'); if(!box) return;
+    const ctx=window._invCtx||{items:[],date:''};
+    const g=gl();
+    if(!ui.master || !(ui.war||ui.rep)){ box.innerHTML=''; box.style.display='none'; return; }
+    const rows=(ctx.items||[]).map(it=>({name:String(it.product||'').trim(),cfg:resolve(it.product)})).filter(x=>x.name&&x.cfg.enabled);
+    if(!rows.length){ box.innerHTML=''; box.style.display='none'; return; }
+    box.style.display='';
+    const start=parseDate(ctx.date);
+    const showWar = ui.war && rows.some(r=>durLabel(r.cfg,ui.mode));
+    const showRep = ui.rep && rows.some(r=>r.cfg.repEnabled && Number(r.cfg.repDays)>0);
+    if(!showWar && !showRep){ box.innerHTML=''; box.style.display='none'; return; }
+    const showExp = showWar && ui.exp && !!start && rows.some(r=>durLabel(r.cfg,ui.mode) && addPeriod(start,r.cfg));
+    let h=`<div class="iv-sec"><span class="inv-editable">🛡️ ${esc(g.title)}</span></div>`;
+    if(g.intro) h+=`<div class="iv-intro inv-editable">${esc(g.intro)}</div>`;
+    h+=`<table class="iv-wt"><thead><tr><th>পণ্য</th>${showWar?'<th>ওয়ারেন্টি</th>':''}${showRep?'<th>রিপ্লেসমেন্ট</th>':''}${showExp?'<th>ওয়ারেন্টি মেয়াদ শেষ</th>':''}</tr></thead><tbody>`;
+    rows.forEach(r=>{
+      const lab=durLabel(r.cfg,ui.mode), ex=(lab&&start)?addPeriod(start,r.cfg):null;
+      h+=`<tr><td class="inv-editable">${esc(r.name)}</td>`;
+      if(showWar) h+=`<td class="inv-editable" style="font-weight:700;color:#1b7a3d;">${lab?esc(lab):'—'}</td>`;
+      if(showRep) h+=`<td class="inv-editable" style="font-weight:700;color:#0f2a5c;">${(r.cfg.repEnabled&&Number(r.cfg.repDays)>0)?esc(dig(Number(r.cfg.repDays))+' দিন'):'—'}</td>`;
+      if(showExp) h+=`<td class="inv-editable">${ex?esc(fmtDate(ex)):'—'}</td>`;
+      h+='</tr>';
+    });
+    h+='</tbody></table>';
+    // গ্রুপ: একই শর্তের প্রোডাক্টগুলো একসাথে
+    const groups=[]; rows.forEach(r=>{ const k=sig(r.cfg); let gp=groups.find(x=>x.k===k); if(!gp){gp={k,cfg:r.cfg,names:[]};groups.push(gp);} gp.names.push(r.name); });
+    groups.forEach(gp=>{
+      const c=gp.cfg; let part='';
+      if(groups.length>1) part+=`<div class="iv-grp inv-editable">${esc(gp.names.join(', '))}</div>`;
+      if(showRep && c.repEnabled && Number(c.repDays)>0) part+=`<div class="iv-rep inv-editable"><b style="color:#0f2a5c;">রিপ্লেসমেন্ট গ্যারান্টি:</b> ${esc(repSentence(c))}</div>`;
+      const cov=(ui.cov&&c.covers&&c.covers.length)?`<div class="iv-ok"><b style="color:#1b7a3d;">ওয়ারেন্টির আওতায়</b><ul>${c.covers.map(x=>`<li class="inv-editable">${esc(x)}</li>`).join('')}</ul></div>`:'';
+      const not=(ui.not&&c.notCovers&&c.notCovers.length)?`<div class="iv-no"><b style="color:#8a6500;">বিশেষ দ্রষ্টব্য (আওতার বাইরে)</b><ul>${c.notCovers.map(x=>`<li class="inv-editable">${esc(x)}</li>`).join('')}</ul></div>`:'';
+      if(cov||not) part+=`<div class="iv-cov">${cov}${not}</div>`;
+      if(c.extra) part+=`<div class="iv-intro inv-editable" style="margin-top:8px;">${esc(c.extra)}</div>`;
+      h+=part;
+    });
+    if(ui.claim && g.claimNote) h+=`<div class="iv-claim inv-editable">${esc(g.claimNote)}</div>`;
+    box.innerHTML=h;
+  }
+
+  /* ── টগল বার ── */
+  function syncUi(){
+    const set=(id,v)=>{const e=$(id); if(e) e.checked=!!v;};
+    set('iw-master',ui.master);set('iw-war',ui.war);set('iw-rep',ui.rep);set('iw-exp',ui.exp);set('iw-cov',ui.cov);set('iw-not',ui.not);set('iw-claim',ui.claim);
+    const m=$('iw-mode'); if(m) m.value=ui.mode||'';
+    const o=$('iw-opts'); if(o){ o.style.opacity=ui.master?'1':'.45'; o.querySelectorAll('input,select').forEach(e=>e.disabled=!ui.master); }
+  }
+  function uiChange(){
+    const g=id=>{const e=$(id);return e?e.checked:true;};
+    ui={master:g('iw-master'),war:g('iw-war'),rep:g('iw-rep'),exp:g('iw-exp'),cov:g('iw-cov'),not:g('iw-not'),claim:g('iw-claim'),mode:($('iw-mode')||{}).value||''};
+    try{ localStorage.setItem(LSU,JSON.stringify(ui)); }catch(e){}
+    syncUi(); render();
+    if(typeof _invoiceEditMode!=='undefined' && _invoiceEditMode) _setInvoiceEditMode(true);
+  }
+  function show(ctx){ window._invCtx=ctx; syncUi(); render(); }
+
+  /* ── সেটিংস মডাল ── */
+  let scope='__def', dirty=false;
+  function names(){
+    const set=new Map();
+    (typeof liveInventoryData!=='undefined'&&Array.isArray(liveInventoryData)?liveInventoryData:[]).forEach(r=>{ const n=String(r&&r.name||'').trim(); if(n) set.set(n.toLowerCase(),n); });
+    Object.keys(store.products).forEach(n=>{ const k=String(n).trim().toLowerCase(); if(!set.has(k)) set.set(k,String(n).trim()); });
+    return [...set.values()].sort((a,b)=>a.localeCompare(b));
+  }
+  function fillSel(){
+    const sel=$('war-sel'); if(!sel) return;
+    sel.innerHTML=`<option value="__def">⭐ ডিফল্ট (সব প্রোডাক্টের জন্য)</option>`+names().map(n=>`<option value="${esc(n)}">${prodKey(n)?'● ':''}${esc(n)}</option>`).join('');
+    sel.value=scope; if(sel.value!==scope){ scope='__def'; sel.value='__def'; }
+    const many=$('war-many'); if(many) many.innerHTML=names().map(n=>`<label style="display:block;"><input type="checkbox" class="war-many-cb" value="${esc(n)}"> ${esc(n)}</label>`).join('')||'<i>কোনো প্রোডাক্ট নেই</i>';
+  }
+  function cfgForScope(){ return scope==='__def' ? defCfg() : resolve(scope); }
+  function toForm(c){
+    const g=gl(), v=(id,x)=>{const e=$(id); if(e) e.value=x;}, k=(id,x)=>{const e=$(id); if(e) e.checked=!!x;};
+    k('war-en',c.enabled); v('war-val',c.wVal); v('war-unit',c.wUnit); v('war-mode',c.wMode); v('war-text',c.wText||'');
+    k('war-rep-en',c.repEnabled); v('war-rep-days',c.repDays); v('war-rep-text',c.repText||'');
+    v('war-covers',(c.covers||[]).join('\n')); v('war-not',(c.notCovers||[]).join('\n'));
+    v('war-g-intro',g.intro); v('war-g-claim',g.claimNote); v('war-g-title',g.title); v('war-g-digits',g.digits);
+    const d=$('war-del'); if(d) d.style.display=(scope!=='__def'&&prodKey(scope))?'':'none';
+  }
+  const lines=t=>String(t||'').split('\n').map(x=>x.trim()).filter(Boolean);
+  function fromForm(){
+    const v=id=>($(id)||{}).value||'', k=id=>!!($(id)||{}).checked;
+    return { enabled:k('war-en'), wVal:parseFloat(v('war-val'))||0, wUnit:v('war-unit')||'month', wMode:v('war-mode')||'months', wText:v('war-text').trim(),
+      repEnabled:k('war-rep-en'), repDays:parseFloat(v('war-rep-days'))||0, repText:v('war-rep-text').trim(),
+      covers:lines(v('war-covers')), notCovers:lines(v('war-not')), extra:'' , _x:(cfgForScope().extra||'') };
+  }
+  function formGlobal(){ const v=id=>($(id)||{}).value||''; return {digits:v('war-g-digits')==='en'?'en':'bn',title:v('war-g-title').trim(),intro:v('war-g-intro').trim(),claimNote:v('war-g-claim').trim()}; }
+  function cleanForm(){ const c=fromForm(); c.extra=c._x; delete c._x; return c; }
+  function preview(){
+    const c=cleanForm(), g=formGlobal(); const bk=store.global; store.global=g;
+    const lab=durLabel(c,''), q=n=>esc(n);
+    let h=`<div class="iv-sec">🛡️ ${q(g.title)}</div>`; if(g.intro) h+=`<div class="iv-intro">${q(g.intro)}</div>`;
+    if(!c.enabled){ h+='<div class="iv-intro"><i>এই প্রোডাক্টে ওয়ারেন্টি বন্ধ — ইনভয়েসে কিছু দেখাবে না।</i></div>'; }
+    else{
+      h+=`<table class="iv-wt"><thead><tr><th>ওয়ারেন্টি</th><th>রিপ্লেসমেন্ট</th></tr></thead><tbody><tr><td style="font-weight:700;color:#1b5e20;">${lab?q(lab):'—'}</td><td style="font-weight:700;color:#0f2a5c;">${(c.repEnabled&&c.repDays>0)?q(dig(c.repDays)+' দিন'):'—'}</td></tr></tbody></table>`;
+      if(c.repEnabled&&c.repDays>0) h+=`<div class="iv-rep"><b style="color:#0f2a5c;">রিপ্লেসমেন্ট গ্যারান্টি:</b> ${q(repSentence(c))}</div>`;
+      h+=`<div class="iv-cov">${c.covers.length?`<div class="iv-ok"><b style="color:#1b7a3d;">ওয়ারেন্টির আওতায়</b><ul>${c.covers.map(x=>`<li>${q(x)}</li>`).join('')}</ul></div>`:''}${c.notCovers.length?`<div class="iv-no"><b style="color:#8a6500;">বিশেষ দ্রষ্টব্য (আওতার বাইরে)</b><ul>${c.notCovers.map(x=>`<li>${q(x)}</li>`).join('')}</ul></div>`:''}</div>`;
+    }
+    if(g.claimNote) h+=`<div class="iv-claim">${q(g.claimNote)}</div>`;
+    store.global=bk;
+    const p=$('war-prev'); if(p) p.innerHTML='<style>.iv-sec{display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:700;color:#0f2a5c;margin:0 0 8px}.iv-sec:after{content:"";flex:1;height:1px;background:#e4e8f0}.iv-intro{font-size:11px;color:#6b7690;margin-bottom:8px;line-height:1.65}.iv-wt{width:100%;border-collapse:collapse;font-size:12px}.iv-wt th{padding:5px 8px;text-align:left;font-size:10px;font-weight:600;color:#6b7690 !important;background:transparent !important;border-bottom:1px solid #0f2a5c}.iv-wt td{padding:7px 8px;border-bottom:1px solid #eceff5}.iv-cov{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}.iv-cov>div{flex:1;min-width:140px;border-radius:8px;padding:9px 12px;font-size:11px;line-height:1.7}.iv-ok{background:#f3f8f5;border:1px solid #d6e8dc}.iv-no{background:#fbf8ef;border:1px solid #efe3bd}.iv-cov ul{margin:3px 0 0;padding:0;list-style:none}.iv-cov li{padding-left:14px;position:relative;color:#3a3f4d}.iv-ok li:before{content:"✓";color:#1b7a3d;position:absolute;left:0;font-weight:800}.iv-no li:before{content:"•";color:#a77b00;position:absolute;left:3px;font-weight:800}.iv-rep{margin-top:10px;padding:7px 12px;background:#fbf8ef;border-left:3px solid #c9a24a;font-size:11px;line-height:1.65;color:#3a3f4d}.iv-claim{margin-top:10px;padding:10px 14px;background:#0f2a5c;border-radius:8px;font-size:11.5px;line-height:1.7;color:#fff}</style>'+h;
+  }
+  async function openSettings(){
+    scope='__def'; fillSel(); toForm(cfgForScope()); preview(); openModal('war');
+    try{ const d=await fetchFromAPI('warrantyGet'); if(d&&apply(d)&&!dirty){ fillSel(); toForm(cfgForScope()); preview(); render(); } }catch(e){}
+  }
+  function selChange(){ scope=($('war-sel')||{}).value||'__def'; dirty=false; toForm(cfgForScope()); preview(); }
+  function edit(){ dirty=true; preview(); }
+  function resetForm(){ if(!confirm('এই ফর্মের লেখা রেডিমেড টেমপ্লেটে ফিরিয়ে নেওয়া হবে (সেভ না করা পর্যন্ত কিছু বদলাবে না)। চালিয়ে যাবেন?')) return; toForm(Object.assign(clone(DEF))); const g=GDEF,v=(id,x)=>{const e=$(id);if(e)e.value=x;}; v('war-g-intro',g.intro);v('war-g-claim',g.claimNote);v('war-g-title',g.title);v('war-g-digits',g.digits); dirty=true; preview(); }
+  async function copyText(){
+    const c=cleanForm(), g=formGlobal(); const bk=store.global; store.global=g;
+    const lab=durLabel(c,'');
+    let t=g.title+'\n';
+    if(g.intro) t+=g.intro+'\n';
+    if(c.enabled){ if(lab) t+='\nওয়ারেন্টি: '+lab; if(c.repEnabled&&c.repDays>0) t+='\nরিপ্লেসমেন্ট: '+repSentence(c);
+      if(c.covers.length) t+='\n\n✓ ওয়ারেন্টির আওতায়:\n'+c.covers.map(x=>'• '+x).join('\n');
+      if(c.notCovers.length) t+='\n\nবিশেষ দ্রষ্টব্য (আওতার বাইরে):\n'+c.notCovers.map(x=>'• '+x).join('\n'); }
+    if(g.claimNote) t+='\n\n'+g.claimNote;
+    store.global=bk;
+    try{ await navigator.clipboard.writeText(t); showToast('✅ লেখা কপি হয়েছে','success'); }
+    catch(e){ const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy'); showToast('✅ লেখা কপি হয়েছে','success');}catch(_){showToast('কপি করা যায়নি','error');} ta.remove(); }
+  }
+  const who=()=>{ try{ return (typeof currentPartner!=='undefined'&&currentPartner)||''; }catch(e){ return ''; } };
+  async function save(){
+    const c=cleanForm(), g=formGlobal();
+    const optimistic=()=>{ store.global=g; if(scope==='__def') store.def=c; else { const k=prodKey(scope)||scope; store.products[k]=c; } persist(); };
+    const prevStore=clone(store); optimistic();
+    dirty=false; fillSel(); render(); preview();
+    if(typeof _invoiceEditMode!=='undefined'&&_invoiceEditMode) _setInvoiceEditMode(true);
+    showToast('⏳ সেভ হচ্ছে...','info');
+    const base={by:who()};
+    let r1=await postToAPI(Object.assign({action:'warrantySave',kind:'global',cfg:g},base));
+    let r2=await postToAPI(scope==='__def'?Object.assign({action:'warrantySave',kind:'default',cfg:c},base):Object.assign({action:'warrantySave',kind:'product',name:scope,cfg:c},base));
+    if(r1&&r2){ apply(r2); fillSel(); render(); showToast('✅ ওয়ারেন্টি সেটিং সেভ হয়েছে','success'); }
+    else showToast('⚠️ শিটে সেভ হয়নি (এই ব্রাউজারে সেভ আছে) — GS নতুন ভার্সন ডেপ্লয় করা আছে কিনা দেখুন','error');
+  }
+  async function delProd(){
+    if(scope==='__def'||!prodKey(scope)) return;
+    if(!confirm('"'+scope+'" এর আলাদা সেটিং মুছে ডিফল্টে ফিরবে। নিশ্চিত?')) return;
+    const k=prodKey(scope); delete store.products[k]; persist(); fillSel(); toForm(cfgForScope()); preview(); render();
+    const r=await postToAPI({action:'warrantyDelete',name:scope,by:who()});
+    if(r) apply(r); else showToast('⚠️ শিটে মোছা যায়নি','error');
+  }
+  async function applyMany(){
+    const sel=[...document.querySelectorAll('.war-many-cb:checked')].map(e=>e.value); if(!sel.length){ showToast('কোনো প্রোডাক্ট বাছাই করা হয়নি','error'); return; }
+    const c=cleanForm();
+    sel.forEach(n=>{ store.products[prodKey(n)||n]=clone(c); }); persist(); fillSel(); render();
+    const r=await postToAPI({action:'warrantySaveMany',names:sel,cfg:c,by:who()});
+    if(r){ apply(r); fillSel(); render(); showToast('✅ '+sel.length+'টি প্রোডাক্টে প্রয়োগ হয়েছে','success'); } else showToast('⚠️ শিটে সেভ হয়নি','error');
+  }
+  // স্টার্টআপে সার্ভার থেকে একবার লোড (নীরবে)
+  setTimeout(async()=>{ try{ const d=await fetchFromAPI('warrantyGet'); if(d&&apply(d)) render(); }catch(e){} },3500);
+  return {ui:uiChange, show, render, openSettings, selChange, edit, save, resetForm, copyText, delProd, applyMany, _t:{resolve,durLabel,parseDate,addPeriod,fmtDate,store:()=>store}};
+})();
+window.IGXW=IGXW;
+
+/* ── টাকার অঙ্ক বাংলা কথায় ── */
+const _BN_W=['শূন্য','এক','দুই','তিন','চার','পাঁচ','ছয়','সাত','আট','নয়','দশ','এগারো','বারো','তেরো','চৌদ্দ','পনেরো','ষোলো','সতেরো','আঠারো','ঊনিশ','বিশ','একুশ','বাইশ','তেইশ','চব্বিশ','পঁচিশ','ছাব্বিশ','সাতাশ','আটাশ','ঊনত্রিশ','ত্রিশ','একত্রিশ','বত্রিশ','তেত্রিশ','চৌত্রিশ','পঁয়ত্রিশ','ছত্রিশ','সাঁইত্রিশ','আটত্রিশ','ঊনচল্লিশ','চল্লিশ','একচল্লিশ','বিয়াল্লিশ','তেতাল্লিশ','চুয়াল্লিশ','পঁয়তাল্লিশ','ছেচল্লিশ','সাতচল্লিশ','আটচল্লিশ','ঊনপঞ্চাশ','পঞ্চাশ','একান্ন','বায়ান্ন','তিপ্পান্ন','চুয়ান্ন','পঞ্চান্ন','ছাপ্পান্ন','সাতান্ন','আটান্ন','ঊনষাট','ষাট','একষট্টি','বাষট্টি','তেষট্টি','চৌষট্টি','পঁয়ষট্টি','ছেষট্টি','সাতষট্টি','আটষট্টি','ঊনসত্তর','সত্তর','একাত্তর','বাহাত্তর','তিয়াত্তর','চুয়াত্তর','পঁচাত্তর','ছিয়াত্তর','সাতাত্তর','আটাত্তর','ঊনআশি','আশি','একাশি','বিরাশি','তিরাশি','চুরাশি','পঁচাশি','ছিয়াশি','সাতাশি','অষ্টাশি','ঊননব্বই','নব্বই','একানব্বই','বিরানব্বই','তিরানব্বই','চুরানব্বই','পঁচানব্বই','ছিয়ানব্বই','সাতানব্বই','আটানব্বই','নিরানব্বই'];
+function bnMoneyWords(n){
+  n=Math.floor(Math.abs(Number(n)||0)); if(n===0) return 'শূন্য টাকা মাত্র';
+  const parts=[]; let x=n;
+  const cr=Math.floor(x/10000000); x%=10000000; const lk=Math.floor(x/100000); x%=100000; const th=Math.floor(x/1000); x%=1000; const hu=Math.floor(x/100); const rest=x%100;
+  const big=(v)=> v>=100 ? bnMoneyWords(v).replace(' টাকা মাত্র','') : _BN_W[v];
+  if(cr) parts.push(big(cr)+' কোটি'); if(lk) parts.push(_BN_W[lk]+' লক্ষ'); if(th) parts.push(_BN_W[th]+' হাজার'); if(hu) parts.push(_BN_W[hu]+' শত'); if(rest) parts.push(_BN_W[rest]);
+  return parts.join(' ')+' টাকা মাত্র';
+}
+
 function openInvoice(r) {
   const el = id => document.getElementById(id);
   // ✅ v41 FIX: ভুল বোঝাবুঝি ঠিক করা হলো — "InnoGix" আসলে কোম্পানির নাম নয়,
@@ -8439,14 +8781,13 @@ function openInvoice(r) {
   const total = parseFloat(r.total || items.reduce((s,it)=>s+(Number(it.total)||(Number(it.qty)||0)*(Number(it.price)||0)),0) || 0);
   el('inv-items').innerHTML = items.map((it, idx) => {
     const q = parseFloat(it.qty||1), p = parseFloat(it.price||0), t = parseFloat(it.total || q*p || 0);
-    // ✅ FIX (ইনভয়েস আপডেট, Sept 2026): alternating row shading — পড়তে সহজ হয়
-    const rowBg = idx % 2 === 1 ? 'background:#f6f8fc;' : '';
     return `
-    <tr style="border-bottom:1px solid #e1e6f0;${rowBg}">
-      <td class="inv-editable" style="padding:11px 12px;color:#111;font-weight:500;">${it.product||'—'}</td>
-      <td class="inv-editable" style="padding:11px 8px;text-align:center;color:#111;">${q}</td>
-      <td class="inv-editable" style="padding:11px 8px;text-align:right;font-family:'IBM Plex Mono',monospace;color:#111;">৳${p.toLocaleString()}</td>
-      <td class="inv-editable" style="padding:11px 12px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:700;color:#111;">৳${t.toLocaleString()}</td>
+    <tr style="border-bottom:1px solid #eceff5;">
+      <td style="padding:15px 10px;text-align:center;color:#9a7b2f;font-weight:700;font-size:12px;">${idx+1}</td>
+      <td class="inv-editable" style="padding:15px 12px;color:#1b2437;font-weight:600;">${it.product||'—'}</td>
+      <td class="inv-editable" style="padding:15px 8px;text-align:center;color:#1b2437;">${q}</td>
+      <td class="inv-editable" style="padding:15px 8px;text-align:right;color:#3a3f4d;">৳${p.toLocaleString()}</td>
+      <td class="inv-editable" style="padding:15px 14px;text-align:right;font-weight:700;color:#0f2a5c;">৳${t.toLocaleString()}</td>
     </tr>`;
   }).join('');
   // Totals
@@ -8457,7 +8798,23 @@ function openInvoice(r) {
   el('inv-delivery').textContent = '৳ ' + delivery.toLocaleString();
   el('inv-paid').textContent     = '৳ ' + paid.toLocaleString();
   el('inv-due').textContent      = '৳ ' + due.toLocaleString();
-  el('inv-due').style.color      = due > 0 ? '#c62828' : '#1b5e20';
+  el('inv-due').style.color      = due > 0 ? '#ffffff' : '#ffffff';
+  // ── নতুন ডিজাইনের অতিরিক্ত অংশ ──
+  const grand = total + delivery;
+  el('inv-total').textContent = '৳ ' + grand.toLocaleString();
+  el('inv-words').textContent = bnMoneyWords(grand);
+  const stEl = el('inv-status');
+  if (due <= 0) { stEl.textContent = 'PAID · পরিশোধিত'; stEl.style.cssText = 'margin-top:10px;background:#e6f4ea;color:#1b5e20;border:1px solid #b6dfc1;'; }
+  else if (paid > 0) { stEl.textContent = 'PARTIAL · আংশিক পরিশোধ'; stEl.style.cssText = 'margin-top:10px;background:#fff4dc;color:#8a5a00;border:1px solid #f0d28a;'; }
+  else { stEl.textContent = 'DUE · বাকি'; stEl.style.cssText = 'margin-top:10px;background:#fdeaea;color:#b71c1c;border:1px solid #f0b4b4;'; }
+  stEl.className = 'iv-badge';
+  const setRow = (rowId, valId, v) => { const rw = el(rowId); el(valId).textContent = v || '—'; rw.style.display = v ? '' : 'none'; };
+  setRow('inv-row-pay','inv-payment', r.payment);
+  setRow('inv-row-courier','inv-courier', r.courier);
+  setRow('inv-row-track','inv-tracking', r.tracking);
+  if (!r.payment && !r.courier && !r.tracking) { el('inv-row-pay').style.display=''; el('inv-payment').textContent='—'; }
+  // 🛡️ ওয়ারেন্টি ব্লক
+  try { IGXW.show({items: items, date: r.date || ''}); } catch(e) { console.error('warranty render', e); }
 
   // ✅ FIX (ইনভয়েস কাস্টমাইজেশন, Sept 2026): নতুন ইনভয়েস খোলার সময় এডিট মোড বন্ধ রাখো
   _setInvoiceEditMode(false);
@@ -18793,15 +19150,54 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   <div class="modal-header"><h3 id="pr-ls-title">Batch তালিকা</h3><button class="modal-close" onclick="closeModal('pr-list')">✕</button></div>
   <div class="modal-body"><div class="table-wrap" style="max-height:60vh;overflow:auto;"><table class="data-table"><thead id="pr-ls-head"></thead><tbody id="pr-ls-body"></tbody></table></div></div>
 </div></div>
-<div class="modal-overlay" id="modal-pr-imp"><div class="modal" style="max-width:860px;">
-  <div class="modal-header"><h3>📥 Raw Material — CSV Import</h3><button class="modal-close" onclick="closeModal('pr-imp')">✕</button></div>
+<div class="modal-overlay" id="modal-pr-imp"><div class="modal" style="max-width:900px;">
+  <div class="modal-header"><h3>📥 CSV Import</h3><button class="modal-close" onclick="closeModal('pr-imp')">✕</button></div>
   <div class="modal-body">
-    <div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;">কলাম: <b>Name</b> (বাধ্যতামূলক), Category, Unit, Unit Cost, Opening Stock, Reorder Level, Supplier, Phone। একই নামে আগে থেকে থাকলে সেই রো <b>বাদ</b> যাবে (ডাবল হবে না)। <a href="#" onclick="prImpTemplate();return false;" style="color:var(--accent,#58a6ff);">📄 নমুনা CSV নামান</a></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
+      <select class="form-select" id="pr-imp-type" onchange="prImpType()" style="max-width:280px;"><option value="rm">🧱 Raw Material</option><option value="bom">🧩 BOM / Recipe</option></select>
+      <a href="#" onclick="prImpTemplate();return false;" style="color:var(--accent,#58a6ff);font-size:13px;">📄 নমুনা CSV নামান</a>
+    </div>
+    <div id="pr-imp-help" style="font-size:12.5px;color:var(--text2);margin-bottom:10px;"></div>
     <input type="file" id="pr-imp-file" accept=".csv,text/csv" onchange="prImpParse(this)" class="form-input">
     <div id="pr-imp-sum" style="margin:10px 0;font-size:13px;"></div>
-    <div class="table-wrap" style="max-height:38vh;overflow:auto;"><table class="data-table"><thead><tr><th>#</th><th>Name</th><th>Category</th><th>Unit</th><th style="text-align:right;">Cost</th><th style="text-align:right;">Opening</th><th style="text-align:right;">Reorder</th><th>অবস্থা</th></tr></thead><tbody id="pr-imp-body"></tbody></table></div>
+    <div class="table-wrap" style="max-height:38vh;overflow:auto;"><table class="data-table"><thead id="pr-imp-head"></thead><tbody id="pr-imp-body"></tbody></table></div>
   </div>
   <div class="modal-footer"><button class="btn" onclick="closeModal('pr-imp')">বাতিল</button><button class="btn primary" id="pr-imp-go" onclick="prImpRun()" disabled>✅ Import শুরু</button></div>
+</div></div>
+<div class="modal-overlay" id="modal-pr-exp"><div class="modal" style="max-width:720px;">
+  <div class="modal-header"><h3>📊 Export (ফিল্টার সহ)</h3><button class="modal-close" onclick="closeModal('pr-exp')">✕</button></div>
+  <div class="modal-body">
+    <div style="font-weight:600;margin-bottom:6px;">কী কী Export করবেন?</div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px;font-size:13px;">
+      <label><input type="checkbox" id="pr-x-rm" checked> 🧱 Raw Materials</label><label><input type="checkbox" id="pr-x-bom" checked> 🧩 BOM</label><label><input type="checkbox" id="pr-x-prod" checked> 🏭 Batches</label><label><input type="checkbox" id="pr-x-mov"> 📜 Movements</label><label><input type="checkbox" id="pr-x-aud"> 🔍 Audits</label><label><input type="checkbox" id="pr-x-wrk"> 👷 Workers</label><label><input type="checkbox" id="pr-x-fg"> 📦 Finished Goods</label>
+    </div>
+    <div style="font-weight:600;margin-bottom:6px;">ফিল্টার (ঐচ্ছিক — খালি রাখলে সব)</div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">তারিখ থেকে</label><input class="form-input" type="date" id="pr-x-from"></div>
+      <div class="form-group"><label class="form-label">তারিখ পর্যন্ত</label><input class="form-input" type="date" id="pr-x-to"></div>
+      <div class="form-group"><label class="form-label">Raw Material ক্যাটাগরি</label><select class="form-select" id="pr-x-cat"></select></div>
+      <div class="form-group"><label class="form-label">Worker</label><select class="form-select" id="pr-x-worker"></select></div>
+      <div class="form-group"><label class="form-label">প্রোডাক্ট / আইটেমের নামে আছে</label><input class="form-input" id="pr-x-prod-q" placeholder="যেমন: Fan"></div>
+      <div class="form-group"><label class="form-label">&nbsp;</label><label style="font-size:13px;"><input type="checkbox" id="pr-x-low"> শুধু Low/Out of Stock Raw Material</label></div>
+    </div>
+    <div style="font-size:11.5px;color:var(--text3);margin:4px 0 10px;">তারিখ ফিল্টার Batches / Movements / Audits-এ কাজ করে। ডেটা সরাসরি Google Sheet-এর কাঁচা সারি থেকে আসে, তাই কলাম হুবহু শিটের মতো।</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn primary" onclick="prExportRun('xlsx')">📊 Excel (.xlsx)</button><button class="btn" onclick="prExportRun('csv')">📄 CSV (প্রতিটি আলাদা ফাইল)</button></div>
+    <hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">
+    <div style="font-weight:700;margin-bottom:4px;">💾 Full Backup / ♻️ Restore</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px;">সব ডেটা (Raw Material, BOM, Batch, Movement, Audit, Worker) ফিল্টার ছাড়া হুবহু সংরক্ষণ। ওয়েব অ্যাপ বদলালে বা সমস্যা হলে এই JSON ফাইল দিয়ে ডেটা ফেরত আনা যায়।</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn" onclick="prBackup()">💾 Full Backup নামান (JSON + Excel)</button><button class="btn" onclick="closeModal('pr-exp');prOpenRestore()">♻️ Backup থেকে Restore…</button></div>
+  </div>
+</div></div>
+<div class="modal-overlay" id="modal-pr-rst"><div class="modal" style="max-width:720px;">
+  <div class="modal-header"><h3>♻️ Backup থেকে Restore</h3><button class="modal-close" onclick="closeModal('pr-rst')">✕</button></div>
+  <div class="modal-body">
+    <div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;">"Full Backup" থেকে নামানো <b>.json</b> ফাইল বেছে নিন। নিরাপত্তার জন্য PIN লাগবে। টার্গেট শিট খালি না থাকলে নিচের টিক দিতে হবে — তখন পুরনো শিটের একটি কপি (<code>…_bak_তারিখ</code>) আগে রেখে দেওয়া হয়।</div>
+    <input type="file" id="pr-r-file" accept=".json,application/json" onchange="prRestoreParse(this)" class="form-input">
+    <div id="pr-r-sum" style="margin:10px 0;font-size:13px;"></div>
+    <label style="font-size:13px;display:block;margin-bottom:8px;"><input type="checkbox" id="pr-r-replace"> বর্তমান ডেটা থাকলে প্রতিস্থাপন করো (পুরনো কপি রেখে)</label>
+    <div id="pr-r-log" style="font-size:12px;color:var(--text2);max-height:160px;overflow:auto;"></div>
+  </div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('pr-rst')">বন্ধ</button><button class="btn primary" id="pr-r-go" onclick="prRestoreRun()" disabled>♻️ Restore শুরু</button></div>
 </div></div>
 <div class="modal-overlay" id="modal-pr-cancel"><div class="modal" style="max-width:480px;">
   <div class="modal-header"><span class="modal-title">↩️ Batch বাতিল (Rollback)</span><button class="modal-close" onclick="closeModal('pr-cancel')">✕</button></div>
@@ -18846,16 +19242,19 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   const rmById = id => S.rm.find(x=>x.id===id);
 
   // postToAPI-র টোস্টের বদলে ত্রুটির বার্তা নিজের বক্সে দেখানোর জন্য ক্যাপচার
-  let BUSY = false;
-  function busyBar(on){
-    let b = $('pr-busy'); if(!b){ b = document.createElement('div'); b.id='pr-busy'; b.style.cssText='position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:99999;background:var(--gold,#D4A017);color:#111;padding:8px 18px;border-radius:20px;font-weight:700;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.4);display:none;'; b.textContent='⏳ সেভ হচ্ছে… একটু অপেক্ষা করুন (আবার ক্লিক করবেন না)'; document.body.appendChild(b); }
-    b.style.display = on?'block':'none';
-    document.querySelectorAll('.modal-overlay .btn.primary').forEach(x=>{ x.style.opacity = on?'.55':''; x.style.pointerEvents = on?'none':''; });
+  // ── সেভ: সাথে সাথে উইন্ডো বন্ধ, কাজ ব্যাকগ্রাউন্ডে চলে (সিরিয়াল কিউ); ব্যর্থ হলে উইন্ডো আবার খোলে ──
+  let Q = Promise.resolve(), PENDING = 0;
+  const QUICK_CLOSE = ['modal-pr-rm','modal-pr-move','modal-pr-bom','modal-pr-cancel'];
+  function busyBar(){
+    let b = $('pr-busy'); if(!b){ b = document.createElement('div'); b.id='pr-busy'; b.style.cssText='position:fixed;right:16px;bottom:16px;z-index:99999;background:var(--gold,#D4A017);color:#111;padding:7px 14px;border-radius:18px;font-weight:700;font-size:12.5px;box-shadow:0 4px 16px rgba(0,0,0,.4);display:none;pointer-events:none;'; document.body.appendChild(b); }
+    b.textContent = '⏳ ব্যাকগ্রাউন্ডে সেভ হচ্ছে' + (PENDING>1?' ('+PENDING+')':'') + '…'; b.style.display = PENDING>0?'block':'none';
   }
-  async function post(payload, errBoxId){
-    if(BUSY){ showToast('আগের সেভ চলছে — অপেক্ষা করুন','info'); return null; }
-    BUSY = true; busyBar(true);
-    try{ return await post_(payload, errBoxId); } finally { BUSY = false; busyBar(false); }
+  function post(payload, errBoxId){
+    const closed = QUICK_CLOSE.map(id=>$(id)).filter(m=>m && m.classList.contains('open'));
+    closed.forEach(m=>m.classList.remove('open'));
+    PENDING++; busyBar();
+    const run = async () => { try{ const r = await post_(payload, errBoxId); if(!r) closed.forEach(m=>m.classList.add('open')); return r; } finally { PENDING--; busyBar(); } };
+    const pr = Q.then(run, run); Q = pr.catch(()=>{}); return pr;
   }
   async function post_(payload, errBoxId){
     payload.by = by(); if(!payload.reqId) payload.reqId = rid();
@@ -19186,6 +19585,7 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
       <div style="margin-bottom:10px;">${lines.map(l=>`<div style="font-size:13px;">• <b>${esc(l.prod)}</b> (${esc(l.rec)}) × ${fmt(l.u)} — এখনকার স্টকে একা সর্বোচ্চ <b style="color:${l.maxU>=l.u?'var(--green)':'var(--red)'};">${fmt(l.maxU)}</b>টি বানানো সম্ভব</div>`).join('')}</div>
       <div class="table-wrap"><table class="data-table"><thead><tr><th>Raw Material</th><th style="text-align:right;">দরকার</th><th style="text-align:right;">স্টকে আছে</th><th style="text-align:right;">ঘাটতি</th><th style="text-align:right;">ঘাটতির আনুমানিক খরচ</th><th>সাপ্লায়ার</th></tr></thead><tbody>${rows.map(x=>`<tr style="${x.short>0?'background:rgba(248,81,73,.07);':''}"><td><b>${esc(x.name)}</b></td><td style="text-align:right;">${fmt(x.need)} ${esc(x.unit)}</td><td style="text-align:right;">${fmt(x.cur)}</td><td style="text-align:right;${x.short>0?'color:var(--red);font-weight:700;':'color:var(--green);'}">${x.short>0?fmt(x.short):'✔ ঠিক আছে'}</td><td style="text-align:right;">${x.short>0?'৳'+fmt(x.cost):'—'}</td><td>${esc(x.sup)} ${x.ph?'<small style="color:var(--text3);">'+esc(x.ph)+'</small>':''}</td></tr>`).join('')}</tbody><tfoot><tr><td colspan="4" style="text-align:right;font-weight:700;">মোট কিনতে হবে (আনুমানিক)</td><td style="text-align:right;font-weight:800;color:var(--gold);">৳${fmt(totShort)}</td><td></td></tr></tfoot></table></div>
       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">${nShort?`<span class="pr-pill pr-bad">${nShort}টি উপাদানের ঘাটতি</span><button class="btn" onclick="prPlanCopy()">📋 ঘাটতির তালিকা কপি</button><button class="btn" onclick="prPlanCsv()">📥 CSV</button>`:'<span class="pr-pill pr-ok">✔ সব উপাদান যথেষ্ট — এখনই Production শুরু করা যায়</span>'}</div>`;
+    $('pr-pl-out').insertAdjacentHTML('beforeend', `<div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center;"><b style="font-size:13px;">🖨️ Plan রিপোর্ট (শুধু এই প্ল্যান):</b><button class="btn" onclick="prPlanSnap('print')">🖨️ প্রিন্ট</button><button class="btn" onclick="prPlanSnap('png')">🖼️ PNG</button><button class="btn" onclick="prPlanSnap('pdf')">📄 PDF</button></div>`);
   };
   function planShortRows(){ return PLAN ? PLAN.rows.filter(x=>x.short>0) : []; }
   window.prPlanCopy = function(){
@@ -19227,75 +19627,302 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
     for(let i=a;i<=z;i++) csv += [m1[1]+'-'+String(i).padStart(w,'0'), '"'+b.product+'"', b.id, b.lot, '"'+b.worker+'"', '"'+b.time+'"'].join(',')+'\n';
     dlBlob('serials_'+b.id+'.csv', new Blob([csv],{type:'text/csv;charset=utf-8'}));
   };
-  // ── Export Excel (SheetJS লোড হলে .xlsx, না হলে CSV) ──
   function loadXlsx(){ return new Promise(res=>{ if(window.XLSX) return res(true); const sc=document.createElement('script'); sc.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; sc.onload=()=>res(!!window.XLSX); sc.onerror=()=>res(false); document.head.appendChild(sc); setTimeout(()=>res(!!window.XLSX),8000); }); }
   function dlBlob(name,blob){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); }
-  window.prExportXlsx = async function(){
-    if(!S.loaded){ showToast('আগে ডেটা লোড হতে দিন','info'); return; }
-    const sheets = {
-      'Raw Materials': [['ID','Name','Category','Unit','Unit Cost','Current Stock','Stock Value','Reorder Level','Supplier','Phone','Status','Active']].concat(S.rm.map(x=>[x.id,x.name,x.cat,x.unit,x.cost,x.cur,r2(x.cur*x.cost),x.reorder,x.supplier||'',x.phone||'',x.status||'',x.active?'Yes':'No'])),
-      'BOM': [['BOM ID','Product','Recipe','Material ID','Material','Qty/Unit']].concat([].concat(...S.boms.map(b=>(b.lines||[]).map(l=>[b.key,b.product,b.recipe||'',l.rmId,l.rmName||'',l.qty])))),
-      'Batches': [['Batch','Time','Product','Units','Worker','Material Cost','Scrap Cost','Total Cost','Unit Cost','Status']].concat(S.batches.map(b=>[b.id,b.ts?new Date(b.ts+6*3600e3).toISOString().slice(0,16).replace('T',' '):'',b.product,b.units,b.worker,b.matCost,b.scrapCost,b.totalCost,b.unitCost,b.status])),
-      'Movements': [['Time','Action','Type','Item ID','Item','Change','Balance','Worker','Ref','Note','By']].concat(S.moves.map(m=>[m.time,m.action,m.type,m.itemId,m.name,m.change,m.balance,m.worker,m.ref,m.note,m.by]))
-    };
-    const d = new Date(Date.now()+6*3600e3).toISOString().slice(0,10);
-    showToast('⏳ Excel তৈরি হচ্ছে...','info');
-    const ok = await loadXlsx();
-    if(ok){
-      const wb = XLSX.utils.book_new();
-      Object.keys(sheets).forEach(n=>{ const ws = XLSX.utils.aoa_to_sheet(sheets[n]); ws['!cols'] = sheets[n][0].map(()=>({wch:18})); XLSX.utils.book_append_sheet(wb, ws, n); });
-      XLSX.writeFile(wb, 'InnoGix_Production_'+d+'.xlsx');
-      showToast('✅ Excel ডাউনলোড হয়েছে'+(S.moves.length?'':' (Movement শিট ফাঁকা — Movement History ট্যাব একবার খুললে ভরবে)'),'success');
-    } else {
-      const q = v => '"'+String(v==null?'':v).replace(/"/g,'""')+'"';
-      const csv = '\ufeff'+sheets['Raw Materials'].map(r=>r.map(q).join(',')).join('\n');
-      dlBlob('Raw_Materials_'+d+'.csv', new Blob([csv],{type:'text/csv;charset=utf-8'}));
-      showToast('ইন্টারনেট/Excel লাইব্রেরি পাওয়া যায়নি — Raw Material CSV নামানো হয়েছে (Excel-এ খোলে)','info');
-    }
-  };
-  // ── Import CSV (Raw Material) ──
-  let IMP = [];
   function parseCsv(t){ t=t.replace(/^\ufeff/,''); const rows=[]; let row=[],f='',q=false; for(let i=0;i<t.length;i++){ const c=t[i]; if(q){ if(c==='"'){ if(t[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; } else if(c==='"') q=true; else if(c===','){row.push(f);f='';} else if(c==='\n'||c==='\r'){ if(c==='\r'&&t[i+1]==='\n')i++; row.push(f);f=''; if(row.some(x=>x.trim()!==''))rows.push(row); row=[]; } else f+=c; } row.push(f); if(row.some(x=>x.trim()!==''))rows.push(row); return rows; }
-  window.prImpTemplate = function(){ dlBlob('raw_material_template.csv', new Blob(['\ufeffName,Category,Unit,Unit Cost,Opening Stock,Reorder Level,Supplier,Phone\nBMS Board,BMS,pcs,120,50,10,Mokka,01700000000\n'],{type:'text/csv;charset=utf-8'})); };
-  window.prOpenImport = function(){ IMP=[]; $('pr-imp-file').value=''; $('pr-imp-body').innerHTML=''; $('pr-imp-sum').textContent=''; $('pr-imp-go').disabled=true; openModal('pr-imp'); };
+
+  // ═══ Export (ফিল্টার সহ, শিটের কাঁচা সারি থেকে) / Backup / Restore ═══
+  const XL = {
+    rm:  { name:'Raw Materials', key:'RM'   }, bom:{ name:'BOM', key:'BOM' }, prod:{ name:'Batches', key:'PROD' },
+    mov: { name:'Movements',     key:'MOV'  }, aud:{ name:'Audits', key:'AUD' }, wrk:{ name:'Workers', key:'WRK' }
+  };
+  window.prOpenExport = function(){
+    const cats = Array.from(new Set(S.rm.map(x=>x.cat).filter(Boolean))).sort();
+    $('pr-x-cat').innerHTML = '<option value="">সব ক্যাটাগরি</option>'+cats.map(c=>`<option>${esc(c)}</option>`).join('');
+    $('pr-x-worker').innerHTML = '<option value="">সব Worker</option>'+S.workers.map(w=>`<option>${esc(w.name)}</option>`).join('');
+    openModal('pr-exp');
+  };
+  function dayMs(d,end){ return d ? new Date(d+(end?'T23:59:59.999+06:00':'T00:00:00+06:00')).getTime() : null; }
+  function applyFilters(bk){
+    const from = dayMs($('pr-x-from').value,false), to = dayMs($('pr-x-to').value,true), cat = $('pr-x-cat').value, wk = $('pr-x-worker').value, q = $('pr-x-prod-q').value.trim().toLowerCase(), low = $('pr-x-low').checked;
+    const inRange = ts => (from==null || Number(ts)>=from) && (to==null || Number(ts)<=to);
+    const out = {};
+    Object.keys(XL).forEach(k=>{
+      const sh = bk.sheets[XL[k].key]; if(!sh) return; let rows = sh.rows;
+      if(k==='rm') rows = rows.filter(r=>(!cat||r[2]===cat) && (!q||String(r[1]).toLowerCase().includes(q)) && (!low || (String(r[11])!=='No' && Number(r[6])<=Number(r[7]))));
+      if(k==='bom') rows = rows.filter(r=>(!q||String(r[2]).toLowerCase().includes(q)||String(r[5]).toLowerCase().includes(q)));
+      if(k==='prod') rows = rows.filter(r=>inRange(r[1]) && (!wk||r[6]===wk) && (!q||String(r[3]).toLowerCase().includes(q)));
+      if(k==='mov') rows = rows.filter(r=>inRange(r[1]) && (!wk||r[9]===wk) && (!q||String(r[6]).toLowerCase().includes(q)));
+      if(k==='aud') rows = rows.filter(r=>inRange(r[1]) && (!q||String(r[5]).toLowerCase().includes(q)));
+      out[k] = { header: sh.header, rows };
+    });
+    return out;
+  }
+  async function fetchBackup(){
+    showToast('⏳ ডেটা আনা হচ্ছে…','info');
+    const bk = await fetchFromAPI('prodBackup');
+    if(!bk || !bk.sheets){ showToast('ডেটা আনা যায়নি — GS-এর নতুন ভার্সন ডিপ্লয় করেছেন?','error'); return null; }
+    return bk;
+  }
+  const today = () => new Date(Date.now()+6*3600e3).toISOString().slice(0,10);
+  window.prExportRun = async function(fmt){
+    const picked = ['rm','bom','prod','mov','aud','wrk'].filter(k=>$('pr-x-'+k).checked), wantFg = $('pr-x-fg').checked;
+    if(!picked.length && !wantFg){ showToast('কমপক্ষে একটি বেছে নিন','error'); return; }
+    const bk = picked.length ? await fetchBackup() : { sheets:{} }; if(!bk) return;
+    const data = applyFilters(bk), sheets = {};
+    picked.forEach(k=>{ sheets[XL[k].name] = [data[k].header].concat(data[k].rows); });
+    if(wantFg) sheets['Finished Goods'] = [['ID','Product','Current Stock','Cost','Sell']].concat(S.fg.map(x=>[x.id,x.name,x.cur,x.cost,x.sell]));
+    const names = Object.keys(sheets), total = names.reduce((s,n)=>s+sheets[n].length-1,0);
+    if(!total){ showToast('এই ফিল্টারে কোনো ডেটা পাওয়া যায়নি','info'); return; }
+    const tag = today()+(($('pr-x-from').value||$('pr-x-to').value)?'_filtered':'');
+    if(fmt==='csv'){
+      const q = v => { v = v==null?'':String(v); return /[",\n\r]/.test(v)||/^\s|\s$/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; };
+      names.forEach((n,i)=>setTimeout(()=>dlBlob('InnoGix_'+n.replace(/\s+/g,'_')+'_'+tag+'.csv', new Blob(['﻿'+sheets[n].map(r=>r.map(q).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'})), i*400));
+      showToast('✅ '+names.length+'টি CSV ডাউনলোড হচ্ছে ('+total+' সারি)','success'); return;
+    }
+    const ok = await loadXlsx();
+    if(!ok){ showToast('Excel লাইব্রেরি লোড হয়নি (ইন্টারনেট?) — CSV ব্যবহার করুন','error'); return; }
+    const wb = XLSX.utils.book_new();
+    names.forEach(n=>{ const ws = XLSX.utils.aoa_to_sheet(sheets[n]); ws['!cols'] = sheets[n][0].map(()=>({wch:18})); XLSX.utils.book_append_sheet(wb, ws, n.slice(0,31)); });
+    XLSX.writeFile(wb, 'InnoGix_Production_'+tag+'.xlsx');
+    showToast('✅ Excel ডাউনলোড হয়েছে ('+total+' সারি)','success');
+  };
+  window.prBackup = async function(){
+    const bk = await fetchBackup(); if(!bk) return;
+    const d = today(), n = Object.keys(bk.sheets).reduce((s,k)=>s+bk.sheets[k].rows.length,0);
+    dlBlob('InnoGix_Production_Backup_'+d+'.json', new Blob([JSON.stringify(bk)],{type:'application/json'}));
+    if(await loadXlsx()){
+      const wb = XLSX.utils.book_new();
+      Object.keys(bk.sheets).forEach(k=>{ const ws = XLSX.utils.aoa_to_sheet([bk.sheets[k].header].concat(bk.sheets[k].rows)); ws['!cols'] = bk.sheets[k].header.map(()=>({wch:18})); XLSX.utils.book_append_sheet(wb, ws, (XL[Object.keys(XL).find(x=>XL[x].key===k)]||{name:k}).name.slice(0,31)); });
+      setTimeout(()=>XLSX.writeFile(wb,'InnoGix_Production_Backup_'+d+'.xlsx'),500);
+    }
+    showToast('✅ Full Backup নামানো হয়েছে ('+n+' সারি) — JSON ফাইলটি নিরাপদ জায়গায় রাখুন','success');
+  };
+  let RST = null;
+  window.prOpenRestore = function(){ RST = null; $('pr-r-file').value=''; $('pr-r-sum').textContent=''; $('pr-r-log').innerHTML=''; $('pr-r-go').disabled=true; $('pr-r-replace').checked=false; openModal('pr-rst'); };
+  window.prRestoreParse = function(inp){
+    const f = inp.files && inp.files[0]; if(!f) return; const rd = new FileReader();
+    rd.onload = () => {
+      try{
+        const j = JSON.parse(String(rd.result||'')); if(!j || j.app!=='InnoGix-Production' || !j.sheets) throw new Error('এটি InnoGix Production Backup ফাইল নয়');
+        const keys = ['WRK','RM','BOM','PROD','MOV','AUD'].filter(k=>j.sheets[k]); if(!keys.length) throw new Error('ফাইলে কোনো শিট নেই');
+        RST = { j, keys };
+        $('pr-r-sum').innerHTML = '<b>ব্যাকআপের তারিখ:</b> '+esc(String(j.ts||'').slice(0,16).replace('T',' '))+'<br>'+keys.map(k=>`${esc(XL[Object.keys(XL).find(x=>XL[x].key===k)].name)}: <b>${j.sheets[k].rows.length}</b> সারি`).join(' · ');
+        $('pr-r-go').disabled = false;
+      }catch(e){ RST = null; $('pr-r-sum').innerHTML = '<span class="pr-bad">❌ '+esc(e.message)+'</span>'; $('pr-r-go').disabled = true; }
+    };
+    rd.readAsText(f,'utf-8');
+  };
+  window.prRestoreRun = async function(){
+    if(!RST) return; const replace = $('pr-r-replace').checked;
+    if(!confirm('Restore শুরু করবেন?'+(replace?'\n\n⚠️ বর্তমান ডেটা প্রতিস্থাপিত হবে (পুরনো শিটের কপি রাখা হবে)।':'\n\nটার্গেট শিটে ডেটা থাকলে সেই শিট বাদ যাবে।'))) return;
+    const pin = await _askPartnerPin('Restore করতে আপনার PIN দিন'); if(!pin) return;
+    const btn = $('pr-r-go'), log = $('pr-r-log'); btn.disabled = true; log.innerHTML = ''; let allOk = true;
+    const line = (t,bad) => { log.insertAdjacentHTML('beforeend','<div'+(bad?' class="pr-bad"':'')+'>'+esc(t)+'</div>'); };
+    outer: for(const k of RST.keys){
+      const sh = RST.j.sheets[k], CH = 200; let first = true, sent = 0;
+      do{
+        const rows = sh.rows.slice(sent, sent+CH);
+        const res = await post({ action:'prodRestore', key:k, header:sh.header, rows, first, replace, pin, noSnap:true });
+        if(!res){ allOk = false; line(k+': ব্যর্থ — এখানে থামানো হয়েছে (আগের শিটগুলো ইতিমধ্যে Restore হয়েছে)', true); break outer; }
+        first = false; sent += rows.length;
+      } while(sent < sh.rows.length);
+      line('✅ '+k+': '+sh.rows.length+' সারি');
+    }
+    await load(true); btn.disabled = false;
+    showToast(allOk ? '✅ Restore সম্পন্ন' : 'Restore অসম্পূর্ণ — লগ দেখুন', allOk?'success':'error');
+    try{ logAction('Production Restore'+(allOk?'':' (অসম্পূর্ণ)')); }catch(_e){}
+  };
+
+  // ═══ CSV Import (Raw Material + BOM) ═══
+  let IMPT = 'rm', IMP = [];
+  const IMP_HELP = {
+    rm:  'কলাম: <b>Name</b> (বাধ্যতামূলক), Category, Unit, Unit Cost, Opening Stock, Reorder Level, Supplier, Phone। একই নাম আগে থেকে থাকলে বা সংখ্যা ভুল হলে সেই রো <b>বাদ</b> যায় (ডাবল/ভুল ডেটা ঢোকে না)।',
+    bom: 'কলাম: <b>Product</b> (Inventory-র নাম), <b>Recipe</b> (খালি হলে Standard), <b>Material</b> (Raw Material-এর নাম বা ID), <b>Qty</b> (প্রতি ইউনিটে)। কোনো রো-তে ভুল থাকলে পুরো Recipe বাদ যায়। একই Product+Recipe আগে থেকে থাকলে নতুনটি <b>প্রতিস্থাপন</b> করে (পুরনোটির ইতিহাস থাকে)।'
+  };
+  const IMP_HEAD = {
+    rm:  '<tr><th>#</th><th>Name</th><th>Category</th><th>Unit</th><th style="text-align:right;">Cost</th><th style="text-align:right;">Opening</th><th style="text-align:right;">Reorder</th><th>অবস্থা</th></tr>',
+    bom: '<tr><th>#</th><th>Product</th><th>Recipe</th><th>Material</th><th style="text-align:right;">Qty</th><th>অবস্থা</th></tr>'
+  };
+  function impRender(){
+    $('pr-imp-body').innerHTML = IMP.map(o=> IMPT==='rm'
+      ? `<tr style="${o.st==='skip'?'opacity:.55;':''}"><td>${o.n}</td><td>${esc(o.name)}</td><td>${esc(o.cat)}</td><td>${esc(o.unit)}</td><td style="text-align:right;">${fmt(o.cost)}</td><td style="text-align:right;">${fmt(o.opening)}</td><td style="text-align:right;">${fmt(o.reorder)}</td><td>${o.msg}</td></tr>`
+      : `<tr style="${o.st==='skip'?'opacity:.55;':''}"><td>${o.n}</td><td>${esc(o.product)}</td><td>${esc(o.recipe)}</td><td>${esc(o.mat)}</td><td style="text-align:right;">${esc(o.qtyRaw)}</td><td>${o.msg}</td></tr>`).join('');
+  }
+  window.prImpType = function(){ IMPT = $('pr-imp-type').value; IMP = []; $('pr-imp-file').value=''; $('pr-imp-sum').textContent=''; $('pr-imp-body').innerHTML=''; $('pr-imp-head').innerHTML = IMP_HEAD[IMPT]; $('pr-imp-help').innerHTML = IMP_HELP[IMPT]; $('pr-imp-go').disabled = true; };
+  window.prOpenImport = function(){ $('pr-imp-type').value = 'rm'; prImpType(); openModal('pr-imp'); };
+  window.prImpTemplate = function(){
+    const csv = IMPT==='rm' ? 'Name,Category,Unit,Unit Cost,Opening Stock,Reorder Level,Supplier,Phone\nBMS Board,BMS,pcs,120,50,10,Mokka,01700000000\n' : 'Product,Recipe,Material,Qty\nRechargeable Fan,Standard,BMS Board,1\nRechargeable Fan,Standard,Motor,2\n';
+    dlBlob(IMPT==='rm'?'raw_material_template.csv':'bom_template.csv', new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
+  };
+  function numStrict(x){ x = String(x==null?'':x).replace(/[,৳\s]/g,''); if(x==='') return 0; if(!/^-?\d+(\.\d+)?$/.test(x)) return NaN; return parseFloat(x); }
   window.prImpParse = function(inp){
     const f = inp.files && inp.files[0]; if(!f) return; const rd = new FileReader();
     rd.onload = () => {
       const rows = parseCsv(String(rd.result||'')); if(rows.length<2){ $('pr-imp-sum').innerHTML='<span class="pr-bad">ফাইলে ডেটা নেই</span>'; return; }
-      const norm = h => String(h).toLowerCase().replace(/[^a-z\u0980-\u09ff]/g,'');
-      const alias = { name:['name','নাম','materialname','item','rawmaterial'], cat:['category','ক্যাটাগরি','cat'], unit:['unit','একক','ইউনিট'], cost:['unitcost','cost','দাম','কস্ট','price'], opening:['openingstock','opening','stock','স্টক','qty','quantity'], reorder:['reorderlevel','reorder','রিঅর্ডার','minstock'], supplier:['supplier','সাপ্লায়ার'], phone:['phone','ফোন','mobile'] };
+      const norm = h => String(h).toLowerCase().replace(/[^a-zঀ-৿]/g,'');
+      const alias = IMPT==='rm'
+        ? { name:['name','নাম','materialname','item','rawmaterial'], cat:['category','ক্যাটাগরি','cat'], unit:['unit','একক','ইউনিট'], cost:['unitcost','cost','দাম','কস্ট','price'], opening:['openingstock','opening','stock','স্টক','qty','quantity'], reorder:['reorderlevel','reorder','রিঅর্ডার','minstock'], supplier:['supplier','সাপ্লায়ার'], phone:['phone','ফোন','mobile'] }
+        : { product:['product','প্রোডাক্ট','finishedproduct','item'], recipe:['recipe','রেসিপি','bom','variant'], mat:['material','rawmaterial','rm','উপাদান','মেটেরিয়াল','rmid','rmname','name'], qty:['qty','quantity','পরিমাণ','qtyunit','qtyperunit'] };
       const hd = rows[0].map(norm), ix = {}; Object.keys(alias).forEach(k=>{ ix[k]=hd.findIndex(h=>alias[k].includes(h)); });
-      if(ix.name<0){ $('pr-imp-sum').innerHTML='<span class="pr-bad">❌ "Name" কলাম পাওয়া যায়নি। নমুনা CSV দেখুন।</span>'; return; }
-      const exist = new Set(S.rm.filter(x=>x.active).map(x=>x.name.trim().toLowerCase())), seen = new Set(); IMP = [];
-      rows.slice(1).forEach((r,i)=>{
-        const g = k => ix[k]>=0 ? String(r[ix[k]]||'').trim() : '', nn = x => { const v = parseFloat(String(x).replace(/[,৳\s]/g,'')); return isFinite(v)?v:0; };
-        const o = { n:i+2, name:g('name'), cat:g('cat'), unit:g('unit'), cost:nn(g('cost')), opening:nn(g('opening')), reorder:nn(g('reorder')), supplier:g('supplier'), phone:g('phone'), st:'ok', msg:'✅ নতুন' };
-        const key = o.name.toLowerCase();
-        if(!o.name){ o.st='skip'; o.msg='⚠️ নাম নেই'; } else if(o.cost<0||o.opening<0||o.reorder<0){ o.st='skip'; o.msg='⚠️ ঋণাত্মক সংখ্যা'; } else if(exist.has(key)){ o.st='skip'; o.msg='⏭️ আগে থেকেই আছে'; } else if(seen.has(key)){ o.st='skip'; o.msg='⏭️ ফাইলে ডুপ্লিকেট'; }
-        seen.add(key); IMP.push(o);
-      });
+      const must = IMPT==='rm' ? ['name'] : ['product','mat','qty'];
+      const miss = must.filter(k=>ix[k]<0); if(miss.length){ $('pr-imp-sum').innerHTML='<span class="pr-bad">❌ কলাম পাওয়া যায়নি: '+miss.join(', ')+'। নমুনা CSV দেখুন।</span>'; IMP=[]; $('pr-imp-body').innerHTML=''; $('pr-imp-go').disabled=true; return; }
+      const g = (r,k) => ix[k]>=0 ? String(r[ix[k]]||'').trim() : '';
+      IMP = [];
+      if(IMPT==='rm'){
+        const exist = new Set(S.rm.filter(x=>x.active).map(x=>x.name.trim().toLowerCase())), seen = new Set();
+        rows.slice(1).forEach((r,i)=>{
+          const o = { n:i+2, name:g(r,'name'), cat:g(r,'cat'), unit:g(r,'unit'), cost:numStrict(g(r,'cost')), opening:numStrict(g(r,'opening')), reorder:numStrict(g(r,'reorder')), supplier:g(r,'supplier'), phone:g(r,'phone'), st:'ok', msg:'✅ নতুন' };
+          const key = o.name.toLowerCase();
+          if(!o.name){ o.st='skip'; o.msg='⚠️ নাম নেই'; }
+          else if([o.cost,o.opening,o.reorder].some(v=>isNaN(v))){ o.st='skip'; o.msg='⚠️ সংখ্যা ভুল'; o.cost=o.cost||0; o.opening=o.opening||0; o.reorder=o.reorder||0; }
+          else if(o.cost<0||o.opening<0||o.reorder<0){ o.st='skip'; o.msg='⚠️ ঋণাত্মক সংখ্যা'; }
+          else if(exist.has(key)){ o.st='skip'; o.msg='⏭️ আগে থেকেই আছে'; }
+          else if(seen.has(key)){ o.st='skip'; o.msg='⏭️ ফাইলে ডুপ্লিকেট'; }
+          seen.add(key); IMP.push(o);
+        });
+      } else {
+        const fgBy = {}; S.fg.forEach(x=>{ fgBy[x.name.trim().toLowerCase()] = x; fgBy[String(x.id).toLowerCase()] = x; });
+        const rmBy = {}; S.rm.filter(x=>x.active).forEach(x=>{ rmBy[x.name.trim().toLowerCase()] = x; rmBy[String(x.id).toLowerCase()] = x; });
+        const have = new Set(S.boms.map(b=>b.key));
+        rows.slice(1).forEach((r,i)=>{
+          const o = { n:i+2, product:g(r,'product'), recipe:g(r,'recipe')||'Standard', mat:g(r,'mat'), qtyRaw:g(r,'qty'), qty:numStrict(g(r,'qty')), st:'ok', msg:'✅ ঠিক আছে' };
+          const fg = fgBy[o.product.toLowerCase()], rm = rmBy[o.mat.toLowerCase()];
+          if(!o.product||!o.mat){ o.st='bad'; o.msg='⚠️ Product/Material খালি'; }
+          else if(!fg){ o.st='bad'; o.msg='❌ Inventory-তে এই Product নেই'; }
+          else if(!rm){ o.st='bad'; o.msg='❌ এই Raw Material নেই'; }
+          else if(!(o.qty>0)){ o.st='bad'; o.msg='❌ Qty ভুল'; }
+          else { o.fgName = fg.name; o.rmId = rm.id; o.key = fg.name+'||'+o.recipe; }
+          IMP.push(o);
+        });
+        const grp = {}; IMP.forEach(o=>{ const k = (o.product+'||'+o.recipe).toLowerCase(); (grp[k]=grp[k]||[]).push(o); });
+        Object.values(grp).forEach(list=>{
+          const bad = list.some(o=>o.st==='bad'); const ids = {}; let dup = false; list.forEach(o=>{ if(o.rmId){ if(ids[o.rmId]) dup = true; ids[o.rmId] = 1; } });
+          list.forEach(o=>{ if(bad){ if(o.st!=='bad'){ o.st='skip'; o.msg='⏭️ এই Recipe-র অন্য রো-তে ভুল — পুরোটা বাদ'; } } else if(dup){ o.st='skip'; o.msg='⏭️ একই Material দুইবার — পুরো Recipe বাদ'; } else if(have.has(o.key)){ o.msg='↻ আপডেট (পুরনো Recipe প্রতিস্থাপন)'; } else o.msg='✅ নতুন Recipe'; });
+        });
+        IMP.forEach(o=>{ if(o.st==='bad') o.st='skip'; });
+      }
+      impRender();
       const ok = IMP.filter(x=>x.st==='ok').length;
-      $('pr-imp-body').innerHTML = IMP.map(o=>`<tr style="${o.st==='skip'?'opacity:.55;':''}"><td>${o.n}</td><td>${esc(o.name)}</td><td>${esc(o.cat)}</td><td>${esc(o.unit)}</td><td style="text-align:right;">${fmt(o.cost)}</td><td style="text-align:right;">${fmt(o.opening)}</td><td style="text-align:right;">${fmt(o.reorder)}</td><td>${o.msg}</td></tr>`).join('');
-      $('pr-imp-sum').innerHTML = `মোট ${IMP.length}টি রো — <b style="color:var(--green);">${ok}টি Import হবে</b>, ${IMP.length-ok}টি বাদ যাবে।`;
+      let extra = ''; if(IMPT==='bom'){ const keys = new Set(IMP.filter(x=>x.st==='ok').map(x=>x.key)); extra = ' ('+keys.size+'টি Recipe)'; }
+      $('pr-imp-sum').innerHTML = `মোট ${IMP.length}টি রো — <b style="color:var(--green);">${ok}টি Import হবে${extra}</b>, ${IMP.length-ok}টি বাদ যাবে।`;
       $('pr-imp-go').disabled = !ok;
     };
     rd.readAsText(f,'utf-8');
   };
   window.prImpRun = async function(){
     const todo = IMP.filter(x=>x.st==='ok'); if(!todo.length) return;
-    if(!confirm(todo.length+'টি Raw Material যোগ হবে। এগিয়ে যাবেন?')) return;
-    const btn = $('pr-imp-go'); btn.disabled = true; let done = 0, fail = 0;
-    for(const o of todo){
-      btn.textContent = '⏳ '+(done+fail+1)+'/'+todo.length;
-      const res = await post({ action:'rmSave', noSnap:true, name:o.name, cat:o.cat, unit:o.unit, cost:o.cost, opening:o.opening, reorder:o.reorder, supplier:o.supplier, phone:o.phone });
-      if(res){ done++; o.st='done'; o.msg='✅ যোগ হয়েছে'; } else { fail++; o.msg='❌ ব্যর্থ'; }
-      $('pr-imp-body').innerHTML = IMP.map(x=>`<tr style="${x.st==='skip'?'opacity:.55;':''}"><td>${x.n}</td><td>${esc(x.name)}</td><td>${esc(x.cat)}</td><td>${esc(x.unit)}</td><td style="text-align:right;">${fmt(x.cost)}</td><td style="text-align:right;">${fmt(x.opening)}</td><td style="text-align:right;">${fmt(x.reorder)}</td><td>${x.msg}</td></tr>`).join('');
+    const btn = $('pr-imp-go'); let done = 0, fail = 0;
+    if(IMPT==='rm'){
+      if(!confirm(todo.length+'টি Raw Material যোগ হবে। এগিয়ে যাবেন?')) return; btn.disabled = true;
+      for(const o of todo){
+        btn.textContent = '⏳ '+(done+fail+1)+'/'+todo.length;
+        const res = await post({ action:'rmSave', noSnap:true, name:o.name, cat:o.cat, unit:o.unit, cost:o.cost, opening:o.opening, reorder:o.reorder, supplier:o.supplier, phone:o.phone });
+        if(res){ done++; o.st='done'; o.msg='✅ যোগ হয়েছে'; } else { fail++; o.msg='❌ ব্যর্থ'; }
+        impRender();
+      }
+    } else {
+      const groups = {}; todo.forEach(o=>{ (groups[o.key]=groups[o.key]||[]).push(o); });
+      const keys = Object.keys(groups);
+      if(!confirm(keys.length+'টি Recipe Import/আপডেট হবে। এগিয়ে যাবেন?')) return; btn.disabled = true;
+      for(const k of keys){
+        const list = groups[k]; btn.textContent = '⏳ '+(done+fail+1)+'/'+keys.length;
+        const res = await post({ action:'bomSave', noSnap:true, product:list[0].fgName, recipe:list[0].recipe, lines:list.map(o=>({rmId:o.rmId, qty:o.qty})) });
+        list.forEach(o=>{ if(res){ o.st='done'; o.msg='✅ সেভ হয়েছে'; } else o.msg='❌ ব্যর্থ'; }); if(res) done++; else fail++;
+        impRender();
+      }
     }
     btn.textContent = '✅ Import শুরু';
-    $('pr-imp-sum').innerHTML = `<b>শেষ:</b> ${done}টি যোগ হয়েছে${fail?`, <span class="pr-bad">${fail}টি ব্যর্থ</span>`:''}।`;
-    showToast('Import শেষ: '+done+'টি যোগ'+(fail?' / '+fail+'টি ব্যর্থ':''), fail?'error':'success');
-    try{ logAction('Raw Material CSV Import: '+done+'টি'); }catch(_e){} await load(true);
+    $('pr-imp-sum').innerHTML = `<b>শেষ:</b> ${done}টি ${IMPT==='rm'?'যোগ':'Recipe সেভ'} হয়েছে${fail?`, <span class="pr-bad">${fail}টি ব্যর্থ</span>`:''}।`;
+    showToast('Import শেষ: '+done+'টি'+(fail?' / '+fail+'টি ব্যর্থ':''), fail?'error':'success');
+    try{ logAction('Production CSV Import ('+IMPT+'): '+done+'টি'); }catch(_e){} await load(true);
   };
+
+
+  // ═══ Print / PNG / PDF (সব ট্যাবে; আলাদা সাদা-ব্যাকগ্রাউন্ড রিপোর্ট ক্লোন থেকে) ═══
+  const SNAPCSS = `.pr-snap{font-size:13px;line-height:1.5;}
+.pr-snap *{color:#111 !important;background:transparent !important;border-color:#bbb !important;box-shadow:none !important;text-shadow:none !important;animation:none !important;}
+.pr-snap [style*="--red"],.pr-snap .pr-bad{color:#c0261f !important;} .pr-snap [style*="--green"],.pr-snap .pr-ok{color:#1a7f37 !important;} .pr-snap [style*="--gold"]{color:#8a6500 !important;}
+.pr-snap table{width:100%;border-collapse:collapse;margin:6px 0 12px;} .pr-snap th,.pr-snap td{border:1px solid #ccc;padding:5px 8px;font-size:12px;text-align:left;vertical-align:top;}
+.pr-snap th{background:#eee !important;font-weight:700;text-transform:none !important;letter-spacing:normal !important;} .pr-snap td[style*="right"],.pr-snap th[style*="right"]{text-align:right;}
+.pr-snap tfoot td{font-weight:700;background:#f6f6f6 !important;}
+.pr-snap .table-wrap,.pr-snap .card{overflow:visible !important;max-height:none !important;border:0 !important;padding:0 !important;margin:0 !important;border-radius:0 !important;}
+.pr-snap .pr-pill{border:1px solid #bbb;border-radius:10px;padding:1px 8px;font-size:11px;}
+.pr-snap .pr-bar{display:block;padding:4px 0;border:0;font-weight:700;}`;
+  function snapClean(c){
+    c.querySelectorAll('.pr-tools,.no-snap,button,script,.pr-err').forEach(x=>x.remove());
+    c.querySelectorAll('select').forEach(x=>{ const t = (x.options && x.selectedIndex>=0) ? x.options[x.selectedIndex].text : ''; const sp = document.createElement('span'); sp.textContent = t; x.replaceWith(sp); });
+    c.querySelectorAll('input').forEach(x=>{ if(x.type==='checkbox'||x.type==='radio'||x.type==='file'||!x.value){ x.remove(); return; } const sp = document.createElement('span'); sp.textContent = x.value; x.replaceWith(sp); });
+    c.querySelectorAll('table').forEach(t=>{ const ths = Array.from(t.querySelectorAll('thead th')); const i = ths.findIndex(th=>/অ্যাকশন|আকশন|Action/i.test(th.textContent)); if(i>-1) t.querySelectorAll('tr').forEach(r=>{ if(r.children[i]) r.children[i].remove(); }); });
+    c.querySelectorAll('[style*="display:none"],[style*="display: none"]').forEach(x=>x.remove());
+    c.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));
+  }
+  function snapBuild(el, title){
+    const w = document.createElement('div'); w.className = 'pr-snap';
+    w.style.cssText = 'position:fixed;left:-99999px;top:0;width:1000px;padding:24px;background:#fff;color:#111;font-family:'+getComputedStyle(document.body).fontFamily+';';
+    const st = document.createElement('style'); st.textContent = SNAPCSS; w.appendChild(st);
+    const hd = document.createElement('div'); hd.style.cssText = 'display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #111;padding-bottom:8px;margin-bottom:12px;';
+    let logo = window.RUH_LOGO_BLACK || ''; if(!logo){ try{ const li = document.getElementById('inv-brand-logo'); if(li && li.src && li.src.indexOf('R0lGODlhAQABA')<0) logo = li.src; }catch(_e){} }
+    hd.innerHTML = `<div style="display:flex;align-items:center;gap:16px;">${logo?`<img src="${logo}" alt="InnoGix" style="height:54px;width:auto;display:block;">`:'<b style="font-size:22px;">InnoGix</b>'}<div style="border-left:2px solid #bbb;padding-left:16px;"><div style="font-size:20px;font-weight:800;">${esc(title)}</div><div style="font-size:12px;color:#555;">Production · ${new Date().toLocaleString('en-GB',{timeZone:'Asia/Dhaka'})}</div></div></div><div style="font-size:12px;">${esc(by())}</div>`;
+    w.appendChild(hd);
+    const c = el.cloneNode(true); snapClean(c); w.appendChild(c); return w;
+  }
+  function loadLib(url, test){ return new Promise(res=>{ if(test()) return res(true); const sc = document.createElement('script'); sc.src = url; sc.onload = ()=>res(test()); sc.onerror = ()=>res(false); document.head.appendChild(sc); setTimeout(()=>res(test()),15000); }); }
+  async function snapCanvas(el, title){
+    if(!(await loadLib('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',()=>window.html2canvas))){ showToast('ছবি তৈরির লাইব্রেরি লোড হয়নি — ইন্টারনেট চেক করুন','error'); return null; }
+    const w = snapBuild(el, title); document.body.appendChild(w);
+    try{
+      if(document.fonts && document.fonts.ready) await document.fonts.ready;
+      await Promise.all(Array.from(w.querySelectorAll('img')).map(i=>i.decode?i.decode().catch(()=>{}):Promise.resolve())); await new Promise(r=>setTimeout(r,200));
+      const sc = Math.max(0.6, Math.min(2, 14000 / Math.max(1, w.scrollHeight)));
+      return await html2canvas(w,{ backgroundColor:'#ffffff', scale:sc, useCORS:true, logging:false, foreignObjectRendering:false, windowWidth:w.scrollWidth });
+    } catch(e){ showToast('ছবি তৈরি হয়নি: '+e.message,'error'); return null; }
+    finally{ w.remove(); }
+  }
+  async function snapDo(mode, el, title, fname){
+    if(!el || !el.textContent.trim()){ showToast('এখানে কিছু দেখানোর নেই','info'); return; }
+    if(mode==='print'){
+      const w = snapBuild(el, title), css = Array.from(document.querySelectorAll('link[rel=stylesheet]')).map(l=>`<link rel="stylesheet" href="${l.href}">`).join('');
+      const win = window.open('','_blank'); if(!win){ showToast('পপআপ ব্লক হয়েছে — অনুমতি দিন','error'); return; }
+      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title>${css}<style>html,body{background:#fff !important;margin:0;}.pr-snap{position:static !important;left:auto !important;width:auto !important;}@page{size:A4;margin:10mm;}</style></head><body>${w.outerHTML}</body></html>`);
+      win.document.close(); setTimeout(()=>{ try{ win.focus(); win.print(); }catch(_e){} }, 700); return;
+    }
+    showToast(mode==='png'?'🖼️ PNG তৈরি হচ্ছে…':'📄 PDF তৈরি হচ্ছে…','info');
+    const cv = await snapCanvas(el, title); if(!cv) return;
+    if(mode==='png'){ const a = document.createElement('a'); a.href = cv.toDataURL('image/png'); a.download = fname+'.png'; a.click(); showToast('✅ PNG ডাউনলোড হয়েছে','success'); return; }
+    if(!(await loadLib('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',()=>window.jspdf && window.jspdf.jsPDF))){ showToast('PDF লাইব্রেরি লোড হয়নি — ইন্টারনেট চেক করুন (Print থেকেও PDF সেভ করা যায়)','error'); return; }
+    const pdf = new window.jspdf.jsPDF({unit:'mm',format:'a4',orientation:'p'}), m = 10, iw = 210-2*m, ph = 297-2*m, pxPer = cv.width/iw, slice = Math.floor(ph*pxPer);
+    for(let y=0, pg=0; y<cv.height; y+=slice, pg++){
+      const h = Math.min(slice, cv.height-y), c2 = document.createElement('canvas'); c2.width = cv.width; c2.height = h;
+      c2.getContext('2d').drawImage(cv,0,y,cv.width,h,0,0,cv.width,h);
+      if(pg>0) pdf.addPage(); pdf.addImage(c2.toDataURL('image/jpeg',0.92),'JPEG',m,m,iw,h/pxPer);
+    }
+    pdf.save(fname+'.pdf'); showToast('✅ PDF ডাউনলোড হয়েছে','success');
+  }
+  const TOOLS = {
+    rm:['#pr-p-rm','Raw Material তালিকা'], bom:['#pr-bom-list','BOM / Recipe'], asm:['#pr-p-asm > .card:nth-child(2)','Production Batches'],
+    mov:['#pr-p-mov','Movement History'], aud:['#pr-p-aud','Physical Audit'], wrk:['#pr-p-wrk','Worker রিপোর্ট'], trc:['#pr-t-out','Trace রিপোর্ট']
+  };
+  window.prSnap = function(tab, mode){
+    const t = TOOLS[tab]; if(!t) return; snapDo(mode, document.querySelector(t[0]), t[1], 'InnoGix_'+tab+'_'+today());
+  };
+  function toolsHtml(tab){ return `<span style="font-size:11px;color:var(--text3);align-self:center;">রিপোর্ট:</span><button class="btn pr-mini" onclick="prSnap('${tab}','print')">🖨️ প্রিন্ট</button><button class="btn pr-mini" onclick="prSnap('${tab}','png')">🖼️ PNG</button><button class="btn pr-mini" onclick="prSnap('${tab}','pdf')">📄 PDF</button>`; }
+  (function injectTools(){
+    ['rm','bom','asm','mov','aud','wrk','trc'].forEach(tab=>{
+      const panel = $('pr-p-'+tab); if(!panel) return;
+      const d = document.createElement('div'); d.className = 'pr-tools'; d.style.cssText = 'display:flex;gap:6px;justify-content:flex-end;margin:0 0 8px;flex-wrap:wrap;'; d.innerHTML = toolsHtml(tab);
+      panel.insertBefore(d, panel.firstChild);
+    });
+  })();
+  // ── Production Plan: আলাদা রিপোর্ট (শুধু প্ল্যান করা প্রোডাক্ট + ঘাটতি) ──
+  function planSheet(){
+    if(!PLAN) return null; const d = document.createElement('div');
+    const tot = r2(PLAN.rows.reduce((s,x)=>s+x.cost,0));
+    d.innerHTML = `<div class="pr-bar">🏭 পরিকল্পিত প্রোডাক্ট</div><table><thead><tr><th>প্রোডাক্ট</th><th>Recipe</th><th style="text-align:right;">পরিকল্পিত সংখ্যা</th><th style="text-align:right;">এখনকার স্টকে সর্বোচ্চ সম্ভব</th></tr></thead><tbody>${PLAN.lines.map(l=>`<tr><td><b>${esc(l.prod)}</b></td><td>${esc(l.rec)}</td><td style="text-align:right;">${fmt(l.u)}</td><td style="text-align:right;${l.maxU>=l.u?'color:var(--green)':'color:var(--red)'};">${fmt(l.maxU)}</td></tr>`).join('')}</tbody></table>
+      <div class="pr-bar">🧱 প্রয়োজনীয় Raw Material ও ঘাটতি</div><table><thead><tr><th>Raw Material</th><th style="text-align:right;">দরকার</th><th style="text-align:right;">স্টকে আছে</th><th style="text-align:right;">ঘাটতি</th><th style="text-align:right;">ঘাটতির আনুমানিক খরচ</th><th>সাপ্লায়ার</th></tr></thead><tbody>${PLAN.rows.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td style="text-align:right;">${fmt(x.need)} ${esc(x.unit)}</td><td style="text-align:right;">${fmt(x.cur)}</td><td style="text-align:right;${x.short>0?'color:var(--red)':'color:var(--green)'};">${x.short>0?fmt(x.short):'✔ ঠিক আছে'}</td><td style="text-align:right;">${x.short>0?'৳'+fmt(x.cost):'—'}</td><td>${esc(x.sup)} ${esc(x.ph)}</td></tr>`).join('')}</tbody><tfoot><tr><td colspan="4" style="text-align:right;">মোট কিনতে হবে (আনুমানিক)</td><td style="text-align:right;">৳${fmt(tot)}</td><td></td></tr></tfoot></table>`;
+    return d;
+  }
+  window.prPlanSnap = function(mode){ const el = planSheet(); if(!el){ showToast('আগে "হিসাব করুন" চাপুন','error'); return; } snapDo(mode, el, 'Production Plan', 'InnoGix_Production_Plan_'+today()); };
   window.prGoRM = function(){ const el = document.querySelector('.nav-item[onclick*="production"]'); if(window.showPage) showPage('production', el); if(window.prTab) prTab('rm'); };
   function wrkRows(){
     const f = $('pr-w-from').value, t = $('pr-w-to').value, map = {};
