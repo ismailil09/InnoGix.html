@@ -2754,31 +2754,39 @@ tbody td.muted{color:var(--text3);}
     ══════════════════════════════ -->
     <div class="page" id="page-expense">
       <div id="exp-cats" style="display:none"></div>
-      <div class="page-header">
-        <div>
-          <div class="page-title">💸 Expense Management</div>
-          <div class="page-sub">খরচ নিয়ন্ত্রণ — ক্যাটাগরি, বাজেট, PIN-সুরক্ষা, ভেরিফাই, অডিট লগ ও হিসাব যাচাই · <b>Cash Flow-এর সাথে যুক্ত নয়</b></div>
-        </div>
-      </div>
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+        <linearGradient id="exGradCoral" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fda4af"/><stop offset=".45" stop-color="#fb7185"/><stop offset="1" stop-color="#e11d48" stop-opacity=".85"/></linearGradient>
+        <linearGradient id="exGradAmber" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset=".5" stop-color="#fbbf24"/><stop offset="1" stop-color="#d97706" stop-opacity=".85"/></linearGradient>
+        <linearGradient id="exGradCyan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#67e8f9"/><stop offset=".5" stop-color="#22d3ee"/><stop offset="1" stop-color="#0891b2" stop-opacity=".8"/></linearGradient>
+      </defs></svg>
 
-      <div class="ex-toolbar">
-        <button class="btn ex-btn-add" onclick="exOpenEntry()">＋ নতুন খরচ</button>
-        <span class="sp"></span>
-        <div class="grp">
-          <button class="btn" onclick="exOpenStatement()">📄 Statement</button>
-          <button class="btn" onclick="exOpenAudit()">🧾 অডিট লগ</button>
-          <button class="btn" onclick="exOpenIntegrity()">🛡️ যাচাই</button>
+      <section class="x-hero">
+        <div class="x-hero-l">
+          <span class="x-logo"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg></span>
+          <div>
+            <h1 class="x-title">Expense Management</h1>
+            <p class="x-sub">খরচ নিয়ন্ত্রণ — ক্যাটাগরি, বাজেট, PIN-সুরক্ষা, ভেরিফাই, অডিট লগ ও হিসাব যাচাই <span class="x-pill-iso">Cash Flow-এর সাথে যুক্ত নয়</span></p>
+          </div>
         </div>
-        <div class="grp">
-          <button class="btn" onclick="exOpenSettings()">⚙️ সেটিংস</button>
-          <button class="btn" onclick="exOpenLock()">🔒 লক</button>
+        <div class="ex-toolbar x-bar">
+          <button class="btn ex-btn-add x-primary" onclick="exOpenEntry()"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>নতুন খরচ</span></button>
+          <span class="sp"></span>
+          <div class="grp">
+            <button class="btn" onclick="exOpenStatement()"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg><span>Statement</span></button>
+            <button class="btn" onclick="exOpenAudit()"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M12 11h4M12 16h4M8 11h.01M8 16h.01"/></svg><span>অডিট লগ</span></button>
+            <button class="btn" onclick="exOpenIntegrity()"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg><span>যাচাই</span></button>
+          </div>
+          <div class="grp">
+            <button class="btn" onclick="exOpenSettings()"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7h-9M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg><span>সেটিংস</span></button>
+            <button class="btn" onclick="exOpenLock()"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>লক</span></button>
+          </div>
+          <div class="grp">
+            <button class="btn x-imp" onclick="openModal('import-expense-csv')"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg><span>Import</span></button>
+            <button class="btn export-excel x-exp" onclick="exExport()"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg><span>Export</span></button>
+            <button class="btn x-icon" onclick="exLoad(true)" title="রিফ্রেশ" aria-label="রিফ্রেশ"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8M21 3v5h-5M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16M8 16H3v5"/></svg></button>
+          </div>
         </div>
-        <div class="grp">
-          <button class="btn" style="background:rgba(88,166,255,0.15);border-color:rgba(88,166,255,0.4);color:#58a6ff;" onclick="openModal('import-expense-csv')">📥 Import</button>
-          <button class="btn export-excel" onclick="exExport()">⬇ Export</button>
-          <button class="btn" onclick="exLoad(true)" title="রিফ্রেশ">🔄</button>
-        </div>
-      </div>
+      </section>
 
       <div class="ex-notice" id="ex-outbox-notice" style="background:rgba(248,81,73,.1);border-color:rgba(248,81,73,.4);">
         <span id="ex-outbox-text">❌ কিছু খরচ সেভ হয়নি</span>
@@ -2793,51 +2801,51 @@ tbody td.muted{color:var(--text3);}
 
       <div class="ex-kpis">
         <div class="ex-kpi month" onclick="exKpi('month')" title="এই মাসের খরচ দেখুন" style="cursor:pointer;">
-          <div class="ex-kpi-label">📅 এই মাসের খরচ</div>
+          <div class="ex-kpi-label"><span class="x-ico"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/></svg></span>এই মাসের খরচ</div>
           <div class="ex-kpi-value" id="ex-kpi-month">—</div>
           <div class="ex-kpi-sub" id="ex-kpi-month-sub">গত মাসের তুলনায়</div>
         </div>
         <div class="ex-kpi today" onclick="exKpi('today')" title="আজকের খরচ দেখুন" style="cursor:pointer;">
-          <div class="ex-kpi-label">☀️ আজকের খরচ</div>
+          <div class="ex-kpi-label"><span class="x-ico"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-2.93 1.41-1.41m11.32-11.32 1.41-1.41M2 12h2m16 0h2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41"/></svg></span>আজকের খরচ</div>
           <div class="ex-kpi-value" id="ex-kpi-today">—</div>
           <div class="ex-kpi-sub" id="ex-kpi-today-sub">আজ</div>
         </div>
         <div class="ex-kpi total" onclick="exKpi('all')" title="সব খরচ দেখুন" style="cursor:pointer;">
-          <div class="ex-kpi-label">📚 মোট খরচ (শুরু থেকে)</div>
+          <div class="ex-kpi-label"><span class="x-ico"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65M22 12.65l-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg></span>মোট খরচ (শুরু থেকে)</div>
           <div class="ex-kpi-value" id="ex-kpi-total">—</div>
           <div class="ex-kpi-sub" id="ex-kpi-total-sub">বাতিল/রিজেক্ট বাদে</div>
         </div>
         <div class="ex-kpi pending" onclick="exKpi('pending')" title="ভেরিফাই বাকি দেখুন" style="cursor:pointer;">
-          <div class="ex-kpi-label">⏳ ভেরিফাই বাকি</div>
+          <div class="ex-kpi-label"><span class="x-ico"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 22h14M5 2h14M17 22v-4.17a2 2 0 0 0-.59-1.42L12 12l-4.41 4.41A2 2 0 0 0 7 17.83V22M7 2v4.17a2 2 0 0 0 .59 1.42L12 12l4.41-4.41A2 2 0 0 0 17 6.17V2"/></svg></span>ভেরিফাই বাকি</div>
           <div class="ex-kpi-value" id="ex-kpi-pending">—</div>
           <div class="ex-kpi-sub" id="ex-kpi-pending-sub">অন্য পার্টনারের অপেক্ষায়</div>
         </div>
       </div>
-      <div class="ex-formula">📐 মোট খরচ = সব খরচ − বাতিল (Void) − রিজেক্ট · <b>Cash Flow, Partner Ledger বা অন্য কোনো মডিউলের সাথে এর কোনো লিংক নেই</b> — Dashboard-এর খরচ ও লাভ-ক্ষতি শুধু এই তালিকা থেকে আসে।</div>
+      <div class="ex-formula"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg><span>মোট খরচ = সব খরচ − বাতিল (Void) − রিজেক্ট · <b>Cash Flow, Partner Ledger বা অন্য কোনো মডিউলের সাথে এর কোনো লিংক নেই</b> — Dashboard-এর খরচ ও লাভ-ক্ষতি শুধু এই তালিকা থেকে আসে।</span></div>
 
       <div class="ex-insights" id="ex-insights"></div>
       <div id="ex-budget"></div>
 
       <div class="ex-charts">
-        <div class="ex-chart">
-          <div class="ex-chart-h"><span>📊 মাসওয়ারি খরচ (৬ মাস)</span></div>
+        <div class="ex-chart x-c-month">
+          <div class="ex-chart-h"><span><i class="x-ci"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg></i>মাসওয়ারি খরচ <em>৬ মাস</em></span></div>
           <div id="ex-chart-month"></div>
         </div>
-        <div class="ex-chart">
-          <div class="ex-chart-h"><span>🏷️ ক্যাটাগরি অনুযায়ী</span>
+        <div class="ex-chart x-c-cat">
+          <div class="ex-chart-h"><span><i class="x-ci"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></i>ক্যাটাগরি অনুযায়ী</span>
             <span class="ex-seg"><button id="ex-cr-month" onclick="exSetCatRange('month')">এই মাস</button><button id="ex-cr-3m" onclick="exSetCatRange('3m')">৩ মাস</button><button id="ex-cr-all" onclick="exSetCatRange('all')">সব</button></span></div>
           <div id="ex-chart-cat"></div>
         </div>
-        <div class="ex-chart">
-          <div class="ex-chart-h"><span>📈 দৈনিক খরচ (৩০ দিন)</span></div>
+        <div class="ex-chart x-c-day">
+          <div class="ex-chart-h"><span><i class="x-ci"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg></i>দৈনিক খরচ <em>৩০ দিন</em></span></div>
           <div id="ex-chart-day"></div>
         </div>
       </div>
 
-      <div class="card" style="padding:0;overflow:hidden;">
-        <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-          <span style="font-weight:600;color:var(--text);">📒 Expense Ledger</span>
-          <span style="font-size:12px;color:var(--text3);" id="ex-count"></span>
+      <div class="card x-ledger" style="padding:0;overflow:hidden;">
+        <div class="x-ledger-h">
+          <span class="x-lt"><i class="x-ci"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg></i>Expense Ledger</span>
+          <span class="x-count" id="ex-count"></span>
         </div>
         <div class="ex-filters">
           <div><label>তারিখ থেকে</label><input type="date" class="form-input" id="ex-f-from" oninput="exRender(true)"></div>
@@ -2847,10 +2855,10 @@ tbody td.muted{color:var(--text3);}
           <div><label>স্ট্যাটাস</label>
             <select class="form-select" id="ex-f-st" onchange="exRender(true)"><option value="">সব</option><option value="Pending">⏳ ভেরিফাই বাকি</option><option value="Verified">✅ ভেরিফাইড</option><option value="Auto">অটো</option><option value="Void">🚫 বাতিল (Void)</option><option value="Rejected">❌ রিজেক্টেড</option></select>
           </div>
-          <div><label>খুঁজুন</label><input type="text" class="form-input" id="ex-f-q" placeholder="বিবরণ / Vendor / ভাউচার / পরিমাণ…" oninput="exRender(true)"></div>
+          <div class="x-q"><label>খুঁজুন</label><span class="x-qw"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input type="text" class="form-input" id="ex-f-q" placeholder="বিবরণ / Vendor / ভাউচার / পরিমাণ…" oninput="exRender(true)"></span></div>
           <div class="ex-qr">
             <button class="btn" onclick="exQuickRange('today')">আজ</button><button class="btn" onclick="exQuickRange('week')">৭ দিন</button><button class="btn" onclick="exQuickRange('month')">এই মাস</button><button class="btn" onclick="exQuickRange('last')">গত মাস</button>
-            <button class="btn" onclick="exClearFilters()">✕ মুছুন</button>
+            <button class="btn x-clr" onclick="exClearFilters()"><svg class="xi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg><span>মুছুন</span></button>
           </div>
         </div>
         <div class="table-wrap">
@@ -3165,6 +3173,218 @@ tbody td.muted{color:var(--text3);}
 @media (max-width:900px){#modal-ex-settings .ex-rr{grid-template-columns:24px 1fr 1fr 32px}#modal-ex-settings .ex-rr .rsub,#modal-ex-settings .ex-rr .rv,#modal-ex-settings .ex-rr .rd{grid-column:span 4}}
 #modal-ex-settings .ex-sub-row{display:grid;grid-template-columns:200px 1fr;gap:8px;align-items:center;margin-bottom:6px;font-size:12.5px;color:var(--text2)}
 @media (max-width:640px){#modal-ex-settings .ex-sub-row{grid-template-columns:1fr}}
+
+    </style>
+    <style id="ex3-style">
+/* ═══ Expense UI v3 — glass / slate / gradient charts (CSS-only layer, JS untouched) ═══ */
+#page-expense{
+  --x-bg:#0f172a;--x-card:rgba(30,41,59,.58);--x-card2:rgba(15,23,42,.55);--x-line:rgba(100,116,139,.28);--x-line2:rgba(148,163,184,.14);
+  --x-text:#e2e8f0;--x-mut:#94a3b8;--x-dim:#64748b;--x-coral:#fb7185;--x-coral2:#e11d48;--x-amber:#fbbf24;--x-cyan:#22d3ee;--x-green:#34d399;--x-blue:#60a5fa;
+  --x-shadow:0 10px 30px -12px rgba(2,6,23,.65),inset 0 1px 0 rgba(255,255,255,.04);--x-field:rgba(15,23,42,.6);--x-hover:rgba(148,163,184,.08);
+  position:relative;isolation:isolate;font-family:'Inter','Hind Siliguri','Noto Sans Bengali',system-ui,sans-serif;color:var(--x-text);
+}
+body.light #page-expense{
+  --x-card:rgba(255,255,255,.82);--x-card2:rgba(241,245,249,.8);--x-line:rgba(100,116,139,.28);--x-line2:rgba(100,116,139,.14);--x-text:#0f172a;--x-mut:#475569;--x-dim:#64748b;
+  --x-coral:#e11d48;--x-amber:#d97706;--x-cyan:#0891b2;--x-green:#059669;--x-blue:#2563eb;--x-shadow:0 8px 24px -14px rgba(15,23,42,.25),inset 0 1px 0 rgba(255,255,255,.9);--x-field:#fff;--x-hover:rgba(15,23,42,.04);
+}
+/* soft ambient glow behind everything */
+#page-expense::before{content:'';position:absolute;inset:-10px -6px auto -6px;height:620px;z-index:-1;pointer-events:none;border-radius:32px;
+  background:radial-gradient(520px 260px at 8% 0%,rgba(251,113,133,.16),transparent 70%),radial-gradient(560px 280px at 92% 4%,rgba(34,211,238,.12),transparent 70%),radial-gradient(500px 300px at 50% 38%,rgba(251,191,36,.07),transparent 70%);}
+body.light #page-expense::before{opacity:.55}
+#page-expense .page-header{display:none}
+#page-expense .xi{width:1.05em;height:1.05em;flex:none}
+
+/* ── Hero / control panel ── */
+#page-expense .x-hero{background:var(--x-card);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid var(--x-line);border-radius:22px;padding:18px 20px;margin-bottom:14px;box-shadow:var(--x-shadow);display:flex;flex-direction:column;gap:16px}
+#page-expense .x-hero-l{display:flex;align-items:center;gap:14px}
+#page-expense .x-logo{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#fb7185,#e11d48 60%,#be123c);box-shadow:0 8px 22px -6px rgba(225,29,72,.6),inset 0 1px 0 rgba(255,255,255,.35)}
+#page-expense .x-logo .xi{width:23px;height:23px}
+#page-expense .x-title{margin:0;font-size:22px;font-weight:800;letter-spacing:-.3px;color:var(--x-text);line-height:1.15}
+#page-expense .x-sub{margin:4px 0 0;font-size:12.5px;color:var(--x-mut);line-height:1.55}
+#page-expense .x-pill-iso{display:inline-block;margin-left:4px;padding:1px 9px;border-radius:999px;font-size:11px;font-weight:700;color:var(--x-cyan);background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.28);white-space:nowrap}
+#page-expense .ex-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0;padding:0;background:none;border:0}
+#page-expense .ex-toolbar .sp{flex:1 1 20px}
+#page-expense .ex-toolbar .grp{display:flex;gap:2px;padding:3px;border-radius:14px;background:var(--x-card2);border:1px solid var(--x-line2)}
+#page-expense .ex-toolbar .btn{display:inline-flex;align-items:center;gap:7px;border:0;background:transparent;color:var(--x-mut);font-weight:600;font-size:12.5px;padding:8px 12px;border-radius:11px;transition:.18s;box-shadow:none}
+#page-expense .ex-toolbar .btn:hover{background:var(--x-hover);color:var(--x-text);transform:none}
+#page-expense .ex-toolbar .btn.x-icon{padding:8px 10px}
+#page-expense .ex-toolbar .btn.x-icon:hover .xi{transform:rotate(180deg)}
+#page-expense .ex-toolbar .btn .xi{transition:transform .35s}
+#page-expense .ex-toolbar .btn.x-imp{color:var(--x-blue)}
+#page-expense .ex-toolbar .btn.x-exp{color:var(--x-green)}
+#page-expense .ex-toolbar .btn.x-primary{background:linear-gradient(135deg,#fb7185,#e11d48);color:#fff;padding:10px 18px;font-size:13.5px;font-weight:700;border-radius:14px;box-shadow:0 10px 24px -8px rgba(225,29,72,.65),inset 0 1px 0 rgba(255,255,255,.3)}
+#page-expense .ex-toolbar .btn.x-primary:hover{filter:brightness(1.08);transform:translateY(-1px);color:#fff;background:linear-gradient(135deg,#fb7185,#e11d48)}
+
+/* ── Status chips ── */
+#page-expense .ex-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+#page-expense .ex-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;color:var(--x-mut);background:var(--x-card);border:1px solid var(--x-line);backdrop-filter:blur(10px);transition:.18s}
+#page-expense .ex-chip:hover{transform:translateY(-1px);color:var(--x-text)}
+#page-expense .ex-chip.ok{color:var(--x-green);background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.32)}
+#page-expense .ex-chip.warn{color:var(--x-amber);background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.34)}
+#page-expense .ex-chip.bad{color:var(--x-coral);background:rgba(251,113,133,.11);border-color:rgba(251,113,133,.38)}
+
+/* ── KPI cards ── */
+#page-expense .ex-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px;margin-bottom:12px}
+#page-expense .ex-kpi{position:relative;overflow:hidden;background:var(--x-card);backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);border:1px solid var(--x-line);border-radius:20px;padding:18px 20px 16px;box-shadow:var(--x-shadow);transition:transform .2s,box-shadow .2s,border-color .2s}
+#page-expense .ex-kpi:hover{transform:translateY(-3px);border-color:rgba(148,163,184,.4);box-shadow:0 18px 34px -16px rgba(2,6,23,.75),inset 0 1px 0 rgba(255,255,255,.06)}
+#page-expense .ex-kpi::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,var(--k1),var(--k2))}
+#page-expense .ex-kpi::after{content:'';position:absolute;width:170px;height:170px;right:-60px;top:-70px;border-radius:50%;background:radial-gradient(circle,var(--k1),transparent 68%);opacity:.16;pointer-events:none}
+#page-expense .ex-kpi.month{--k1:#fb7185;--k2:#fbbf24;background:linear-gradient(160deg,rgba(251,113,133,.16),var(--x-card) 55%);border-color:rgba(251,113,133,.34)}
+#page-expense .ex-kpi.today{--k1:#fbbf24;--k2:#fb923c}
+#page-expense .ex-kpi.total{--k1:#22d3ee;--k2:#60a5fa}
+#page-expense .ex-kpi.pending{--k1:#a78bfa;--k2:#fbbf24}
+#page-expense .ex-kpi-label{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:700;letter-spacing:.2px;color:var(--x-mut);text-transform:none}
+#page-expense .x-ico{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;color:var(--k1);background:color-mix(in srgb,var(--k1) 14%,transparent);border:1px solid color-mix(in srgb,var(--k1) 30%,transparent)}
+#page-expense .x-ico .xi{width:16px;height:16px}
+#page-expense .ex-kpi-value{margin:12px 0 6px;font-family:'Inter','IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;font-size:28px;font-weight:800;letter-spacing:-.8px;color:var(--x-text);line-height:1.1}
+#page-expense .ex-kpi.month .ex-kpi-value{font-size:32px;background:linear-gradient(90deg,#fda4af,#fb7185 55%,#fbbf24);-webkit-background-clip:text;background-clip:text;color:transparent}
+#page-expense .ex-kpi.pending .ex-kpi-value{color:var(--x-amber)}
+#page-expense .ex-kpi-sub{font-size:11.5px;color:var(--x-dim);line-height:1.5}
+#page-expense .ex-kpi-sub b{font-weight:800}
+#page-expense .ex-formula{display:flex;gap:9px;align-items:flex-start;font-size:11.5px;line-height:1.6;color:var(--x-dim);padding:9px 14px;margin-bottom:14px;border:1px dashed var(--x-line);border-radius:12px;background:var(--x-card2)}
+#page-expense .ex-formula .xi{margin-top:2px;color:var(--x-cyan)}
+#page-expense .ex-formula b{color:var(--x-mut)}
+
+/* ── Insight cards ── */
+#page-expense .ex-insights{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:14px}
+#page-expense .ex-mini{position:relative;background:var(--x-card);backdrop-filter:blur(14px);border:1px solid var(--x-line);border-radius:18px;padding:15px 17px;box-shadow:var(--x-shadow);transition:.2s;overflow:hidden}
+#page-expense .ex-mini::before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:3px;background:linear-gradient(180deg,var(--x-coral),var(--x-amber))}
+#page-expense .ex-mini:nth-child(2)::before{background:linear-gradient(180deg,var(--x-cyan),var(--x-blue))}
+#page-expense .ex-mini:nth-child(3)::before{background:linear-gradient(180deg,var(--x-amber),#fb923c)}
+#page-expense .ex-mini:nth-child(4)::before{background:linear-gradient(180deg,#a78bfa,var(--x-cyan))}
+#page-expense .ex-mini:hover{transform:translateY(-2px);border-color:rgba(148,163,184,.4)}
+#page-expense .ex-mini .l{font-size:11.5px;font-weight:700;color:var(--x-mut);letter-spacing:.1px}
+#page-expense .ex-mini .v{margin:7px 0 3px;font-size:20px;font-weight:800;letter-spacing:-.4px;color:var(--x-text);font-variant-numeric:tabular-nums;word-break:break-word}
+#page-expense .ex-mini .s{font-size:11.5px;color:var(--x-dim);line-height:1.5}
+#page-expense .ex-mini .s b{color:var(--x-amber)}
+
+/* ── Budget ── */
+#page-expense .ex-chart,#page-expense .ex-bg-empty{background:var(--x-card);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);border:1px solid var(--x-line);border-radius:22px;box-shadow:var(--x-shadow)}
+#page-expense .ex-bg-empty{padding:14px 18px;margin-bottom:14px;font-size:12.5px;color:var(--x-mut)}
+#page-expense .ex-bg-empty a{color:var(--x-cyan);font-weight:700}
+#page-expense .ex-bgr{display:grid;grid-template-columns:minmax(120px,190px) 1fr auto;gap:4px 14px;align-items:center;padding:7px 0}
+#page-expense .ex-bgb{display:block;height:10px;border-radius:999px;background:var(--x-line2);overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.25)}
+#page-expense .ex-bgb i{display:block;height:100%;border-radius:999px;background-image:linear-gradient(90deg,rgba(255,255,255,.28),rgba(255,255,255,0) 60%);box-shadow:0 0 14px -2px currentColor;transform-origin:left;animation:exW .9s cubic-bezier(.2,.8,.2,1) both}
+#page-expense .ex-bgl{font-size:12.5px;font-weight:600;color:var(--x-text)}
+#page-expense .ex-bgv{font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+#page-expense .ex-bgv span{font-weight:500;color:var(--x-dim);font-size:11px}
+#page-expense .ex-bgs{grid-column:2 / 4;font-size:11px;color:var(--x-dim);margin-top:-2px}
+@media(max-width:640px){#page-expense .ex-bgr{grid-template-columns:1fr auto}#page-expense .ex-bgb{grid-column:1 / 3;order:3}#page-expense .ex-bgs{grid-column:1 / 3;order:4}}
+
+/* ── Recurring ── */
+#page-expense .ex-rec{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;background:var(--x-card2);border:1px solid var(--x-line2);margin-top:8px}
+#page-expense .ex-rec>div:first-child{flex:1;min-width:0}
+#page-expense .ex-rec.late{border-color:rgba(251,191,36,.45);background:rgba(251,191,36,.07)}
+#page-expense .ex-rec-v{font-weight:800;font-variant-numeric:tabular-nums;color:var(--x-coral)}
+
+/* ── Charts ── */
+#page-expense .ex-charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px;margin-bottom:16px}
+#page-expense .ex-chart{padding:16px 18px 14px;transition:border-color .2s}
+#page-expense .ex-chart:hover{border-color:rgba(148,163,184,.4)}
+#page-expense .ex-chart-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;font-size:13.5px;font-weight:800;color:var(--x-text)}
+#page-expense .ex-chart-h>span:first-child{display:inline-flex;align-items:center;gap:9px}
+#page-expense .ex-chart-h em{font-style:normal;font-weight:600;font-size:11px;color:var(--x-dim);padding:2px 8px;border-radius:999px;background:var(--x-line2)}
+#page-expense .x-ci{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;font-style:normal;color:var(--x-coral);background:rgba(251,113,133,.12);border:1px solid rgba(251,113,133,.28)}
+#page-expense .x-c-cat .x-ci{color:var(--x-amber);background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.3)}
+#page-expense .x-c-day .x-ci{color:var(--x-cyan);background:rgba(34,211,238,.12);border-color:rgba(34,211,238,.3)}
+#page-expense .x-ci .xi{width:15px;height:15px}
+#page-expense .ex-seg{display:inline-flex;padding:3px;border-radius:10px;background:var(--x-card2);border:1px solid var(--x-line2)}
+#page-expense .ex-seg button{border:0;background:transparent;color:var(--x-mut);font:600 11.5px inherit;font-family:inherit;padding:4px 10px;border-radius:8px;cursor:pointer;transition:.15s}
+#page-expense .ex-seg button.on{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#1c1917;box-shadow:0 4px 12px -4px rgba(245,158,11,.6)}
+#page-expense .ex-chart svg{width:100%;height:auto;display:block;overflow:visible}
+#page-expense .ex-grid{stroke:var(--x-line);stroke-width:1;stroke-dasharray:3 5;opacity:.7}
+#page-expense .ex-ax{fill:var(--x-dim);font-size:11.5px;font-family:'Inter',sans-serif;font-weight:500}
+#page-expense .ex-val{fill:var(--x-mut);font-size:11.5px;font-weight:800;font-family:'Inter',sans-serif}
+#page-expense .ex-bar-db{fill:url(#exGradCoral);transform-box:fill-box;transform-origin:50% 100%;animation:exGrow .8s cubic-bezier(.2,.8,.2,1) both;filter:drop-shadow(0 6px 10px rgba(225,29,72,.28));transition:filter .2s}
+#page-expense .x-c-month .ex-bar-db{fill:url(#exGradCoral)}
+#page-expense .x-c-day .ex-bar-db{fill:url(#exGradCyan);filter:drop-shadow(0 5px 8px rgba(8,145,178,.3))}
+#page-expense .ex-chart svg rect[data-tip]{transition:fill .15s}
+#page-expense .ex-chart svg rect[data-tip]:hover{fill:rgba(148,163,184,.12)}
+#page-expense .ex-chart svg path.ex-bar-db:hover{filter:brightness(1.2) drop-shadow(0 8px 14px rgba(251,113,133,.5))}
+@keyframes exGrow{from{transform:scaleY(0);opacity:0}to{transform:scaleY(1);opacity:1}}
+@keyframes exW{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+/* category tracks */
+#page-expense .ex-cat{display:grid;grid-template-columns:minmax(110px,150px) 1fr auto;gap:10px;align-items:center;padding:6px 8px;margin:0 -8px;border-radius:12px;transition:background .15s}
+#page-expense .ex-cat:hover{background:var(--x-hover)}
+#page-expense .ex-cat-l{font-size:12.5px;font-weight:600;color:var(--x-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#page-expense .ex-cat-b{height:10px;border-radius:999px;background:var(--x-line2);overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.25)}
+#page-expense .ex-cat-b i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#fbbf24,#fb7185 70%,#e11d48);box-shadow:0 0 14px -3px rgba(251,113,133,.8);transform-origin:left;animation:exW .9s cubic-bezier(.2,.8,.2,1) both}
+#page-expense .ex-cat:nth-child(1) .ex-cat-b i{background:linear-gradient(90deg,#fb7185,#e11d48)}
+#page-expense .ex-cat:nth-child(2) .ex-cat-b i{background:linear-gradient(90deg,#fbbf24,#fb7185)}
+#page-expense .ex-cat:nth-child(3) .ex-cat-b i{background:linear-gradient(90deg,#22d3ee,#60a5fa)}
+#page-expense .ex-cat:nth-child(n+4) .ex-cat-b i{background:linear-gradient(90deg,#a78bfa,#60a5fa)}
+#page-expense .ex-cat-v{font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--x-text);white-space:nowrap}
+#page-expense .ex-cat-v span{margin-left:6px;font-weight:600;color:var(--x-dim);font-size:11px}
+#page-expense .ex-cat-t{margin-top:8px;padding-top:8px;border-top:1px dashed var(--x-line);text-align:right;font-size:11.5px;font-weight:700;color:var(--x-mut)}
+#page-expense .ex-empty{padding:30px 10px;text-align:center;color:var(--x-dim);font-size:12.5px}
+
+/* ── Ledger ── */
+#page-expense .x-ledger{background:var(--x-card)!important;backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);border:1px solid var(--x-line)!important;border-radius:22px!important;box-shadow:var(--x-shadow)}
+#page-expense .x-ledger-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:16px 20px;border-bottom:1px solid var(--x-line2)}
+#page-expense .x-lt{display:inline-flex;align-items:center;gap:10px;font-size:15px;font-weight:800;color:var(--x-text)}
+#page-expense .x-count{font-size:11.5px;font-weight:700;color:var(--x-mut);padding:3px 11px;border-radius:999px;background:var(--x-card2);border:1px solid var(--x-line2)}
+#page-expense .ex-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;padding:16px 20px;align-items:end;border-bottom:1px solid var(--x-line2);background:var(--x-card2)}
+#page-expense .ex-filters label{display:block;margin-bottom:5px;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--x-dim)}
+#page-expense .ex-filters .form-input,#page-expense .ex-filters .form-select{width:100%;background:var(--x-field);color:var(--x-text);border:1px solid var(--x-line);border-radius:12px;padding:9px 12px;font-size:13px;font-family:inherit;transition:border-color .15s,box-shadow .15s}
+#page-expense .ex-filters .form-input:focus,#page-expense .ex-filters .form-select:focus{outline:0;border-color:var(--x-cyan);box-shadow:0 0 0 3px rgba(34,211,238,.18)}
+#page-expense .x-q{grid-column:span 2}
+#page-expense .x-qw{position:relative;display:block}
+#page-expense .x-qw .xi{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--x-dim);pointer-events:none}
+#page-expense .x-qw .form-input{padding-left:36px}
+#page-expense .ex-qr{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px}
+#page-expense .ex-qr .btn{border:1px solid var(--x-line);background:var(--x-field);color:var(--x-mut);border-radius:999px;padding:5px 14px;font-size:12px;font-weight:600;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+#page-expense .ex-qr .btn:hover{color:var(--x-text);border-color:var(--x-cyan);background:rgba(34,211,238,.08)}
+#page-expense .ex-qr .btn.x-clr{margin-left:auto;color:var(--x-coral);border-color:rgba(251,113,133,.35)}
+#page-expense .ex-qr .btn.x-clr:hover{background:rgba(251,113,133,.1);border-color:var(--x-coral);color:var(--x-coral)}
+#page-expense .table-wrap{overflow-x:auto}
+#page-expense .data-table{width:100%;border-collapse:separate;border-spacing:0}
+#page-expense .data-table thead th{position:sticky;top:0;z-index:2;background:var(--x-card2);backdrop-filter:blur(8px);color:var(--x-dim);font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;padding:12px 14px;border-bottom:1px solid var(--x-line);text-align:left;white-space:nowrap}
+#page-expense .data-table tbody td{padding:13px 14px;border-bottom:1px solid var(--x-line2);font-size:13px;color:var(--x-text);vertical-align:middle}
+#page-expense .data-table tbody tr{transition:background .15s}
+#page-expense .data-table tbody tr:hover{background:var(--x-hover)}
+#page-expense .data-table tbody tr:last-child td{border-bottom:0}
+#page-expense .ex-sub{font-size:11px;color:var(--x-dim);margin-top:2px;line-height:1.45}
+#page-expense td.ex-amt{font-family:'Inter','IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;font-weight:800;font-size:13.5px;color:var(--x-coral);text-align:right;white-space:nowrap}
+#page-expense td.ex-amt.dim{color:var(--x-dim);font-weight:500}
+#page-expense .ex-st{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;color:var(--x-mut);background:var(--x-line2);border:1px solid var(--x-line)}
+#page-expense .ex-st.ok{color:var(--x-green);background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.32)}
+#page-expense .ex-st.warn{color:var(--x-amber);background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.34)}
+#page-expense .ex-st.bad{color:var(--x-coral);background:rgba(251,113,133,.1);border-color:rgba(251,113,133,.36)}
+#page-expense .ex-st.dim{opacity:.8}
+#page-expense .ex-row-actions{display:flex;gap:5px;justify-content:center;flex-wrap:wrap}
+#page-expense .ex-row-actions .btn{width:30px;height:30px;padding:0;display:inline-grid;place-items:center;border-radius:10px;border:1px solid var(--x-line);background:var(--x-field);font-size:13px;line-height:1;transition:.15s}
+#page-expense .ex-row-actions .btn:hover{transform:translateY(-2px);border-color:var(--x-cyan);background:rgba(34,211,238,.1)}
+#page-expense .ex-row-actions .btn:disabled{opacity:.45;transform:none}
+#page-expense .ex-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:13px 20px;border-top:1px solid var(--x-line2);background:var(--x-card2);font-size:12px;color:var(--x-mut)}
+#page-expense .ex-foot b{color:var(--x-text)}
+#page-expense .ex-notice{border-radius:14px}
+
+/* ── Modals (Expense only) ── */
+#modal-ex-entry .modal-box,#modal-ex-reason .modal-box,#modal-ex-lock .modal-box,#modal-ex-settings .modal-box,#modal-ex-integrity .modal-box,#modal-ex-stmt .modal-box,#modal-ex-detail .modal-box,#modal-ex-audit .modal{border-radius:22px;border:1px solid rgba(100,116,139,.35);background:linear-gradient(180deg,rgba(30,41,59,.97),rgba(15,23,42,.98));box-shadow:0 30px 80px -20px rgba(2,6,23,.9)}
+body.light #modal-ex-entry .modal-box,body.light #modal-ex-reason .modal-box,body.light #modal-ex-lock .modal-box,body.light #modal-ex-settings .modal-box,body.light #modal-ex-integrity .modal-box,body.light #modal-ex-stmt .modal-box,body.light #modal-ex-detail .modal-box,body.light #modal-ex-audit .modal{background:#fff;border-color:rgba(100,116,139,.3)}
+#modal-ex-entry .ex-amount-input{border-radius:16px;font-weight:800}
+
+
+#page-expense .ex-mini .v,#page-expense .ex-bgv,#page-expense .ex-bgl{font-family:'Inter','Hind Siliguri',sans-serif}
+body.light #page-expense .ex-kpi.month .ex-kpi-value{background:linear-gradient(90deg,#be123c,#e11d48 55%,#d97706);-webkit-background-clip:text;background-clip:text;color:transparent}
+body.light #page-expense .ex-kpi.month{background:linear-gradient(160deg,rgba(251,113,133,.14),#fff 60%)}
+/* ── Responsive ── */
+@media(max-width:900px){#page-expense .x-q{grid-column:span 1}#page-expense .ex-toolbar .sp{display:none}}
+@media(max-width:640px){
+  #page-expense .x-hero{padding:14px;border-radius:18px}
+  #page-expense .x-title{font-size:19px}
+  #page-expense .ex-toolbar{gap:8px}
+  #page-expense .ex-toolbar .btn.x-primary{width:100%;justify-content:center}
+  #page-expense .ex-toolbar .grp{flex-wrap:wrap;flex:1 1 100%}
+  #page-expense .ex-kpis{grid-template-columns:1fr 1fr;gap:10px}
+  #page-expense .ex-kpi{padding:14px 14px 12px;border-radius:16px}
+  #page-expense .ex-kpi-value,#page-expense .ex-kpi.month .ex-kpi-value{font-size:21px}
+  #page-expense .x-ico{width:26px;height:26px}
+  #page-expense .ex-kpi-label{font-size:11px;gap:7px}
+  #page-expense .ex-filters{padding:12px}
+  #page-expense .ex-charts{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){#page-expense *{animation:none!important;transition:none!important}}
 
     </style>
 
