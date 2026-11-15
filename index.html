@@ -2268,6 +2268,11 @@ tbody td.muted{color:var(--text3);}
 .pr-tab.active{background:var(--gold);border-color:var(--gold);color:#000;}
 .pr-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--border);}
 .pr-chk{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;}
+#modal-pr-bom .pr-newprod-link{font-size:12px;font-weight:600;color:var(--gold);text-decoration:none;white-space:nowrap;cursor:pointer}
+#modal-pr-bom .pr-newprod-link:hover{opacity:.8;text-decoration:underline}
+#modal-pr-bom .pr-hint{font-size:11.5px;color:var(--text3,#9a9a9a);margin-top:4px;line-height:1.5}
+#modal-pr-bom .pr-np-box{margin:12px 0 4px;padding:12px 14px;border:1px solid rgba(205,169,53,.45);background:rgba(205,169,53,.06);border-radius:10px}
+#modal-pr-bom .pr-np-title{font-weight:700;font-size:13px;color:var(--gold);margin-bottom:8px}
 .pr-err{margin-top:12px;padding:10px 12px;border-radius:8px;background:rgba(229,101,94,.12);border:1px solid rgba(229,101,94,.45);color:#ff8b85;font-size:12.5px;white-space:pre-wrap;line-height:1.6;}
 .pr-ok{color:var(--green);}.pr-bad{color:var(--red);}.pr-warn{color:var(--gold);}
 .pr-bomcard{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;}
@@ -3018,6 +3023,34 @@ tbody td.muted{color:var(--text3);}
         <div class="modal-footer"><button class="btn" id="ex-detail-csv" onclick="exKpiCsv()">⬇ CSV</button><button class="btn" onclick="closeModal('ex-detail')">বন্ধ</button></div>
       </div>
     </div>
+
+    <!-- ═══ 📖 খরচের বিবরণ — পুরোটা পড়ুন ═══ -->
+    <div class="modal-overlay" id="modal-ex-read" onclick="if(event.target===this)closeModal('ex-read')">
+      <div class="modal-box exr-box-wrap" style="max-width:640px;width:96vw;">
+        <div class="modal-header"><span><span class="modal-title" id="exr-title">খরচের বিবরণ</span><div class="exr-sub" id="exr-sub"></div></span><button class="modal-close" onclick="closeModal('ex-read')">✕</button></div>
+        <div class="modal-body" id="exr-body" style="max-height:68vh;overflow:auto;"></div>
+        <div class="modal-footer"><button class="btn" onclick="exReadCopy()">📋 কপি</button><button class="btn" id="exr-edit" onclick="exReadEdit()">✏️ Edit</button><button class="btn btn-gold" onclick="closeModal('ex-read')">বন্ধ করুন</button></div>
+      </div>
+    </div>
+    <style id="exr-style">
+      #page-expense a.ex-readmore{display:inline-block;margin-top:5px;font-size:12px;font-weight:600;color:var(--gold);text-decoration:none;cursor:pointer;border-bottom:1px dashed currentColor;padding-bottom:1px}
+      #page-expense a.ex-readmore:hover{opacity:.8}
+      #modal-ex-read .exr-sub{font-size:12px;color:var(--text3,#9a9a9a);margin-top:2px}
+      #modal-ex-read .exr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+      #modal-ex-read .exr-c{background:rgba(255,255,255,.035);border:1px solid var(--border,rgba(255,255,255,.1));border-radius:10px;padding:8px 11px;min-width:0}
+      #modal-ex-read .exr-c span{display:block;font-size:11px;color:var(--text3,#9a9a9a);margin-bottom:2px}
+      #modal-ex-read .exr-c b{font-size:13.5px;font-weight:600;word-break:break-word}
+      #modal-ex-read .exr-c b.exr-amt{color:var(--gold);font-size:15px;font-variant-numeric:tabular-nums}
+      #modal-ex-read .exr-h{font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--gold);margin:14px 0 7px}
+      #modal-ex-read .exr-box{background:rgba(255,255,255,.035);border:1px solid var(--border,rgba(255,255,255,.1));border-radius:10px;padding:11px 14px;font-size:14.5px;line-height:1.75;white-space:pre-wrap;word-break:break-word}
+      #modal-ex-read .exr-note{border-left:3px solid var(--gold)}
+      #modal-ex-read .exr-empty{color:var(--text3,#9a9a9a);font-size:13px}
+      #modal-ex-read ol.exr-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+      #modal-ex-read ol.exr-list li{display:flex;gap:10px;background:rgba(255,255,255,.035);border:1px solid var(--border,rgba(255,255,255,.1));border-radius:10px;padding:9px 13px;font-size:14.5px;line-height:1.65;word-break:break-word}
+      #modal-ex-read ol.exr-list li i{font-style:normal;font-weight:700;color:var(--gold);min-width:24px;font-variant-numeric:tabular-nums}
+      body.light #modal-ex-read .exr-c,body.light #modal-ex-read .exr-box,body.light #modal-ex-read ol.exr-list li{background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.12)}
+      @media(max-width:560px){#modal-ex-read .exr-grid{grid-template-columns:repeat(2,1fr)}}
+    </style>
 
     <style id="ex2-style">
 #page-expense .ex-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:14px;}
@@ -4469,7 +4502,7 @@ body.light #page-expense{--x-cyan:#52525B;--x-blue:#52525B}
           <div style="font-weight:600;margin:6px 0;">🗑️ Scrap / Wastage (ঐচ্ছিক — নষ্ট বা ত্রুটিপূর্ণ যন্ত্রাংশ)</div>
           <div id="pr-a-scrap"></div>
           <button class="btn" type="button" onclick="prScrapAdd()" style="margin-top:6px;">＋ Scrap লাইন</button>
-          <label class="pr-chk" style="display:block;margin-top:12px;"><input type="checkbox" id="pr-a-updcost"> Inventory-র Cost Price এই ব্যাচের ইউনিট খরচে আপডেট করো</label>
+          <label class="pr-chk" style="display:block;margin-top:12px;"><input type="checkbox" id="pr-a-updcost" checked> Inventory-র Cost Price <b>গড় খরচে</b> স্বয়ংক্রিয় আপডেট (পুরোনো স্টক + এই ব্যাচের ভারিত গড়)</label>
           <div id="pr-a-err" class="pr-err" style="display:none;"></div>
           <div style="margin-top:14px;"><button class="btn primary" id="pr-a-btn" onclick="prProduce()">✅ Production সম্পন্ন করুন</button></div>
         </div>
@@ -7307,7 +7340,7 @@ body.light #page-expense{--x-cyan:#52525B;--x-blue:#52525B}
 // ═══════════════════════════════════════════════════════════════
 
 // ⚠️ এখানে আপনার Google Apps Script Web App URL বসান (Deploy > New Deployment > Web App)
-      const API_URL = "https://script.google.com/macros/s/AKfycbzcVb0k5FAeGyXhHRIom_jWvSMoFGLitcQP1uTvIJAUXiMV_1N58WB8E0f-KLbRBH69/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
+      const API_URL = "https://script.google.com/macros/s/AKfycbzrRDOnZE1lydChxih1gVad_saH-Tp-dCwUHHuGeo1ClTyDB22hmrllnYt2XGfHZZbHNA/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
 
 // ─── CONNECTION STATE ────────────────────────────────────────
 let apiConnected = false;
@@ -14700,7 +14733,7 @@ async function submitStockIn(){
   document.getElementById('stockin-supplier').value='';
   document.getElementById('stockin-notes').value='';
 
-  const payload={action:'stockIn', product, qty, supplier, notes};
+  const payload={action:'addStock', product, qty, supplier, notes, by:(typeof currentPartner!=='undefined'&&currentPartner)?currentPartner:''};
   const ok=await postToAPI(payload);
   if(ok){
     showToast(`✅ ${product} — ${qty}টি Stock যোগ হয়েছে!`,'success');
@@ -20697,7 +20730,7 @@ ${window.__igxPngBtn || ''}<script>(${__igxStmtPopup.toString()})(${JSON.stringi
         !locked ? `<button class="btn btn-sm" style="color:var(--red)" title="মুছুন (Recycle Bin)" ${dis} onclick="exAct('delete','${id}')">🗑️</button>` : '<span title="লক করা পিরিয়ড">🔒</span>',
         `<button class="btn btn-sm" title="ইতিহাস (অডিট)" onclick="exAct('history','${id}')">🕘</button>`].join('');
       const amt = act ? num(e.amount) : `<s style="color:var(--text3)">${num(e.orig)}</s>`;
-      return `<tr style="${act ? '' : 'opacity:.6'}"><td style="white-space:nowrap">${fmtDate(e.date)}${locked ? ' 🔒' : ''}</td><td style="white-space:nowrap"><b>${esc(e.voucher || '—')}</b><div class="ex-sub">#${esc(e.id)}</div></td><td>${esc(catLabel(e.category))}${e.sub ? `<div class="ex-sub">${esc(e.sub)}</div>` : ''}</td><td class="ex-note">${esc(e.desc)}${e.vendor || e.invoice ? `<div class="ex-sub">${e.vendor ? '🏪 ' + esc(e.vendor) : ''}${e.vendor && e.invoice ? ' · ' : ''}${e.invoice ? '🧾 ' + esc(e.invoice) : ''}</div>` : ''}${e.notes ? `<div class="ex-sub">📝 ${esc(e.notes)}</div>` : ''}</td><td>${esc(e.method)}</td><td class="ex-amt${act ? '' : ' dim'}">${amt}</td><td>${stPill(e)}${e.modified ? `<div class="ex-sub">বদল: ${esc(fmtTs(e.modified))}</div>` : ''}</td><td>${esc(SHORT[e.maker] || e.maker || '—')}</td><td><div class="ex-row-actions">${btns}</div></td></tr>`;
+      return `<tr style="${act ? '' : 'opacity:.6'}"><td style="white-space:nowrap">${fmtDate(e.date)}${locked ? ' 🔒' : ''}</td><td style="white-space:nowrap"><b>${esc(e.voucher || '—')}</b><div class="ex-sub">#${esc(e.id)}</div></td><td>${esc(catLabel(e.category))}${e.sub ? `<div class="ex-sub">${esc(e.sub)}</div>` : ''}</td><td class="ex-note">${esc(e.desc)}${e.vendor || e.invoice ? `<div class="ex-sub">${e.vendor ? '🏪 ' + esc(e.vendor) : ''}${e.vendor && e.invoice ? ' · ' : ''}${e.invoice ? '🧾 ' + esc(e.invoice) : ''}</div>` : ''}${e.notes ? `<div class="ex-sub">📝 ${esc(e.notes)}</div>` : ''}${needRead(e) ? `<a href="javascript:void(0)" class="ex-readmore" onclick="exAct('read','${id}');return false;">📖 পুরোটা পড়ুন</a>` : ''}</td><td>${esc(e.method)}</td><td class="ex-amt${act ? '' : ' dim'}">${amt}</td><td>${stPill(e)}${e.modified ? `<div class="ex-sub">বদল: ${esc(fmtTs(e.modified))}</div>` : ''}</td><td>${esc(SHORT[e.maker] || e.maker || '—')}</td><td><div class="ex-row-actions">${btns}</div></td></tr>`;
     }).join('');
     const ar = rows.filter(e => !e._pending && isActive(e)), sum = ar.reduce((s, e) => s + cents(e.amount), 0), vd = rows.filter(e => !e._pending && !isActive(e)).length;
     foot.style.display = 'flex'; foot.innerHTML = `<span>দেখানো: <b>${rows.length}</b>টি · হিসাবে ধরা: <b>${ar.length}</b>টি${vd ? ` · বাতিল/রিজেক্ট: ${vd}টি` : ''}</span><span>এই তালিকার মোট খরচ: <b style="color:var(--red);font-family:'IBM Plex Mono',monospace">${money(sum / 100)}</b></span>`;
@@ -20786,7 +20819,7 @@ ${window.__igxPngBtn || ''}<script>(${__igxStmtPopup.toString()})(${JSON.stringi
   // ═════════ অ্যাকশন: ভেরিফাই / রিজেক্ট / ভয়েড / ডিলিট ═════════
   EX.busyIds = {};
   async function act(kind, id) {
-    const e = EX.rows.find(x => String(x.id) === String(id)); if (kind === 'voucher') { voucher(id); return; } if (kind === 'history') { openAudit('#' + id); return; }
+    const e = EX.rows.find(x => String(x.id) === String(id)); if (kind === 'voucher') { voucher(id); return; } if (kind === 'read') { openRead(id); return; } if (kind === 'history') { openAudit('#' + id); return; }
     if (!e) { toast('এন্ট্রি পাওয়া যায়নি', 'error'); return; } if (kind === 'edit') { openEntry(id); return; }
     const actor = needMe(); if (!actor) return; let p = { actor, id: e.id };
     const lbl = `#${e.id} ${e.category} ${money(e.amount || e.orig)}`;
@@ -20934,6 +20967,41 @@ ${window.__igxPngBtn || ''}<script>(${__igxStmtPopup.toString()})(${JSON.stringi
 
   // ═════════ ভাউচার (A4) ═════════
   const CONTACT = '<span style="display:inline-block;min-width:5.8em">Contact:</span>+8801560016179<br><span style="display:inline-block;min-width:5.8em">WhatsApp:</span>+8801530088886';
+  // ═════════ 📖 পুরোটা পড়ুন — বিবরণ/নোট পড়ার উইন্ডো ═════════
+  const needRead = e => { const d = String(e.desc || ''), n = String(e.notes || ''); return d.length > 45 || n.length > 45 || /\n/.test(d + n) || (d && n); };
+  const splitItems = t => {
+    t = String(t || '').replace(/\r/g, '').trim(); if (!t) return [];
+    let parts = t.split(/\n+/).map(x => x.trim()).filter(Boolean);
+    if (parts.length === 1) { const m = t.split(/(?:^|\s)(?=\d{1,2}\s*[)\.\u0964]\s*\S)/).map(x => x.trim()).filter(Boolean); if (m.length > 1) parts = m; else { const c = t.split(/\s*[,\u060C;\u0964]\s+/).map(x => x.trim()).filter(Boolean); if (c.length > 2 && t.length > 70) parts = c; } }
+    return parts.map(x => x.replace(/^\d{1,2}\s*[)\.\u0964]\s*/, '').replace(/^[-•*]\s*/, ''));
+  };
+  EX.readId = null;
+  function openRead(id) {
+    const e = EX.rows.find(x => String(x.id) === String(id)); if (!e) { toast('এন্ট্রি পাওয়া যায়নি', 'error'); return; }
+    EX.readId = e.id; const act = isActive(e), amt = act ? e.amount : e.orig;
+    const cell = (l, v, cls) => `<div class="exr-c"><span>${l}</span><b${cls ? ' class="' + cls + '"' : ''}>${v}</b></div>`;
+    const items = splitItems(e.desc);
+    $('exr-title').textContent = 'খরচের বিবরণ';
+    $('exr-sub').textContent = (e.voucher || ('#' + e.id)) + ' · ' + (catLabel(e.category) || '');
+    let h = '<div class="exr-grid">' + cell('ভাউচার', esc(e.voucher || '#' + e.id)) + cell('তারিখ', fmtDate(e.date)) + cell('ক্যাটাগরি', esc(catLabel(e.category)) + (e.sub ? ' · ' + esc(e.sub) : '')) + cell('পরিমাণ', money(amt), 'exr-amt') + cell('পেমেন্ট', esc(e.method || '—')) + cell('স্ট্যাটাস', stPill(e));
+    if (e.vendor) h += cell('বিক্রেতা', esc(e.vendor)); if (e.invoice) h += cell('ইনভয়েস', esc(e.invoice)); h += cell('এন্ট্রিকারী', esc(SHORT[e.maker] || e.maker || '—')) + '</div>';
+    h += '<div class="exr-h">বিবরণ</div>';
+    if (!items.length) h += '<div class="exr-empty">কোনো বিবরণ নেই</div>';
+    else if (items.length === 1) h += `<div class="exr-box">${esc(items[0])}</div>`;
+    else h += '<ol class="exr-list">' + items.map((x, i) => `<li><i>${i + 1})</i><span>${esc(x)}</span></li>`).join('') + '</ol>';
+    if (e.notes) h += `<div class="exr-h">📝 নোট</div><div class="exr-box exr-note">${esc(e.notes)}</div>`;
+    $('exr-body').innerHTML = h; $('exr-edit').style.display = (isActive(e) && !(e.status === 'Verified')) ? '' : 'none';
+    openModal('ex-read');
+  }
+  function readCopy() {
+    const e = EX.rows.find(x => String(x.id) === String(EX.readId)); if (!e) return;
+    const t = [`${e.voucher || '#' + e.id} | ${e.date} | ${e.category}${e.sub ? ' / ' + e.sub : ''} | ৳${num(isActive(e) ? e.amount : e.orig)} | ${e.method || ''}`, '', 'বিবরণ:', ...splitItems(e.desc).map((x, i, a) => a.length > 1 ? `${i + 1}) ${x}` : x), ...(e.notes ? ['', 'নোট: ' + e.notes] : [])].join('\n');
+    const ok = () => toast('📋 কপি হয়েছে');
+    try { navigator.clipboard.writeText(t).then(ok, () => fb()); } catch (x) { fb(); }
+    function fb() { const a = document.createElement('textarea'); a.value = t; a.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); ok(); } catch (x) { toast('কপি করা যায়নি', 'error'); } a.remove(); }
+  }
+  function readEdit() { const id = EX.readId; closeModal('ex-read'); setTimeout(() => act('edit', id), 60); }
+
   function voucher(id) {
     const e = EX.rows.find(x => String(x.id) === String(id)); if (!e) { toast('এন্ট্রি পাওয়া যায়নি', 'error'); return; }
     const act = isActive(e), amount = act ? e.amount : e.orig, vno = e.voucher || ('EX-' + String(e.id).padStart(4, '0')), col = act ? '#b3261e' : '#6b7280';
@@ -21059,7 +21127,7 @@ ${window.__igxPngBtn || ''}</body></html>`;
 
   Object.assign(window, {
     exLoad: load, exRender, exMore: more, exQuickRange: quickRange, exClearFilters: clearFilters, exFilterStatus: filterStatus, exFilterCat: filterCat, exKpi: kpi, exKpiCsv: kpiCsv, exSetCatRange: setCatRange,
-    exOpenEntry: openEntry, exCatChanged: catChanged, exCheckDup: checkDup, exSubmitEntry: submitEntry, exRetry: retry, exRetryAll: retryAll, exDiscard: discard, exReasonDone: reasonDone, exAct: act, exRecPost: recPost,
+    exOpenEntry: openEntry, exCatChanged: catChanged, exCheckDup: checkDup, exSubmitEntry: submitEntry, exRetry: retry, exRetryAll: retryAll, exDiscard: discard, exReasonDone: reasonDone, exAct: act, exReadCopy: readCopy, exReadEdit: readEdit, exRecPost: recPost,
     exOpenLock: openLock, exLockPreset: lockPreset, exApplyLock: applyLock, exOpenSettings: openSettings, exRecAddRow: () => recAddRow(), exSaveSettings: saveSettings,
     exOpenIntegrity: openIntegrity, exFix: fix, exOpenAudit: openAudit, exAuditRender: renderAudit, exAuditSnap: auditSnap, exOpenStatement: openStatement, exStmtPreset: stmtPreset, exBuildStatement: buildStatement, exExport: exportCSV,
     __exState: EX
@@ -22843,8 +22911,20 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   <div class="modal-header"><span class="modal-title">🧩 BOM / Recipe</span><button class="modal-close" onclick="closeModal('pr-bom')">✕</button></div>
   <div class="modal-body">
     <div class="form-grid">
-      <div class="form-group"><label class="form-label">Finished Product *</label><select class="form-select" id="pr-b-prod"></select></div>
+      <div class="form-group"><label class="form-label" style="display:flex;justify-content:space-between;align-items:center;gap:8px;">Finished Product * <a href="javascript:void(0)" class="pr-newprod-link" onclick="prNewProdToggle(true);return false;">＋ নতুন প্রোডাক্ট</a></label><select class="form-select" id="pr-b-prod" onchange="prBomProdChange()"></select><div class="pr-hint" id="pr-b-prodhint"></div></div>
       <div class="form-group"><label class="form-label">Recipe নাম</label><input class="form-input" id="pr-b-rec" value="Standard" placeholder="Standard"></div>
+    </div>
+    <div id="pr-np-box" class="pr-np-box" style="display:none;" oninput="document.getElementById('pr-np-err').style.display='none'">
+      <div class="pr-np-title">➕ ইনভেন্টরিতে নতুন প্রোডাক্ট যোগ করুন</div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">প্রোডাক্টের নাম *</label><input class="form-input" id="pr-np-name" placeholder="যেমন: Amanah Cow Alarm" autocomplete="off"></div>
+        <div class="form-group"><label class="form-label">Category</label><input class="form-input" id="pr-np-cat" list="prod-cat-datalist" placeholder="বেছে নিন বা লিখুন" autocomplete="off"></div>
+        <div class="form-group"><label class="form-label">Cost Price (৳)</label><input class="form-input" id="pr-np-cost" type="number" min="0" step="any" placeholder="0"></div>
+        <div class="form-group"><label class="form-label">Sell Price (৳) *</label><input class="form-input" id="pr-np-sell" type="number" min="0" step="any" placeholder="0"></div>
+      </div>
+      <div id="pr-np-err" class="pr-err" style="display:none;"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;"><button class="btn" type="button" onclick="prNewProdToggle(false)">বাতিল</button><button class="btn primary" type="button" id="pr-np-save" onclick="prNewProdSave()">✅ প্রোডাক্ট সেভ করে নির্বাচন</button></div>
+      <div class="pr-hint">Stock ০ দিয়ে ইনভেন্টরি শীটে যোগ হবে — পরে Inventory পেজ থেকে বাকি তথ্য (সাপ্লায়ার, অ্যালার্ট ইত্যাদি) এডিট করা যাবে।</div>
     </div>
     <div style="font-weight:600;margin:12px 0 6px;">১ ইউনিট বানাতে যা লাগে:</div>
     <div id="pr-b-lines"></div>
@@ -23110,8 +23190,52 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   function rmOptions(sel){ return '<option value="">— Raw Material —</option>'+S.rm.filter(x=>x.active||x.id===sel).map(x=>`<option value="${esc(x.id)}" ${x.id===sel?'selected':''}>${esc(x.name)} (${fmt(x.cur)} ${esc(x.unit)})</option>`).join(''); }
   window.prOpenBom = function(i){
     const b = (i===null||i===undefined) ? null : S.boms[i];
-    $('pr-b-prod').innerHTML = '<option value="">— Finished Product —</option>'+S.fg.map(f=>`<option ${b&&b.product===f.name?'selected':''}>${esc(f.name)}</option>`).join('');
+    prNewProdToggle(false, true); fillBomProd(b?b.product:'');
     $('pr-b-rec').value = b?b.recipe:'Standard'; $('pr-b-lines').innerHTML = ''; (b?b.lines:[{rmId:'',qty:1}]).forEach(l=>prBomLineAdd(l)); $('pr-b-err').style.display='none'; bomCost(); openModal('pr-bom');
+  };
+  // ── Finished Product: Production-ডেটা + লাইভ Inventory — দুই উৎস মিলিয়ে ──
+  function fgList(){
+    const seen = {}, out = [];
+    const add = (n, o) => { n = String(n||'').trim(); if(!n) return; const k = n.toLowerCase(); if(seen[k]) return; seen[k] = 1; out.push(Object.assign({name:n}, o||{})); };
+    (S.fg||[]).forEach(f => add(f.name, f));
+    try{ (window.liveInventoryData||[]).forEach(f => add(f.name, {cost:f.cost, sell:f.sell, cur:f.current})); }catch(_e){}
+    return out.sort((a,b)=>a.name.localeCompare(b.name));
+  }
+  function fillBomProd(sel){
+    const el = $('pr-b-prod'), list = fgList();
+    if(sel && !list.some(f=>f.name.toLowerCase()===String(sel).toLowerCase())) list.unshift({name:sel});
+    el.innerHTML = '<option value="">— Finished Product বেছে নিন —</option>' + list.map(f=>`<option value="${esc(f.name)}">${esc(f.name)}</option>`).join('') + '<option value="__new__">➕ নতুন প্রোডাক্ট যোগ করুন…</option>';
+    el.value = sel || ''; if(sel && el.value !== sel) el.value = (list.find(f=>f.name.toLowerCase()===String(sel).toLowerCase())||{}).name || '';
+    $('pr-b-prodhint').textContent = list.length ? '' : 'ইনভেন্টরিতে কোনো প্রোডাক্ট পাওয়া যায়নি — উপরের "＋ নতুন প্রোডাক্ট" দিয়ে যোগ করুন।';
+  }
+  window.prBomProdChange = function(){
+    const el = $('pr-b-prod'); if(el.value === '__new__'){ el.value = ''; prNewProdToggle(true); }
+  };
+  window.prNewProdToggle = function(on, quiet){
+    const b = $('pr-np-box'); if(!b) return; b.style.display = on ? 'block' : 'none';
+    if($('pr-np-err')) $('pr-np-err').style.display = 'none';
+    if(on){ ['pr-np-name','pr-np-cat','pr-np-cost','pr-np-sell'].forEach(i=>$(i).value=''); setTimeout(()=>{ try{ $('pr-np-name').focus(); }catch(_e){} }, 30); }
+  };
+  window.prNewProdSave = async function(){
+    const err = m => { const e = $('pr-np-err'); e.textContent = '❌ '+m; e.style.display = 'block'; };
+    const name = $('pr-np-name').value.trim().replace(/\s+/g,' '), sell = Number($('pr-np-sell').value), cost = Number($('pr-np-cost').value)||0;
+    if(!name){ err('প্রোডাক্টের নাম দিন'); return; }
+    if(!(sell>0)){ err('Sell Price দিন (০-এর বেশি)'); return; }
+    const dup = fgList().find(f=>f.name.toLowerCase()===name.toLowerCase());
+    if(dup){ fillBomProd(dup.name); prNewProdToggle(false); showToast('"'+dup.name+'" আগেই ইনভেন্টরিতে আছে — সেটাই নির্বাচন করা হলো','success'); return; }
+    const btn = $('pr-np-save'); btn.disabled = true; const t0 = btn.textContent; btn.textContent = '⏳ সেভ হচ্ছে…';
+    let ok = null;
+    try{
+      ok = await postToAPI({ action:'addProduct', id:'', name, category:$('pr-np-cat').value.trim(), cost, sell, opening:0, stockIn:0, alert:5, supplier:'', supplierPhone:'', notes:'', splitIsmail:0, splitAshik:0, by:by() });
+    }catch(_e){ ok = null; }
+    btn.disabled = false; btn.textContent = t0;
+    if(!ok){ err(window.__lastAPIErrorReason || 'প্রোডাক্ট সেভ হয়নি — সংযোগ/API চেক করে আবার চেষ্টা করুন'); return; }
+    S.fg = (S.fg||[]).concat([{ id:'', name, cost, sell, cur:0 }]);
+    try{ if(Array.isArray(window.liveInventoryData) && !window.liveInventoryData.some(x=>String(x.name).toLowerCase()===name.toLowerCase())) window.liveInventoryData.push({ id:'', name, cat:$('pr-np-cat').value.trim(), cost, sell, current:0 }); }catch(_e){}
+    fillBomProd(name); prNewProdToggle(false);
+    showToast('✅ "'+name+'" ইনভেন্টরিতে যোগ হয়েছে ও নির্বাচিত','success');
+    try{ if(typeof logAction==='function') logAction('BOM থেকে নতুন প্রোডাক্ট: '+name); }catch(_e){}
+    setTimeout(()=>{ try{ if(typeof loadLiveInventory==='function') loadLiveInventory(); }catch(_e){} }, 1500);
   };
   window.prBomLineAdd = function(l){
     l = l||{rmId:'',qty:1}; const d = document.createElement('div'); d.className = 'pr-line';
@@ -23206,7 +23330,7 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   };
 
   // ── Movement history ──
-  const ACTS = ['OPENING','PURCHASE','PURCHASE_ADJUST','PURCHASE_REVERSE','ISSUE','RETURN','PRODUCTION_CONSUME','PRODUCTION_OUTPUT','SCRAP','ROLLBACK_CONSUME','ROLLBACK_SCRAP','ROLLBACK_OUTPUT','AUDIT_ADJUST'];
+  const ACTS = ['OPENING','PURCHASE','PURCHASE_ADJUST','PURCHASE_REVERSE','ISSUE','RETURN','PRODUCTION_CONSUME','PRODUCTION_OUTPUT','SCRAP','ROLLBACK_CONSUME','ROLLBACK_SCRAP','ROLLBACK_OUTPUT','AUDIT_ADJUST','STOCK_IN','ADJ_DAMAGE','ADJ_LOST','ADJ_FOUND','ADJ_CORRECTION','RETURN_DAMAGED','RETURN_OK'];
   function renderMovFilters(){ const a = $('pr-m-act'); if(a && !a.options.length) a.innerHTML = '<option value="">সব Action</option>'+ACTS.map(x=>`<option>${x}</option>`).join(''); }
   async function loadMov(extra){
     const d = await fetchFromAPI('stockMoves', Object.assign({limit:800}, extra||{})); if(!d){ showToast('Movement লোড হয়নি','error'); return; }
@@ -23688,6 +23812,543 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   window.prOpenPage = function(){ renderMovFilters(); if(!S.loaded) load(); else renderAll(); };
 })();
 
+</script>
+    <style id="inv3-style">
+      /* ═══ Inventory v3 — ধাপ ১ (শুধু নতুন স্তর; পুরোনো টেবিল/কার্ড অক্ষত) ═══ */
+      #inv3-top{margin:0 0 18px}
+      #inv3-kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+      .inv3-k{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;min-width:0}
+      .inv3-k label{display:block;font-size:12px;color:var(--text3);margin-bottom:4px;font-weight:500}
+      .inv3-k b{display:block;font-size:21px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;line-height:1.25;word-break:break-word}
+      .inv3-k small{display:block;font-size:12px;color:var(--text3);margin-top:3px}
+      .inv3-k.gold b{color:var(--gold)} .inv3-k.red b{color:var(--red)} .inv3-k.orange b{color:var(--orange)} .inv3-k.green b{color:var(--green)}
+      #inv3-ins{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+      .inv3-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;min-width:0}
+      .inv3-box h4{margin:0 0 8px;font-size:13.5px;font-weight:700;color:var(--gold);display:flex;justify-content:space-between;gap:8px}
+      .inv3-box h4 span{font-weight:500;color:var(--text3);font-size:12px}
+      .inv3-li{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--border2);font-size:13.5px}
+      .inv3-li:first-of-type{border-top:0}
+      .inv3-li .n{flex:1;min-width:0;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+      .inv3-li .n:hover{color:var(--gold)}
+      .inv3-li .m{color:var(--text2);font-size:12.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+      .inv3-li .btn{padding:3px 9px;font-size:12px}
+      .inv3-empty{color:var(--text3);font-size:13px;padding:6px 0}
+      #inv3-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+      #inv3-bar input,#inv3-bar select{background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:8px 11px;font-size:13.5px;font-family:inherit;min-width:0}
+      #inv3-bar input{flex:1 1 220px}
+      #inv3-bar input:focus,#inv3-bar select:focus{outline:none;border-color:var(--gold)}
+      .inv3-chips{display:flex;flex-wrap:wrap;gap:6px}
+      .inv3-chip{background:var(--bg2);border:1px solid var(--border);color:var(--text2);border-radius:999px;padding:5px 12px;font-size:12.5px;cursor:pointer;font-family:inherit}
+      .inv3-chip:hover{border-color:var(--gold);color:var(--text)}
+      .inv3-chip.on{background:var(--gold2);border-color:var(--gold);color:var(--gold);font-weight:700}
+      #inv3-cnt{font-size:12.5px;color:var(--text3);margin-left:auto;white-space:nowrap}
+      #inv-body tr.inv3-row{cursor:pointer} #inv-body tr.inv3-row:hover td{background:rgba(205,169,53,.05)}
+      #inv-cards .inv-card{cursor:pointer}
+      .inv3-sub{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:4px;font-size:12px;color:var(--text3);font-weight:400}
+      .inv3-sub .g{color:var(--green)} .inv3-sub .o{color:var(--orange)} .inv3-sub .r{color:var(--red)}
+      /* Drawer */
+      .inv3-dr-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400;opacity:0;pointer-events:none;transition:opacity .18s}
+      .inv3-dr-bg.on{opacity:1;pointer-events:auto}
+      .inv3-dr{position:fixed;top:0;right:0;bottom:0;width:min(600px,100vw);background:var(--bg);border-left:1px solid var(--border);z-index:401;display:flex;flex-direction:column;transform:translateX(105%);transition:transform .2s ease;box-shadow:-12px 0 40px rgba(0,0,0,.45)}
+      .inv3-dr.on{transform:none}
+      .inv3-dr-h{padding:16px 18px 10px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start}
+      .inv3-dr-h .t{flex:1;min-width:0} .inv3-dr-h h3{margin:0;font-size:18px;font-weight:700;word-break:break-word}
+      .inv3-dr-h .s{font-size:12.5px;color:var(--text3);margin-top:3px}
+      .inv3-x{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:15px;flex:none}
+      .inv3-tabs{display:flex;gap:2px;padding:0 12px;border-bottom:1px solid var(--border);overflow-x:auto}
+      .inv3-tab{background:none;border:0;border-bottom:2px solid transparent;color:var(--text2);padding:10px 12px;font-size:13.5px;cursor:pointer;white-space:nowrap;font-family:inherit}
+      .inv3-tab.on{color:var(--gold);border-bottom-color:var(--gold);font-weight:700}
+      .inv3-dr-b{flex:1;overflow:auto;padding:16px 18px}
+      .inv3-dr-f{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap}
+      .inv3-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px}
+      .inv3-c{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:8px 11px;min-width:0}
+      .inv3-c>span{display:block;font-size:11.5px;color:var(--text3);margin-bottom:2px}
+      .inv3-c b{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;word-break:break-word}
+      .inv3-h{font-size:12.5px;font-weight:700;letter-spacing:.03em;color:var(--gold);margin:16px 0 7px}
+      .inv3-note{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:9px;padding:9px 12px;font-size:13px;line-height:1.6;color:var(--text2);margin-bottom:10px}
+      .inv3-note.warn{border-left-color:var(--orange)} .inv3-note.bad{border-left-color:var(--red)} .inv3-note.ok{border-left-color:var(--green)}
+      .inv3-t{width:100%;border-collapse:collapse;font-size:13px}
+      .inv3-t th{text-align:left;font-size:11.5px;color:var(--text3);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--border)}
+      .inv3-t td{padding:7px 8px;border-bottom:1px solid var(--border2);vertical-align:top;font-variant-numeric:tabular-nums}
+      .inv3-t tr.dim td{opacity:.5}
+      .inv3-pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11.5px;font-weight:700;background:var(--bg3);border:1px solid var(--border)}
+      .inv3-pill.g{color:var(--green)} .inv3-pill.r{color:var(--red)} .inv3-pill.o{color:var(--orange)}
+      .inv3-pos{color:var(--green);font-weight:700} .inv3-neg{color:var(--red);font-weight:700}
+      .inv3-bars{display:flex;align-items:flex-end;gap:10px;height:110px;padding:6px 4px 0;border-bottom:1px solid var(--border)}
+      .inv3-bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;min-width:0}
+      .inv3-bar i{display:block;width:70%;max-width:38px;background:linear-gradient(180deg,#E7CF7A,#B8952A);border-radius:4px 4px 0 0;min-height:2px}
+      .inv3-bar em{font-style:normal;font-size:11.5px;color:var(--text2);margin-bottom:3px;font-variant-numeric:tabular-nums}
+      .inv3-lbl{display:flex;gap:10px;padding:4px 4px 0}
+      .inv3-lbl span{flex:1;text-align:center;font-size:11.5px;color:var(--text3)}
+      .inv3-load{color:var(--text3);font-size:13px;padding:18px 0;text-align:center}
+      body.light .inv3-dr{box-shadow:-12px 0 40px rgba(0,0,0,.18)}
+      body.light .inv3-dr-bg{background:rgba(0,0,0,.3)}
+      @media(max-width:900px){#inv3-kpi{grid-template-columns:repeat(2,minmax(0,1fr))}#inv3-ins{grid-template-columns:1fr}}
+      @media(max-width:520px){.inv3-g{grid-template-columns:repeat(2,minmax(0,1fr))}.inv3-k b{font-size:18px}}
+    </style>
+<script id="inv3-js">
+/* ═══ Inventory v3 — ধাপ ১: KPI · ফিল্টার · ইনসাইট · Product Drawer ═══
+   নীতি: পুরোনো renderInventoryData/টেবিল/কার্ড/স্টকের হিসাব অক্ষত; এটা তার উপরে একটা পড়ার-স্তর (read-only)। */
+(function(){
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const nf = n => (Number(n) || 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
+  const money = n => '৳' + nf(Math.round(Number(n) || 0));
+  const DAY = 86400000, MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const MON = {}; MONTHS.forEach((m, i) => MON[m.toLowerCase()] = i);
+  const key = s => String(s || '').trim().toLowerCase();
+  const ST = { rows: [], en: [], stats: {}, trs: [], cards: [], f: { q: '', cat: '', chip: 'all', sort: 'def' }, prod: null, prodAt: 0, prodBusy: false, salesTried: false, cur: -1, tab: 'ov', mv: {} };
+
+  function parseD(s) {
+    s = String(s || '').trim(); if (!s) return null; let m;
+    if ((m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s))) return new Date(+m[1], +m[2] - 1, +m[3]);
+    if ((m = /(\d{1,2})[\s\-\/]+([A-Za-z]{3})[A-Za-z]*[\s,\-\/]+(\d{4})/.exec(s)) && MON[m[2].toLowerCase()] != null) return new Date(+m[3], MON[m[2].toLowerCase()], +m[1]);
+    if ((m = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/.exec(s))) return new Date(+m[3], +m[2] - 1, +m[1]);
+    const d = new Date(s); return isNaN(d) ? null : d;
+  }
+  const fmtD = d => d ? String(d.getDate()).padStart(2, '0') + '-' + MONTHS[d.getMonth()] + '-' + d.getFullYear() : '—';
+  const dayDiff = d => d ? Math.floor((Date.now() - d.getTime()) / DAY) : null;
+  const salesList = () => Array.isArray(window.liveSalesData) ? window.liveSalesData : [];
+  const salesReady = () => salesList().length > 0;
+
+  function norm(rows) {
+    return (rows || []).map(p => Object.assign({}, p, { current: parseInt(Number(p.current) || 0), alert: parseInt(Number(p.alert) || 5), opening: parseInt(Number(p.opening) || 0), in: parseInt(Number(p.in) || 0), sold: parseInt(Number(p.sold) || 0), cost: Number(p.cost) || 0, sell: Number(p.sell) || 0 }));
+  }
+
+  // ── বিক্রির পরিসংখ্যান (প্রোডাক্টের নাম ধরে) ──
+  function computeStats() {
+    const out = {}, now = new Date(), cm = now.getFullYear() * 12 + now.getMonth();
+    salesList().forEach(r => {
+      const k = key(r.product); if (!k) return;
+      const s = out[k] || (out[k] = { valid: 0, u7: 0, u30: 0, u90: 0, last: null, months: {}, st: {}, list: [] });
+      const stt = key(r.status) || 'pending', q = Number(r.qty) || 0, dt = parseD(r.date) || parseD(r.rawDateISO);
+      s.st[stt] = (s.st[stt] || 0) + q; s.list.push({ r, dt, q, stt });
+      if (stt === 'cancelled' || stt === 'returned') return;
+      s.valid += q;
+      if (dt) {
+        const ago = (now - dt) / DAY; if (ago <= 7) s.u7 += q; if (ago <= 30) s.u30 += q; if (ago <= 90) s.u90 += q;
+        if (!s.last || dt > s.last) s.last = dt;
+        const mk = dt.getFullYear() * 12 + dt.getMonth(); if (cm - mk >= 0 && cm - mk < 6) s.months[mk] = (s.months[mk] || 0) + q;
+      }
+    });
+    return out;
+  }
+  function enrich(p) {
+    const s = ST.stats[key(p.name)] || { valid: 0, u7: 0, u30: 0, u90: 0, last: null, months: {}, st: {}, list: [] };
+    const ready = salesReady(), vel = s.u30 / 30, lastDays = dayDiff(s.last);
+    const daysLeft = p.current <= 0 ? 0 : vel > 0 ? p.current / vel : Infinity;
+    const e = { s, ready, vel, lastDays, daysLeft, value: p.current * p.cost, valueSell: p.current * p.sell };
+    e.dead = ready && p.current > 0 && (s.last == null || lastDays > 60);
+    e.soon = ready && p.current > 0 && vel > 0 && daysLeft <= 14;
+    e.reorder = ready && vel > 0 ? Math.max(0, Math.ceil(vel * 30 - p.current)) : 0;
+    e.build = canBuild(p);
+    return e;
+  }
+
+  // ── Production ডেটা (BOM/RM/ব্যাচ) — একবার এনে ক্যাশ ──
+  function ensureProd(force) {
+    if (ST.prodBusy || typeof fetchFromAPI !== 'function') return;
+    if (!force && ST.prodAt && Date.now() - ST.prodAt < 120000) return;
+    ST.prodBusy = true;
+    Promise.resolve(fetchFromAPI('prodData')).then(d => { ST.prodBusy = false; ST.prodAt = Date.now(); if (d && d.rm) { ST.prod = d; refreshAll(true); if (ST.cur >= 0) drawTab(); } }).catch(() => { ST.prodBusy = false; ST.prodAt = Date.now(); });
+  }
+  function bomsFor(p) { return ST.prod && ST.prod.boms ? ST.prod.boms.filter(b => key(b.product) === key(p.name)) : []; }
+  function bomBuild(b) {
+    const rm = {}; (ST.prod.rm || []).forEach(r => rm[r.id] = r);
+    let min = Infinity, lim = null, short = [];
+    (b.lines || []).forEach(l => {
+      const r = rm[l.rmId]; if (!r || !(l.qty > 0)) return; const n = Math.floor((r.cur + 1e-9) / l.qty);
+      if (n < min) { min = n; lim = r.name; } if (n <= 0) short.push(r.name);
+    });
+    return { n: isFinite(min) ? min : 0, limit: lim, short, ok: isFinite(min) };
+  }
+  function canBuild(p) {
+    const bs = bomsFor(p); if (!bs.length) return null;
+    let best = null; bs.forEach(b => { const r = bomBuild(b); if (r.ok && (best == null || r.n > best.n)) best = Object.assign({ recipe: b.recipe }, r); });
+    return best;
+  }
+
+  // ── শীর্ষ অংশ: KPI + ইনসাইট + ফিল্টার বার ──
+  function ensureTop() {
+    let t = $('inv3-top'); if (t) return t;
+    const grid = $('inv-cards'); if (!grid) return null;
+    t = document.createElement('div'); t.id = 'inv3-top';
+    t.innerHTML = '<div id="inv3-act" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"><button class="btn" onclick="inv3Adjust()">⚖️ Stock Adjust</button><button class="btn" onclick="inv3Take()">📋 Stock Take</button><button class="btn" onclick="inv3Returns()">↩️ ফেরত যাচাই <span id="inv3-ret-n" class="inv3-pill o" style="display:none;margin-left:4px"></span></button></div><div id="inv3-kpi"></div><div id="inv3-ins"></div>' +
+      '<div id="inv3-bar"><input id="inv3-q" type="search" placeholder="🔎 প্রোডাক্ট / ID / ক্যাটাগরি / সাপ্লায়ার খুঁজুন…" autocomplete="off"><select id="inv3-cat"><option value="">সব ক্যাটাগরি</option></select>' +
+      '<select id="inv3-sort"><option value="def">সাজানো: ডিফল্ট</option><option value="name">নাম (A→Z)</option><option value="stockAsc">স্টক কম → বেশি</option><option value="stockDesc">স্টক বেশি → কম</option><option value="valueDesc">স্টক ভ্যালু বেশি → কম</option><option value="daysAsc">কতদিন চলবে (কম আগে)</option><option value="soldDesc">বিক্রি বেশি → কম</option></select><span id="inv3-cnt"></span></div>' +
+      '<div class="inv3-chips" id="inv3-chips" style="margin-bottom:12px"></div>';
+    grid.parentNode.insertBefore(t, grid);
+    $('inv3-q').addEventListener('input', e => { ST.f.q = e.target.value; applyFilter(); });
+    $('inv3-cat').addEventListener('change', e => { ST.f.cat = e.target.value; applyFilter(); });
+    $('inv3-sort').addEventListener('change', e => { ST.f.sort = e.target.value; applyFilter(); });
+    $('inv3-chips').addEventListener('click', e => { const b = e.target.closest('[data-chip]'); if (b) { ST.f.chip = b.dataset.chip; applyFilter(); } });
+    return t;
+  }
+  function renderKpi() {
+    const R = ST.rows, E = ST.en; let units = 0, vc = 0, vs = 0, low = 0, out = 0, dead = 0, deadV = 0, soon = 0;
+    R.forEach((p, i) => { const e = E[i]; units += p.current; vc += e.value; vs += e.valueSell; if (p.current <= 0) out++; else if (p.current <= p.alert) low++; if (e.dead) { dead++; deadV += e.value; } if (e.soon) soon++; });
+    const k = (c, l, v, s) => `<div class="inv3-k ${c}"><label>${l}</label><b>${v}</b>${s ? `<small>${s}</small>` : ''}</div>`;
+    $('inv3-kpi').innerHTML = k('', 'মোট প্রোডাক্ট', nf(R.length), 'ক্যাটাগরি ' + new Set(R.map(p => p.cat).filter(Boolean)).size + 'টি') +
+      k('', 'হাতে মোট ইউনিট', nf(units), 'সব প্রোডাক্ট মিলিয়ে') +
+      k('gold', 'স্টক ভ্যালু (কস্ট দামে)', money(vc), 'বিক্রয় দামে ' + money(vs)) +
+      k('green', 'সম্ভাব্য লাভ (সব বিক্রি হলে)', money(vs - vc), vs > 0 ? 'মার্জিন ' + (Math.round((vs - vc) / vs * 1000) / 10) + '%' : '') +
+      k(out ? 'red' : '', 'স্টক শেষ (Out)', nf(out), 'Current ০') +
+      k(low ? 'orange' : '', 'কম স্টক (Low)', nf(low), 'Alert Level-এর নিচে') +
+      k(soon ? 'orange' : '', '১৪ দিনে শেষ হবে', salesReady() ? nf(soon) : '…', salesReady() ? 'গত ৩০ দিনের বিক্রির গতি ধরে' : 'বিক্রির ডেটা লোড হচ্ছে') +
+      k(dead ? 'red' : '', 'Dead stock (৬০+ দিন বিক্রি নেই)', salesReady() ? nf(dead) : '…', salesReady() ? 'আটকে থাকা টাকা ' + money(deadV) : '');
+  }
+  function renderIns() {
+    const R = ST.rows, E = ST.en, box = $('inv3-ins'); if (!box) return;
+    const soon = R.map((p, i) => ({ p, e: E[i], i })).filter(x => x.p.current <= x.p.alert || x.e.soon).sort((a, b) => a.e.daysLeft - b.e.daysLeft).slice(0, 6);
+    const dead = R.map((p, i) => ({ p, e: E[i], i })).filter(x => x.e.dead).sort((a, b) => b.e.value - a.e.value).slice(0, 6);
+    const li = (x, m, act) => `<div class="inv3-li"><span class="n" onclick="inv3Open(${x.i})" title="${esc(x.p.name)}">${esc(x.p.name)}</span><span class="m">${m}</span>${act || ''}</div>`;
+    box.innerHTML =
+      `<div class="inv3-box"><h4>⏳ শীঘ্রই শেষ হবে / রিঅর্ডার দরকার<span>${soon.length ? soon.length + 'টি' : ''}</span></h4>` +
+      (soon.length ? soon.map(x => li(x, `স্টক ${x.p.current}` + (x.e.ready && x.e.vel > 0 ? ` · ~${x.p.current <= 0 ? 0 : Math.floor(x.e.daysLeft)} দিন` : '') + (x.e.reorder > 0 ? ` · <b style="color:var(--gold)">+${x.e.reorder}</b>` : ''), `<button class="btn" onclick="inv3StockIn(${x.i})">📦 Stock In</button>`)).join('') : '<div class="inv3-empty">' + (salesReady() ? '✅ এখন কোনো প্রোডাক্ট ঝুঁকিতে নেই' : 'বিক্রির ডেটা লোড হচ্ছে…') + '</div>') + '</div>' +
+      `<div class="inv3-box"><h4>🧊 Dead / ধীর স্টক<span>${dead.length ? 'বড় আটকে-থাকা আগে' : ''}</span></h4>` +
+      (dead.length ? dead.map(x => li(x, `স্টক ${x.p.current} · ${money(x.e.value)} · ` + (x.e.s.last ? x.e.lastDays + ' দিন বিক্রি নেই' : 'কখনো বিক্রি হয়নি'))).join('') : '<div class="inv3-empty">' + (salesReady() ? '✅ কোনো Dead stock নেই' : 'বিক্রির ডেটা লোড হচ্ছে…') + '</div>') + '</div>';
+  }
+  function renderBar() {
+    const R = ST.rows, E = ST.en, c = { all: R.length, in: 0, low: 0, out: 0, soon: 0, dead: 0 };
+    R.forEach((p, i) => { if (p.current <= 0) c.out++; else if (p.current <= p.alert) c.low++; else c.in++; if (E[i].soon) c.soon++; if (E[i].dead) c.dead++; });
+    const defs = [['all', 'সব'], ['in', '🟢 In Stock'], ['low', '🟡 Low'], ['out', '🔴 Out'], ['soon', '⏳ শীঘ্রই শেষ'], ['dead', '🧊 Dead']];
+    $('inv3-chips').innerHTML = defs.map(d => `<button type="button" class="inv3-chip ${ST.f.chip === d[0] ? 'on' : ''}" data-chip="${d[0]}">${d[1]} <small>${c[d[0]]}</small></button>`).join('');
+    const sel = $('inv3-cat'), cur = ST.f.cat, cats = Array.from(new Set(R.map(p => p.cat).filter(Boolean))).sort();
+    sel.innerHTML = '<option value="">সব ক্যাটাগরি</option>' + cats.map(x => `<option ${x === cur ? 'selected' : ''}>${esc(x)}</option>`).join('');
+  }
+
+  // ── টেবিল/কার্ডের উপর ফিল্টার-সাজানো (DOM লুকানো/সরানো, ডেটা অপরিবর্তিত) ──
+  function applyFilter() {
+    const R = ST.rows, E = ST.en, f = ST.f, q = key(f.q); let idx = [];
+    R.forEach((p, i) => {
+      const e = E[i];
+      if (q && !key([p.name, p.id, p.cat, p.supplier].join(' ')).includes(q)) return;
+      if (f.cat && p.cat !== f.cat) return;
+      const ch = f.chip; if (ch === 'in' && !(p.current > p.alert)) return; if (ch === 'low' && !(p.current > 0 && p.current <= p.alert)) return; if (ch === 'out' && p.current > 0) return; if (ch === 'soon' && !e.soon) return; if (ch === 'dead' && !e.dead) return;
+      idx.push(i);
+    });
+    const srt = { name: (a, b) => R[a].name.localeCompare(R[b].name), stockAsc: (a, b) => R[a].current - R[b].current, stockDesc: (a, b) => R[b].current - R[a].current, valueDesc: (a, b) => E[b].value - E[a].value, daysAsc: (a, b) => E[a].daysLeft - E[b].daysLeft, soldDesc: (a, b) => R[b].sold - R[a].sold }[f.sort];
+    if (srt) idx.sort((a, b) => srt(a, b) || a - b);
+    const show = new Set(idx), tb = $('inv-body'), cg = $('inv-cards');
+    const order = idx.concat(R.map((_, i) => i).filter(i => !show.has(i)));
+    order.forEach(i => { if (ST.trs[i] && tb) { tb.appendChild(ST.trs[i]); ST.trs[i].style.display = show.has(i) ? '' : 'none'; } if (ST.cards[i] && cg) { cg.appendChild(ST.cards[i]); ST.cards[i].style.display = show.has(i) ? '' : 'none'; } });
+    const cnt = $('inv3-cnt'); if (cnt) cnt.textContent = 'দেখানো ' + idx.length + ' / ' + R.length;
+    renderBar();
+  }
+
+  // ── সারির নিচে ছোট ইনসাইট লাইন ──
+  function decorate() {
+    ST.trs.forEach((tr, i) => {
+      const p = ST.rows[i], e = ST.en[i]; if (!tr || !p) return;
+      tr.classList.add('inv3-row'); tr.dataset.i = i;
+      const td = tr.children[1]; if (!td) return; const old = td.querySelector('.inv3-sub'); if (old) old.remove();
+      const chips = [];
+      if (p.current <= 0) chips.push('<span class="r">স্টক শেষ</span>');
+      else if (e.ready) {
+        if (e.vel > 0) { const d = Math.floor(e.daysLeft); chips.push(`<span class="${d <= 7 ? 'r' : d <= 14 ? 'o' : 'g'}">~${d} দিন চলবে</span>`); } else chips.push('<span>বিক্রি নেই</span>');
+      }
+      if (e.ready && e.s.last) chips.push(`<span>শেষ বিক্রি ${e.lastDays === 0 ? 'আজ' : e.lastDays + ' দিন আগে'}</span>`);
+      if (e.build) chips.push(`<span title="Raw Material দিয়ে এখন বানানো সম্ভব (${esc(e.build.recipe)})">🏭 বানানো সম্ভব ${e.build.n}</span>`);
+      chips.push(`<span>ভ্যালু ${money(e.value)}</span>`);
+      const d = document.createElement('div'); d.className = 'inv3-sub'; d.innerHTML = chips.join(''); td.appendChild(d);
+    });
+    ST.cards.forEach((c, i) => { if (c) c.dataset.i = i; });
+  }
+  function refreshAll(soft) {
+    if (!ST.rows.length) return; ST.stats = computeStats(); ST.en = ST.rows.map(enrich);
+    decorate(); renderKpi(); renderIns(); applyFilter(); if (window.__inv3Badge) { try { window.__inv3Badge(); } catch (e) {} }
+  }
+  function onRender(rows) {
+    ensureTop(); ST.rows = norm(rows); const tb = $('inv-body'), cg = $('inv-cards');
+    ST.trs = tb ? Array.from(tb.children) : []; ST.cards = cg ? Array.from(cg.children) : [];
+    refreshAll();
+    if (!salesReady() && !ST.salesTried && typeof loadLiveSales === 'function') { ST.salesTried = true; Promise.resolve(loadLiveSales()).then(() => refreshAll()).catch(() => {}); }
+    ensureProd(); if (ST.cur >= 0) { if (ST.cur >= ST.rows.length) closeDr(); else drawTab(); }
+  }
+  // বিক্রির ডেটা পরে এলে নিজে থেকে রিফ্রেশ (অন্য পেজ থেকে loadLiveSales চললেও)
+  if (typeof window.loadLiveSales === 'function') {
+    const _ls = window.loadLiveSales; window.loadLiveSales = async function () { const r = await _ls.apply(this, arguments); try { if (ST.rows.length) refreshAll(); } catch (e) {} return r; };
+  }
+
+  // ── Product Drawer ──
+  function mkDrawer() {
+    if ($('inv3-dr')) return;
+    const bg = document.createElement('div'); bg.id = 'inv3-dr-bg'; bg.className = 'inv3-dr-bg'; bg.onclick = closeDr;
+    const dr = document.createElement('aside'); dr.id = 'inv3-dr'; dr.className = 'inv3-dr'; dr.setAttribute('aria-hidden', 'true');
+    dr.innerHTML = '<div class="inv3-dr-h"><div class="t"><h3 id="inv3-t"></h3><div class="s" id="inv3-s"></div></div><button class="inv3-x" onclick="inv3Close()" aria-label="বন্ধ">✕</button></div><div class="inv3-tabs" id="inv3-tabs"></div><div class="inv3-dr-b" id="inv3-b"></div><div class="inv3-dr-f" id="inv3-f"></div>';
+    document.body.appendChild(bg); document.body.appendChild(dr);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && ST.cur >= 0) closeDr(); });
+    dr.addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) { ST.tab = b.dataset.tab; drawTab(); } });
+  }
+  function openDr(i, tab) {
+    if (!ST.rows[i]) return; mkDrawer(); ST.cur = i; ST.tab = tab || 'ov';
+    $('inv3-dr').classList.add('on'); $('inv3-dr-bg').classList.add('on'); $('inv3-dr').setAttribute('aria-hidden', 'false');
+    ensureProd(); drawTab();
+  }
+  function closeDr() { ST.cur = -1; const d = $('inv3-dr'); if (d) { d.classList.remove('on'); d.setAttribute('aria-hidden', 'true'); } const b = $('inv3-dr-bg'); if (b) b.classList.remove('on'); }
+  function statusPill(p) { return p.current <= 0 ? '<span class="inv3-pill r">Out of Stock</span>' : p.current <= p.alert ? '<span class="inv3-pill o">Low Stock</span>' : '<span class="inv3-pill g">In Stock</span>'; }
+  const ML = { PRODUCTION_OUTPUT: '🏭 প্রোডাকশন আউটপুট', ROLLBACK_OUTPUT: '↩️ ব্যাচ বাতিল', STOCK_IN: '🛒 Stock In', AUDIT_ADJUST: '📋 গণনা সংশোধন', ADJ_DAMAGE: '💥 ড্যামেজ', ADJ_LOST: '🔍 হারানো/চুরি', ADJ_FOUND: '➕ পাওয়া গেছে', ADJ_CORRECTION: '✏️ সংশোধন', RETURN_DAMAGED: '↩️✖ ফেরত — নষ্ট', RETURN_OK: '↩️✔ ফেরত — ভালো' };
+  const TABS = [['ov', 'ওভারভিউ'], ['mv', 'মুভমেন্ট'], ['sl', 'বিক্রি'], ['sr', 'সিরিয়াল/লট'], ['pd', 'উৎপাদন']];
+  function drawTab() {
+    const p = ST.rows[ST.cur], e = ST.en[ST.cur]; if (!p) return;
+    $('inv3-t').textContent = p.name; $('inv3-s').innerHTML = esc(p.id) + ' · ' + esc(p.cat || '—') + ' · ' + statusPill(p);
+    $('inv3-tabs').innerHTML = TABS.map(t => `<button class="inv3-tab ${ST.tab === t[0] ? 'on' : ''}" data-tab="${t[0]}">${t[1]}</button>`).join('');
+    $('inv3-f').innerHTML = `<button class="btn" onclick="inv3Edit(${ST.cur})">✏️ Edit</button><button class="btn" onclick="inv3StockIn(${ST.cur})">📦 Stock In</button><button class="btn" onclick="inv3Adjust(${ST.cur})">⚖️ Adjust</button><button class="btn" onclick="inv3GoProd()">🏭 Production</button>`;
+    const b = $('inv3-b'), fn = { ov: tabOv, mv: tabMv, sl: tabSl, sr: tabSr, pd: tabPd }[ST.tab];
+    const html = fn(p, e); if (html != null) b.innerHTML = html; if (ST.tab === 'mv') loadMoves(p);
+  }
+  const cell = (l, v) => `<div class="inv3-c"><span>${l}</span><b>${v}</b></div>`;
+  function tabOv(p, e) {
+    const margin = p.sell > 0 ? Math.round((p.sell - p.cost) / p.sell * 1000) / 10 : 0, s = e.s;
+    let h = '<div class="inv3-g">' + cell('হাতে এখন (Current)', `<span style="color:${p.current <= p.alert ? 'var(--red)' : 'var(--green)'}">${nf(p.current)}</span>`) + cell('Alert Level', nf(p.alert)) + cell('মোট বিক্রি (Sold)', nf(p.sold)) +
+      cell('Opening', nf(p.opening)) + cell('Stock In (মোট)', nf(p.in)) + cell('মার্জিন', margin + '%') +
+      cell('Cost Price', money(p.cost)) + cell('Sell Price', money(p.sell)) + cell('লাভ/ইউনিট', money(p.sell - p.cost)) +
+      cell('স্টক ভ্যালু (কস্ট)', money(e.value)) + cell('স্টক ভ্যালু (বিক্রয়)', money(e.valueSell)) + cell('সম্ভাব্য লাভ', money(e.valueSell - e.value)) + '</div>';
+    h += '<div class="inv3-h">📈 বিক্রির গতি</div>';
+    if (!e.ready) h += '<div class="inv3-note">বিক্রির ডেটা লোড হচ্ছে… একটু পরে আবার দেখুন।</div>';
+    else {
+      h += '<div class="inv3-g">' + cell('গত ৭ দিন', nf(s.u7) + ' পিস') + cell('গত ৩০ দিন', nf(s.u30) + ' পিস') + cell('গত ৯০ দিন', nf(s.u90) + ' পিস') +
+        cell('গড় দৈনিক (৩০ দিন)', (Math.round(e.vel * 100) / 100) + ' পিস') + cell('আর কতদিন চলবে', p.current <= 0 ? '<span style="color:var(--red)">শেষ</span>' : e.vel > 0 ? '~' + Math.floor(e.daysLeft) + ' দিন' : 'বিক্রি নেই') + cell('শেষ বিক্রি', s.last ? fmtD(s.last) + ' (' + (e.lastDays === 0 ? 'আজ' : e.lastDays + ' দিন আগে') + ')' : 'কখনো না') + '</div>';
+      if (e.reorder > 0) h += `<div class="inv3-note warn">📌 পরামর্শ: ৩০ দিনের চাহিদা মেটাতে আরও <b>${e.reorder}</b> ইউনিট দরকার (বিক্রির বর্তমান গতি ধরে)। ${e.build ? 'Raw Material দিয়ে এখন সর্বোচ্চ <b>' + e.build.n + '</b> ইউনিট বানানো সম্ভব।' : ''}</div>`;
+      if (e.dead) h += `<div class="inv3-note bad">🧊 Dead stock: ${s.last ? e.lastDays + ' দিন ধরে বিক্রি নেই' : 'এখনো একটাও বিক্রি হয়নি'} — আটকে আছে ${money(e.value)}। ছাড়/বান্ডেল অফারের কথা ভাবতে পারেন।</div>`;
+    }
+    if (p.supplier || p.supplierPhone) h += '<div class="inv3-h">🏪 সাপ্লায়ার</div><div class="inv3-note">' + esc(p.supplier || '—') + (p.supplierPhone ? ` · <a href="tel:${esc(p.supplierPhone)}" style="color:var(--gold)">${esc(p.supplierPhone)}</a>` : '') + '</div>';
+    if (e.build) h += `<div class="inv3-note ok">🏭 Raw Material দিয়ে এখন বানানো সম্ভব: <b>${e.build.n}</b> ইউনিট (${esc(e.build.recipe)})${e.build.limit ? ' — সীমা: ' + esc(e.build.limit) : ''}।</div>`;
+    return h;
+  }
+  async function loadMoves(p) {
+    const k = p.id; if (ST.mv[k] && Date.now() - ST.mv[k].at < 60000) { $('inv3-b').innerHTML = tabMvBody(p, ST.mv[k].rows); return; }
+    $('inv3-b').innerHTML = '<div class="inv3-load">⏳ মুভমেন্ট লোড হচ্ছে…</div>';
+    let rows = null; try { const d = await fetchFromAPI('stockMoves', { itemId: p.id, limit: 600 }); if (d && Array.isArray(d.data)) rows = d.data; } catch (x) {}
+    ST.mv[k] = { at: Date.now(), rows };
+    if (ST.cur >= 0 && ST.rows[ST.cur] && ST.rows[ST.cur].id === k && ST.tab === 'mv') $('inv3-b').innerHTML = tabMvBody(p, rows);
+  }
+  function tabMv() { return null; }
+  function tabMvBody(p, moves) {
+    const e = ST.en[ST.cur] || enrich(p), comp = p.opening + p.in - p.sold, diff = p.current - comp;
+    const fgm = (moves || []).filter(m => m.type === 'FG' || /OUTPUT/.test(m.action));
+    const produced = fgm.filter(m => m.action === 'PRODUCTION_OUTPUT' || m.action === 'ROLLBACK_OUTPUT').reduce((a, m) => a + (Number(m.change) || 0), 0);
+    const ADJA = ['AUDIT_ADJUST', 'ADJ_DAMAGE', 'ADJ_LOST', 'ADJ_FOUND', 'ADJ_CORRECTION', 'RETURN_DAMAGED'];
+    const adj = fgm.filter(m => ADJA.indexOf(m.action) >= 0).reduce((a, m) => a + (Number(m.change) || 0), 0);
+    const buy = p.in - produced - adj;
+    let h = '<div class="inv3-g">' + cell('Opening', nf(p.opening)) + cell('+ Stock In', nf(p.in)) + cell('− Sold', nf(p.sold)) +
+      cell('= হিসাব', nf(comp)) + cell('শীটে Current', nf(p.current)) + cell('পার্থক্য', diff === 0 ? '<span class="inv3-pos">০ ✔</span>' : `<span class="inv3-neg">${diff > 0 ? '+' : ''}${diff}</span>`) + '</div>';
+    if (diff !== 0) h += `<div class="inv3-note warn">⚠ শীটের Current (${p.current}) আর Opening + Stock In − Sold (${comp}) মিলছে না। ম্যানুয়াল এডিট বা পুরোনো সংশোধনের কারণ হতে পারে। ধাপ ২-এর Stock Adjustment/Stock Take দিয়ে ঠিক করা যাবে।</div>`;
+    if (moves) h += `<div class="inv3-note">Stock In-এর ভাঙন (হিসাব করা): 🏭 প্রোডাকশন থেকে <b>${nf(produced)}</b> · 🛒 কেনা/হাতে-যোগ <b>${nf(Math.max(0, buy))}</b>${adj ? ` · ⚖️ সমন্বয় <b>${adj > 0 ? '+' : ''}${nf(adj)}</b>` : ''}${buy < 0 ? ' (⚠ প্রোডাকশন > Stock In — ডেটা যাচাই করুন)' : ''}</div>`;
+    else h += '<div class="inv3-note">প্রোডাকশন মুভমেন্ট লোড করা যায়নি (Production মডিউল/GS ভার্সন চেক করুন) — শুধু বিক্রির তালিকা দেখানো হচ্ছে।</div>';
+    const items = [];
+    (moves || []).filter(m => m.type === 'FG').forEach(m => items.push({ ts: (Number(m.ts) > 1e11 ? Number(m.ts) : 0) || (parseD(m.time) ? parseD(m.time).getTime() : 0), time: m.time, kind: ML[m.action] || m.action, chg: Number(m.change) || 0, note: (m.ref || '') + (m.note ? ' · ' + m.note : ''), who: m.worker || m.by, dim: false }));
+    e.s.list.forEach(x => { const dim = x.stt === 'cancelled' || x.stt === 'returned'; items.push({ ts: x.dt ? x.dt.getTime() : 0, time: x.dt ? fmtD(x.dt) : (x.r.date || ''), kind: 'SALE · ' + (x.r.status || 'Pending'), chg: -x.q, note: '#' + x.r.id + ' · ' + (x.r.customer || ''), who: '', dim }); });
+    items.sort((a, b) => b.ts - a.ts);
+    let bal = p.current; items.forEach(x => { x.bal = bal; if (!x.dim) bal -= x.chg; }); const lead = bal;
+    h += '<div class="inv3-h">🧾 কার্যকলাপের টাইমলাইন (নতুন আগে)</div>';
+    h += items.length ? '<table class="inv3-t"><thead><tr><th>সময়</th><th>ধরন</th><th>পরিবর্তন</th><th>ব্যালেন্স</th><th>রেফারেন্স</th></tr></thead><tbody>' + items.slice(0, 200).map(x => `<tr class="${x.dim ? 'dim' : ''}"><td style="white-space:nowrap">${esc(x.time)}</td><td>${esc(x.kind)}</td><td class="${x.chg >= 0 ? 'inv3-pos' : 'inv3-neg'}">${x.dim ? '<s>' : ''}${x.chg > 0 ? '+' : ''}${x.chg}${x.dim ? '</s>' : ''}</td><td style="color:var(--text2)">${x.bal}</td><td>${esc(x.note)}${x.who ? ' <span style="color:var(--text3)">— ' + esc(x.who) + '</span>' : ''}</td></tr>`).join('') + '</tbody></table>' + (items.length > 200 ? '<div class="inv3-empty">সর্বশেষ ২০০টি দেখানো হলো</div>' : '') : '<div class="inv3-empty">কোনো মুভমেন্ট পাওয়া যায়নি</div>';
+    h += '<div class="inv3-note" style="margin-top:12px">ℹ️ ব্যালেন্স = এখনকার স্টক থেকে পেছনের দিকে হিসাব। একই দিনের বিক্রি ও মুভমেন্টের ক্রম আনুমানিক হতে পারে। ' + (lead !== 0 ? 'টাইমলাইনের আগের জের (Opening ও সিস্টেম-চালুর আগের Stock In): <b>' + lead + '</b>।' : '') + ' এই ধাপের পর থেকে নতুন Stock In, সমন্বয় ও গণনা সব এখানে স্বয়ংক্রিয়ভাবে জমা হবে।</div>';
+    return h;
+  }
+  function tabSl(p, e) {
+    if (!e.ready) return '<div class="inv3-load">⏳ বিক্রির ডেটা লোড হচ্ছে…</div>';
+    const s = e.s, now = new Date(), months = []; for (let k = 5; k >= 0; k--) { const d = new Date(now.getFullYear(), now.getMonth() - k, 1); months.push({ l: MONTHS[d.getMonth()], v: s.months[d.getFullYear() * 12 + d.getMonth()] || 0 }); }
+    const mx = Math.max(1, ...months.map(m => m.v));
+    let h = '<div class="inv3-h">গত ৬ মাসে বিক্রি (ইউনিট, Cancelled/Returned বাদে)</div><div class="inv3-bars">' + months.map(m => `<div class="inv3-bar"><em>${m.v}</em><i style="height:${Math.round(m.v / mx * 80)}%"></i></div>`).join('') + '</div><div class="inv3-lbl">' + months.map(m => `<span>${m.l}</span>`).join('') + '</div>';
+    const order = ['delivered', 'in transit', 'processing', 'pending', 'returned', 'cancelled'], names = { delivered: 'Delivered', 'in transit': 'In Transit', processing: 'Processing', pending: 'Pending', returned: 'Returned', cancelled: 'Cancelled' };
+    h += '<div class="inv3-h">অবস্থা অনুযায়ী ইউনিট</div><div class="inv3-g">' + order.filter(k => s.st[k]).map(k => cell(names[k], nf(s.st[k]))).join('') + Object.keys(s.st).filter(k => order.indexOf(k) < 0).map(k => cell(esc(k), nf(s.st[k]))).join('') + '</div>';
+    const rec = s.list.slice().sort((a, b) => (b.dt ? b.dt.getTime() : 0) - (a.dt ? a.dt.getTime() : 0)).slice(0, 15);
+    h += '<div class="inv3-h">সাম্প্রতিক অর্ডার</div>' + (rec.length ? '<table class="inv3-t"><thead><tr><th>তারিখ</th><th>অর্ডার</th><th>গ্রাহক</th><th>পরিমাণ</th><th>অবস্থা</th></tr></thead><tbody>' + rec.map(x => `<tr class="${x.stt === 'cancelled' || x.stt === 'returned' ? 'dim' : ''}"><td style="white-space:nowrap">${x.dt ? fmtD(x.dt) : esc(x.r.date)}</td><td>#${esc(x.r.id)}</td><td>${esc(x.r.customer)}</td><td>${x.q}</td><td>${esc(x.r.status)}</td></tr>`).join('') + '</tbody></table>' : '<div class="inv3-empty">এই প্রোডাক্টের কোনো অর্ডার নেই</div>');
+    const chk = s.valid; if (chk !== p.sold) h += `<div class="inv3-note warn" style="margin-top:12px">⚠ Sales_Tracker থেকে হিসাব: <b>${chk}</b> পিস, ইনভেন্টরির "Sold": <b>${p.sold}</b>। প্রোডাক্টের নাম মিলছে না বা সিঙ্ক বাকি থাকতে পারে (নাম বদলালে এমন হয়)।</div>`;
+    return h;
+  }
+  function tabSr(p) {
+    if (!ST.prod) return ST.prodBusy ? '<div class="inv3-load">⏳ লোড হচ্ছে…</div>' : '<div class="inv3-note">Production ডেটা পাওয়া যায়নি (GS-এর নতুন ভার্সন ডিপ্লয় করেছেন?)।</div>';
+    const bs = (ST.prod.batches || []).filter(b => key(b.product) === key(p.name));
+    let h = '<div class="inv3-note ok">প্রতিটি নতুন প্রোডাকশন ব্যাচে Lot ও সিরিয়াল রেঞ্জ তৈরি হয়। কোন সিরিয়াল কোন ব্যাচের — Production → Trace-এ খুঁজে পাবেন।<br>🔜 <b>বিক্রির সময় সিরিয়াল ধরে ট্র্যাক</b> (ওয়ারেন্টি/চুরি দাবির জন্য) ধাপ ৩-এ আসছে।</div>';
+    h += bs.length ? '<table class="inv3-t"><thead><tr><th>ব্যাচ / Lot</th><th>তারিখ</th><th>ইউনিট</th><th>সিরিয়াল রেঞ্জ</th><th>ইউনিট কস্ট</th></tr></thead><tbody>' + bs.map(b => `<tr class="${b.status === 'Completed' ? '' : 'dim'}"><td><b>${esc(b.id)}</b><div style="color:var(--text3);font-size:12px">${esc(b.lot || '—')}${b.status !== 'Completed' ? ' · ' + esc(b.status) : ''}</div></td><td style="white-space:nowrap">${esc(String(b.time || '').slice(0, 16))}</td><td>${nf(b.units)}</td><td style="font-size:12px">${b.serialFrom ? esc(b.serialFrom) + '<br>→ ' + esc(b.serialTo) : '<span style="color:var(--text3)">নেই (পুরোনো ব্যাচ)</span>'}</td><td>${money(b.unitCost)}</td></tr>`).join('') + '</tbody></table>' : '<div class="inv3-empty">এই প্রোডাক্টের কোনো প্রোডাকশন ব্যাচ নেই</div>';
+    return h;
+  }
+  function tabPd(p, e) {
+    if (!ST.prod) return ST.prodBusy ? '<div class="inv3-load">⏳ লোড হচ্ছে…</div>' : '<div class="inv3-note">Production ডেটা পাওয়া যায়নি (GS-এর নতুন ভার্সন ডিপ্লয় করেছেন?)।</div>';
+    const bs = bomsFor(p); let h = '';
+    if (!bs.length) return '<div class="inv3-note">এই প্রোডাক্টের কোনো BOM/Recipe নেই। Production → BOM থেকে তৈরি করুন।</div><div class="inv3-g"></div>';
+    const rm = {}; (ST.prod.rm || []).forEach(r => rm[r.id] = r);
+    bs.forEach(b => {
+      const r = bomBuild(b);
+      h += `<div class="inv3-h">🧩 Recipe: ${esc(b.recipe)}</div><div class="inv3-note ${r.n > 0 ? 'ok' : 'bad'}">এখন সর্বোচ্চ <b>${r.n}</b> ইউনিট বানানো সম্ভব${r.limit ? ' — সীমা: <b>' + esc(r.limit) + '</b>' : ''}।${r.short.length ? '<br>⚠ শেষ: ' + r.short.map(esc).join(', ') : ''}</div>`;
+      let est = 0;
+      h += '<table class="inv3-t"><thead><tr><th>উপাদান</th><th>১ ইউনিটে</th><th>হাতে আছে</th><th>কত ইউনিটের</th></tr></thead><tbody>' + (b.lines || []).map(l => { const x = rm[l.rmId]; if (x) est += l.qty * x.cost; const n = x && l.qty > 0 ? Math.floor((x.cur + 1e-9) / l.qty) : 0; return `<tr><td>${esc(l.rmName || (x && x.name) || l.rmId)}</td><td>${nf(l.qty)} ${esc(x ? x.unit : '')}</td><td>${x ? nf(x.cur) : '—'}</td><td class="${n <= 0 ? 'inv3-neg' : ''}">${n}</td></tr>`; }).join('') + '</tbody></table>';
+      h += `<div class="inv3-note" style="margin-top:8px">আনুমানিক Raw Material খরচ: <b>${money(est)}</b>/ইউনিট · Inventory-র Cost Price: <b>${money(p.cost)}</b>${est > 0 && p.cost > 0 && Math.abs(est - p.cost) / p.cost > 0.1 ? ' <span style="color:var(--orange)">(⚠ ১০%+ ফারাক — কস্ট আপডেট দরকার হতে পারে)</span>' : ''}</div>`;
+    });
+    return h;
+  }
+
+  // ── বাটন অ্যাকশন (বিদ্যমান ফাংশনেই পাঠায়) ──
+  window.inv3Open = (i, t) => openDr(i, t);
+  window.inv3Close = closeDr;
+  window.inv3Edit = i => { const p = ST.rows[i]; if (!p) return; closeDr(); try { openEditProduct(p); } catch (x) { if (typeof showToast === 'function') showToast('Edit খোলা যায়নি', 'error'); } };
+  window.inv3StockIn = i => { const p = ST.rows[i]; if (!p) return; closeDr(); openModal('stock-in'); setTimeout(() => { const s = $('stockin-product'); if (s) { s.value = p.id || p.name; if (s.value !== (p.id || p.name)) s.value = p.name; } }, 30); };
+  window.inv3GoProd = () => { closeDr(); try { showPage('production', document.querySelector('.nav-item[onclick*=production]')); } catch (x) {} };
+
+  // ── পুরোনো রেন্ডারারের চারপাশে মোড়ক; সারি/কার্ডে ক্লিকে Drawer ──
+  function install() {
+    if (window.__inv3 || typeof window.renderInventoryData !== 'function') return; window.__inv3 = true;
+    const orig = window.renderInventoryData;
+    window.renderInventoryData = function (rows) { const r = orig.apply(this, arguments); try { onRender(rows); } catch (e) { console.error('inv3', e); } return r; };
+    document.addEventListener('click', ev => {
+      const tr = ev.target.closest && ev.target.closest('#inv-body tr.inv3-row'); if (tr) { if (ev.target.closest('button,a,input,select')) return; openDr(+tr.dataset.i); return; }
+      const cd = ev.target.closest && ev.target.closest('#inv-cards .inv-card'); if (cd && cd.dataset.i != null) openDr(+cd.dataset.i);
+    });
+    if (window.liveInventoryData && window.liveInventoryData.length && $('inv-body') && $('inv-body').children.length) onRender(window.liveInventoryData);
+    const pg = $('page-inventory'); if (pg && window.MutationObserver) new MutationObserver(() => { if (pg.classList.contains('active') && ST.rows.length) { try { refreshAll(); ensureProd(); } catch (e) {} } }).observe(pg, { attributes: true, attributeFilter: ['class'] });
+  }
+  install();
+  window.__inv3api = { ST, esc, nf, money, parseD, fmtD, key, salesList };
+})();
+</script>
+<script id="inv3b-js">
+/* ═══ Inventory v3 — ধাপ ২: Stock Adjust · Stock Take · ফেরত-যাচাই (Return Inspection) ═══
+   সব লেখা সার্ভারের PIN + Stock_Movements অডিটের মধ্য দিয়ে; Stock Take = বিদ্যমান Physical Audit (auditSave) */
+(function(){
+  'use strict';
+  const A = window.__inv3api; if (!A) return;
+  const { ST, esc, nf, money, parseD, fmtD, key, salesList } = A;
+  const $ = id => document.getElementById(id), DAY = 86400000;
+  const who = () => (typeof currentPartner !== 'undefined' && currentPartner) ? currentPartner : '';
+  const toast = (m, t) => { try { showToast(m, t || 'success'); } catch (e) {} };
+  const okm = (m, d) => /^✅/.test(m || '') ? m : '✅ ' + (m || d);
+  const rid = p => p + Date.now() + Math.random().toString(36).slice(2, 7);
+  const prodByName = n => (ST.rows || []).find(p => key(p.name) === key(n));
+  function mkModal(id, title, width) {
+    if ($('modal-' + id)) return $('modal-' + id);
+    const m = document.createElement('div'); m.className = 'modal-overlay'; m.id = 'modal-' + id; m.onclick = e => { if (e.target === m) closeModal(id); };
+    m.innerHTML = `<div class="modal-box" style="max-width:${width || 560}px;width:96vw;"><div class="modal-header"><span class="modal-title">${title}</span><button class="modal-close" onclick="closeModal('${id}')">✕</button></div><div class="modal-body" id="${id}-body" style="max-height:70vh;overflow:auto;"></div><div class="modal-footer" id="${id}-foot"></div></div>`;
+    document.body.appendChild(m); return m;
+  }
+  async function pinCall(label, payload) {
+    const pin = await _askPartnerPin(label); if (!pin) return null;
+    return await postToAPI(Object.assign({ pin, by: who(), reqId: rid('i3') }, payload));
+  }
+  function afterWrite() { A.ST.mv = {}; ST.movAll = null; try { loadLiveInventory(); } catch (e) {} setTimeout(() => { try { badge(true); } catch (e) {} }, 1800); }
+
+  // ═════════ ⚖️ Stock Adjust ═════════
+  const KINDS = {
+    DAMAGE: { l: '💥 ড্যামেজ / নষ্ট (−)', q: 'কতটি নষ্ট?', ch: ['ট্রান্সপোর্টে ভেঙেছে', 'ফ্যাক্টরি ডিফেক্ট', 'ওয়্যারহাউসে নষ্ট', 'টেস্টিং/স্যাম্পলে ব্যবহৃত'] },
+    LOST: { l: '🔍 হারানো / চুরি (−)', q: 'কতটি হারিয়েছে?', ch: ['চুরি', 'গণনায় পাওয়া যাচ্ছে না', 'ডেলিভারিতে হারিয়েছে'] },
+    FOUND: { l: '➕ পাওয়া গেছে (+)', q: 'কতটি পাওয়া গেছে?', ch: ['গণনায় বেশি পাওয়া গেছে', 'হারানো মাল ফেরত'] },
+    CORRECTION: { l: '✏️ গণনা সংশোধন (±)', q: 'পরিবর্তন (যেমন +3 বা -2)', ch: ['ভুল এন্ট্রি সংশোধন', 'Opening স্টক ভুল ছিল'] }
+  };
+  function adjSync() {
+    const p = ST.rows.find(x => String(x.id) === $('i3a-prod').value), k = $('i3a-kind').value, v = Number($('i3a-qty').value) || 0;
+    $('i3a-qlbl').textContent = KINDS[k].q; $('i3a-chips').innerHTML = KINDS[k].ch.map(c => `<button type="button" class="inv3-chip" data-r="${esc(c)}">${esc(c)}</button>`).join('');
+    let d = k === 'CORRECTION' ? v : (k === 'FOUND' ? Math.abs(v) : -Math.abs(v)); const cur = p ? p.current : 0, nw = cur + d;
+    $('i3a-prev').innerHTML = p ? `হাতে এখন <b>${cur}</b> → ${d ? `<b style="color:${nw < 0 ? 'var(--red)' : 'var(--gold)'}">${nw}</b> (${d > 0 ? '+' : ''}${d})` : '—'}${nw < 0 ? ' <span style="color:var(--red)">⚠ স্টকের চেয়ে বেশি বাদ দেওয়া যাবে না</span>' : ''}` : '';
+  }
+  window.inv3Adjust = function (i) {
+    mkModal('inv3-adj', '⚖️ Stock Adjustment (ড্যামেজ / হারানো / সংশোধন)', 520);
+    $('inv3-adj-body').innerHTML = `<div class="form-group"><label class="form-label">প্রোডাক্ট *</label><select class="form-select" id="i3a-prod">${ST.rows.map(p => `<option value="${esc(p.id)}">${esc(p.name)} — স্টক ${p.current}</option>`).join('')}</select></div>
+      <div class="form-grid"><div class="form-group"><label class="form-label">ধরন *</label><select class="form-select" id="i3a-kind">${Object.keys(KINDS).map(k => `<option value="${k}">${KINDS[k].l}</option>`).join('')}</select></div>
+      <div class="form-group"><label class="form-label" id="i3a-qlbl">পরিমাণ</label><input class="form-input" id="i3a-qty" type="number" step="1" placeholder="0"></div></div>
+      <div class="inv3-note" id="i3a-prev" style="margin:10px 0"></div>
+      <div class="form-group"><label class="form-label">কারণ * <small style="color:var(--text3)">(অডিট লগে থাকবে)</small></label><input class="form-input" id="i3a-reason" maxlength="150" placeholder="কেন সমন্বয় করছেন?" autocomplete="off"><div class="inv3-chips" id="i3a-chips" style="margin-top:6px"></div></div>
+      <div class="form-group"><label class="form-label">রেফারেন্স (অর্ডার/ব্যাচ — ঐচ্ছিক)</label><input class="form-input" id="i3a-ref" maxlength="50" placeholder="যেমন: #1042"></div>
+      <div class="inv3-note warn" style="margin:0">🔐 নিশ্চিত করতে আপনার PIN লাগবে। সমন্বয় স্টকের সংখ্যা বদলায়, তাই আগে নিশ্চিত হয়ে নিন।</div><div id="i3a-err" class="pr-err" style="display:none;margin-top:8px"></div>`;
+    $('inv3-adj-foot').innerHTML = '<button class="btn" onclick="closeModal(\'inv3-adj\')">বাতিল</button><button class="btn btn-gold" id="i3a-go" onclick="inv3AdjSubmit()">✅ সমন্বয় নিশ্চিত করুন</button>';
+    const pr = $('i3a-prod'), idx = (typeof i === 'number' && ST.rows[i]) ? i : -1; if (idx >= 0) pr.value = ST.rows[idx].id;
+    ['i3a-prod', 'i3a-kind', 'i3a-qty'].forEach(id => { $(id).oninput = adjSync; $(id).onchange = adjSync; });
+    $('i3a-chips').onclick = e => { const b = e.target.closest('[data-r]'); if (b) $('i3a-reason').value = b.dataset.r; };
+    adjSync(); if (window.inv3Close) inv3Close(); openModal('inv3-adj');
+  };
+  window.inv3AdjSubmit = async function () {
+    const err = m => { const e = $('i3a-err'); e.textContent = '❌ ' + m; e.style.display = 'block'; }; $('i3a-err').style.display = 'none';
+    const p = ST.rows.find(x => String(x.id) === $('i3a-prod').value), k = $('i3a-kind').value, v = Math.round(Number($('i3a-qty').value) || 0), reason = $('i3a-reason').value.trim(), ref = $('i3a-ref').value.trim();
+    if (!p) return err('প্রোডাক্ট বেছে নিন'); if (!v) return err('পরিমাণ দিন'); if (k !== 'CORRECTION' && v < 0) return err('পরিমাণ ধনাত্মক দিন');
+    if (reason.length < 3) return err('কারণ লিখুন (কমপক্ষে ৩ অক্ষর)');
+    const d = k === 'CORRECTION' ? v : (k === 'FOUND' ? Math.abs(v) : -Math.abs(v)); if (p.current + d < 0) return err('হাতে আছে ' + p.current + 'টি — এর বেশি বাদ দেওয়া যাবে না');
+    if (!confirm(`${p.name}\n${KINDS[k].l}: ${d > 0 ? '+' : ''}${d}\nস্টক ${p.current} → ${p.current + d}\nকারণ: ${reason}\n\nনিশ্চিত?`)) return;
+    const b = $('i3a-go'); b.disabled = true; const t0 = b.textContent; b.textContent = '⏳ হচ্ছে…';
+    const res = await pinCall((who() || 'আপনার') + '-এর PIN দিন — স্টক সমন্বয়', { action: 'fgAdjust', product: p.id || p.name, kind: k, qty: Math.abs(v), delta: v, reason, ref });
+    b.disabled = false; b.textContent = t0;
+    if (!res) { if (window.__lastAPIErrorReason) err(window.__lastAPIErrorReason); return; }
+    closeModal('inv3-adj'); toast(okm(res.message, 'স্টক সমন্বয় হয়েছে')); afterWrite();
+  };
+
+  // ═════════ 📋 Stock Take (ফিজিক্যাল গণনা) — বিদ্যমান auditSave ═════════
+  function takeCalc() {
+    let n = 0, fl = 0, loss = 0, gain = 0;
+    document.querySelectorAll('#i3t-body tr').forEach(tr => {
+      const inp = tr.querySelector('input'), p = ST.rows[+tr.dataset.i], out = tr.querySelector('.v'), val = tr.querySelector('.vv');
+      if (inp.value === '') { out.textContent = ''; val.textContent = ''; return; }
+      const c = Math.round(Number(inp.value)), v = c - p.current; n++; if (v !== 0) fl++; if (v < 0) loss += -v * p.cost; if (v > 0) gain += v * p.cost;
+      out.innerHTML = v === 0 ? '<span class="inv3-pos">✔ মিলেছে</span>' : `<span class="${v < 0 ? 'inv3-neg' : 'inv3-pos'}">${v > 0 ? '+' : ''}${v}</span>`; val.textContent = v ? money(Math.abs(v * p.cost)) : '';
+    });
+    $('i3t-sum').innerHTML = `গণনা করা: <b>${n}</b>টি · গরমিল: <b style="color:${fl ? 'var(--orange)' : 'var(--green)'}">${fl}</b>টি` + (loss ? ` · ঘাটতির মূল্য <b style="color:var(--red)">${money(loss)}</b>` : '') + (gain ? ` · উদ্বৃত্তের মূল্য <b style="color:var(--green)">${money(gain)}</b>` : '');
+  }
+  window.inv3Take = function () {
+    mkModal('inv3-take', '📋 Stock Take — ফিজিক্যাল গণনা', 860);
+    $('inv3-take-body').innerHTML = `<div class="inv3-note" style="margin-top:0">শেলফে যা আছে গুনে "গণনা" ঘরে লিখুন (যেগুলো গোনেননি ফাঁকা রাখুন)। সেভ করলে গরমিলের স্টক সংশোধন হবে ও অডিট লগে যাবে। <b>সিস্টেম সংখ্যা আগে না দেখে গুনলে ভালো।</b></div>
+      <div class="form-grid"><div class="form-group"><label class="form-label">গণনাকারী *</label><input class="form-input" id="i3t-who" value="${esc(who())}" maxlength="50"></div><div class="form-group"><label class="form-label">নোট</label><input class="form-input" id="i3t-note" maxlength="150" placeholder="যেমন: মাসিক গণনা"></div></div>
+      <input class="form-input" id="i3t-q" placeholder="🔎 প্রোডাক্ট খুঁজুন…" style="margin-bottom:8px" autocomplete="off">
+      <table class="inv3-t"><thead><tr><th>ID</th><th>প্রোডাক্ট</th><th style="text-align:right">সিস্টেমে</th><th style="width:110px">গণনা</th><th>ফারাক</th><th>মূল্য</th></tr></thead><tbody id="i3t-body">${ST.rows.map((p, i) => `<tr data-i="${i}" data-s="${esc(key(p.name + ' ' + p.id))}"><td style="font-family:monospace;font-size:12px">${esc(p.id)}</td><td><b>${esc(p.name)}</b></td><td style="text-align:right">${p.current}</td><td><input class="form-input" type="number" min="0" step="1" style="padding:5px 8px"></td><td class="v"></td><td class="vv" style="color:var(--text3)"></td></tr>`).join('')}</tbody></table>
+      <div id="i3t-sum" class="inv3-note" style="margin:10px 0 0"></div><div id="i3t-err" class="pr-err" style="display:none;margin-top:8px"></div>`;
+    $('inv3-take-foot').innerHTML = '<button class="btn" onclick="closeModal(\'inv3-take\')">বাতিল</button><button class="btn btn-gold" id="i3t-go" onclick="inv3TakeSubmit()">✅ গণনা সেভ ও স্টক সংশোধন</button>';
+    $('i3t-body').oninput = takeCalc; $('i3t-q').oninput = e => { const q = key(e.target.value); document.querySelectorAll('#i3t-body tr').forEach(tr => tr.style.display = !q || tr.dataset.s.includes(q) ? '' : 'none'); };
+    takeCalc(); openModal('inv3-take');
+  };
+  window.inv3TakeSubmit = async function () {
+    const err = m => { const e = $('i3t-err'); e.textContent = '❌ ' + m; e.style.display = 'block'; }; $('i3t-err').style.display = 'none';
+    const counter = $('i3t-who').value.trim(); if (!counter) return err('গণনাকারীর নাম দিন');
+    const counts = []; document.querySelectorAll('#i3t-body tr').forEach(tr => { const v = tr.querySelector('input').value; if (v !== '') { const c = Math.round(Number(v)); if (c >= 0) counts.push({ type: 'FG', id: ST.rows[+tr.dataset.i].id, counted: c }); } });
+    if (!counts.length) return err('কমপক্ষে একটা প্রোডাক্টের গণনা দিন');
+    const flagged = counts.filter(c => { const p = ST.rows.find(x => x.id === c.id); return p && p.current !== c.counted; }).length;
+    if (!confirm(`${counts.length}টি প্রোডাক্ট গণনা, ${flagged}টিতে গরমিল।\nগরমিলের স্টক গণনার সংখ্যায় সংশোধন হবে। নিশ্চিত?`)) return;
+    const b = $('i3t-go'); b.disabled = true; const t0 = b.textContent; b.textContent = '⏳ সেভ হচ্ছে…';
+    const res = await pinCall((who() || 'আপনার') + '-এর PIN দিন — Stock Take', { action: 'auditSave', counter, note: $('i3t-note').value.trim(), adjust: true, counts });
+    b.disabled = false; b.textContent = t0; if (!res) { if (window.__lastAPIErrorReason) err(window.__lastAPIErrorReason); return; }
+    closeModal('inv3-take'); toast(okm(res.message, 'Stock Take সংরক্ষিত')); afterWrite();
+  };
+
+  // ═════════ ↩️ ফেরত-যাচাই (Return Inspection) ═════════
+  async function loadAllMoves(force) {
+    if (!force && ST.movAll && Date.now() - ST.movAll.at < 60000) return ST.movAll.rows;
+    let rows = null; try { const d = await fetchFromAPI('stockMoves', { limit: 3000 }); if (d && Array.isArray(d.data)) rows = d.data; } catch (e) {}
+    ST.movAll = { at: Date.now(), rows }; return rows;
+  }
+  const inspKey = (ref, pid) => String(ref) + '|' + String(pid);
+  function returnsList(days, done) {
+    const now = Date.now(), out = [];
+    salesList().forEach(r => {
+      if (key(r.status) !== 'returned') return; const dt = parseD(r.date); if (days && dt && (now - dt.getTime()) / DAY > days) return;
+      const p = prodByName(r.product); if (done && p && done.has(inspKey(r.id, p.id))) return;
+      out.push({ r, dt, q: Number(r.qty) || 0, p });
+    });
+    return out.sort((a, b) => (b.dt ? b.dt.getTime() : 0) - (a.dt ? a.dt.getTime() : 0));
+  }
+  function doneSet(rows) { const s = new Set(); (rows || []).forEach(m => { if (m.action === 'RETURN_OK' || m.action === 'RETURN_DAMAGED') s.add(inspKey(m.ref, m.itemId)); }); return s; }
+  async function badge(force) {
+    const el = $('inv3-ret-n'); if (!el) return; const rows = await loadAllMoves(force); if (!rows) { el.textContent = ''; return; }
+    const n = returnsList(90, doneSet(rows)).length; el.textContent = n ? n : ''; el.style.display = n ? 'inline-block' : 'none';
+  }
+  window.__inv3Badge = () => badge(false);
+  async function drawReturns() {
+    const body = $('inv3-ret-body'); body.innerHTML = '<div class="inv3-load">⏳ লোড হচ্ছে…</div>';
+    const rows = await loadAllMoves(true), days = Number($('i3r-days') ? $('i3r-days').value : 90);
+    if (!rows) { body.innerHTML = '<div class="inv3-note warn">স্টক মুভমেন্ট লোড করা যায়নি (GS নতুন ভার্সনে ডিপ্লয় করেছেন?) — তাই কোনটা যাচাই হয়েছে বোঝা যাচ্ছে না।</div>'; return; }
+    const list = returnsList(days, doneSet(rows));
+    body.innerHTML = `<div class="inv3-note" style="margin-top:0">Returned অর্ডারের মাল সিস্টেম নিজে স্টকে ফেরত ধরে। এখানে বলুন মালটা <b>ভালো</b> (স্টকেই থাক) নাকি <b>নষ্ট</b> (স্টক থেকে বাদ)। নষ্ট মাল বাদ দিতে PIN লাগবে।</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><label style="font-size:13px">সময়:</label><select id="i3r-days" class="form-select" style="max-width:170px" onchange="inv3RetDraw()"><option value="30" ${days === 30 ? 'selected' : ''}>গত ৩০ দিন</option><option value="90" ${days === 90 ? 'selected' : ''}>গত ৯০ দিন</option><option value="0" ${days === 0 ? 'selected' : ''}>সব</option></select><span style="color:var(--text3);font-size:12.5px;margin-left:auto">যাচাই বাকি: ${list.length}টি</span></div>` +
+      (list.length ? `<table class="inv3-t"><thead><tr><th>তারিখ</th><th>অর্ডার</th><th>প্রোডাক্ট</th><th>পরিমাণ</th><th>যাচাই</th></tr></thead><tbody>${list.map((x, i) => `<tr><td style="white-space:nowrap">${x.dt ? fmtD(x.dt) : esc(x.r.date)}</td><td>#${esc(x.r.id)}<div style="color:var(--text3);font-size:12px">${esc(x.r.customer || '')}</div></td><td>${esc(x.r.product)}${x.p ? '' : '<div style="color:var(--orange);font-size:12px">⚠ ইনভেন্টরিতে এই নামে প্রোডাক্ট নেই</div>'}</td><td>${x.q}</td><td style="white-space:nowrap">${x.p ? `<button class="btn" onclick="inv3RetDo('${esc(String(x.r.id)).replace(/'/g, '')}','${esc(x.p.id)}',${x.q},'OK')">✔ ভালো</button> <button class="btn" onclick="inv3RetDo('${esc(String(x.r.id)).replace(/'/g, '')}','${esc(x.p.id)}',${x.q},'BAD')">✖ নষ্ট</button>` : '—'}</td></tr>`).join('')}</tbody></table>` : '<div class="inv3-empty">✅ যাচাই করার মতো কোনো ফেরত অর্ডার নেই</div>');
+  }
+  window.inv3RetDraw = drawReturns;
+  window.inv3Returns = function () { mkModal('inv3-ret', '↩️ ফেরত আসা মাল যাচাই', 720); $('inv3-ret-foot').innerHTML = '<button class="btn" onclick="closeModal(\'inv3-ret\')">বন্ধ করুন</button>'; openModal('inv3-ret'); drawReturns(); };
+  window.inv3RetDo = async function (orderId, pid, qty, verdict) {
+    const p = ST.rows.find(x => String(x.id) === String(pid)); if (!p) return;
+    const bad = verdict === 'BAD';
+    if (!confirm(`অর্ডার #${orderId} — ${p.name} × ${qty}\n${bad ? 'নষ্ট ধরে স্টক থেকে ' + qty + 'টি বাদ যাবে' : 'ভালো — স্টক অপরিবর্তিত থাকবে'}।\nনিশ্চিত?`)) return;
+    const payload = { action: 'fgAdjust', product: p.id, kind: bad ? 'RETURN_DAMAGED' : 'RETURN_OK', qty, ref: String(orderId), reason: bad ? 'ফেরত মাল নষ্ট' : '' };
+    const res = bad ? await pinCall((who() || 'আপনার') + '-এর PIN দিন — নষ্ট ফেরত মাল বাদ', payload) : await postToAPI(Object.assign({ by: who(), reqId: rid('i3r') }, payload));
+    if (!res) return; toast(okm(res.message, 'যাচাই সংরক্ষিত')); ST.mv = {}; ST.movAll = null; try { loadLiveInventory(); } catch (e) {} drawReturns(); setTimeout(() => badge(true), 1500);
+  };
+  setTimeout(() => { try { badge(false); } catch (e) {} }, 2500);
+})();
 </script>
 </body>
 </html>
