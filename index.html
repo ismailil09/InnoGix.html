@@ -2639,6 +2639,7 @@ tbody td.muted{color:var(--text3);}
           <span class="table-count" id="sales-count">155 records</span>
           <div class="table-actions">
             <button class="btn primary" onclick="openModal('add-order')">+ New Order</button>
+            <button class="btn" onclick="inv3SerLookup()">🔎 সিরিয়াল খুঁজুন</button>
             <button class="btn" style="background:rgba(88,166,255,0.15);border-color:rgba(88,166,255,0.4);color:#BBBBBB;" onclick="openModal('import-csv')">📥 Import CSV</button>
             <button class="btn export-excel" onclick="exportSalesDataToCSV()">📥 Export Excel</button>
             <button class="btn export-pdf" onclick="exportTableToPDF('sales-table','InnoGix Sales Report')">📄 Download PDF</button>
@@ -6334,6 +6335,7 @@ body.light #page-expense{--x-cyan:#52525B;--x-blue:#52525B}
           <label class="form-label">Products *</label>
           <div id="order-items-list"></div>
           <button type="button" class="btn" onclick="_addOrderItem()" style="margin-top:6px;padding:6px 14px;font-size:12px;">➕ আরেকটা প্রোডাক্ট যোগ করুন</button>
+          <button type="button" class="btn" onclick="inv3KitPick()" style="margin-top:6px;padding:6px 14px;font-size:12px;">🎁 কিট যোগ করুন</button>
         </div>
         <!-- হিডেন ফিল্ড — সব প্রোডাক্ট লাইনের সমষ্টি (Subtotal), বাকি সব ক্যালকুলেশন (Due/COD) এটার উপর ভিত্তি করে চলে -->
         <input type="hidden" id="order-product" value="">
@@ -7340,7 +7342,7 @@ body.light #page-expense{--x-cyan:#52525B;--x-blue:#52525B}
 // ═══════════════════════════════════════════════════════════════
 
 // ⚠️ এখানে আপনার Google Apps Script Web App URL বসান (Deploy > New Deployment > Web App)
-      const API_URL = "https://script.google.com/macros/s/AKfycbzrRDOnZE1lydChxih1gVad_saH-Tp-dCwUHHuGeo1ClTyDB22hmrllnYt2XGfHZZbHNA/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
+      const API_URL = "https://script.google.com/macros/s/AKfycbywD3IJ62xrIU7FlB4Vb3JkD4zkENpjKcFqQfxpqSnFIwJbqkgFGI1sihSc5X9ehM7qMA/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
 
 // ─── CONNECTION STATE ────────────────────────────────────────
 let apiConnected = false;
@@ -11029,6 +11031,7 @@ function _renderSalesPage() {
       <td class="muted" style="font-size:11px;max-width:130px;">${(r.notes||r.description)?`<div class="note-peek" onclick="viewOrderNote('${String(r.id).replace(/'/g,'')}')" title="পুরো লেখা পড়তে ক্লিক করুন">${r.notes?`<span class="np-line">${_notePeek(r.notes)}</span>`:''}${r.description?`<span class="np-line" style="color:var(--gold);">🔒 ${_notePeek(r.description)}</span>`:''}<span class="np-more">পড়ুন ›</span></div>`:'—'}</td>
       <td style="display:flex;gap:4px;">
         <button class="btn" style="padding:4px 8px;font-size:11px;background:var(--gold);color:#000;border-color:var(--gold);font-weight:700;" onclick='openInvoice(${JSON.stringify(r)})' title="Invoice/ক্যাশ মেমো প্রিন্ট">🖨️</button>
+        <button class="btn" style="padding:4px 8px;font-size:11px;" onclick="inv3SerOpen('${String(r.id).replace(/[^\w.-]/g,'')}')" title="সিরিয়াল নম্বর বসান / দেখুন (ওয়ারেন্টি ট্র্যাক)">🔢</button>
         <button class="btn" style="padding:4px 10px;font-size:11px;" onclick='openEditOrder(${JSON.stringify(r)})'>✏️ Edit</button>
         <button class="btn" style="padding:4px 10px;font-size:11px;background:var(--red);color:#fff;border-color:var(--red);" onclick='deleteOrder(${JSON.stringify({id:r.id,customer:r.customer})})'>🗑️</button>
       </td>
@@ -23921,10 +23924,11 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
     const out = {}, now = new Date(), cm = now.getFullYear() * 12 + now.getMonth();
     salesList().forEach(r => {
       const k = key(r.product); if (!k) return;
-      const s = out[k] || (out[k] = { valid: 0, u7: 0, u30: 0, u90: 0, last: null, months: {}, st: {}, list: [] });
+      const s = out[k] || (out[k] = { valid: 0, u7: 0, u30: 0, u90: 0, last: null, months: {}, st: {}, list: [], res: 0, transit: 0 });
       const stt = key(r.status) || 'pending', q = Number(r.qty) || 0, dt = parseD(r.date) || parseD(r.rawDateISO);
       s.st[stt] = (s.st[stt] || 0) + q; s.list.push({ r, dt, q, stt });
       if (stt === 'cancelled' || stt === 'returned') return;
+      if (stt === 'pending' || stt === 'processing' || stt === 'confirmed' || stt === 'on hold') s.res += q; else if (stt === 'in transit') s.transit += q;
       s.valid += q;
       if (dt) {
         const ago = (now - dt) / DAY; if (ago <= 7) s.u7 += q; if (ago <= 30) s.u30 += q; if (ago <= 90) s.u90 += q;
@@ -23935,10 +23939,11 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
     return out;
   }
   function enrich(p) {
-    const s = ST.stats[key(p.name)] || { valid: 0, u7: 0, u30: 0, u90: 0, last: null, months: {}, st: {}, list: [] };
+    const s = ST.stats[key(p.name)] || { valid: 0, u7: 0, u30: 0, u90: 0, last: null, months: {}, st: {}, list: [], res: 0, transit: 0 };
     const ready = salesReady(), vel = s.u30 / 30, lastDays = dayDiff(s.last);
     const daysLeft = p.current <= 0 ? 0 : vel > 0 ? p.current / vel : Infinity;
-    const e = { s, ready, vel, lastDays, daysLeft, value: p.current * p.cost, valueSell: p.current * p.sell };
+    const e = { s, ready, vel, lastDays, daysLeft, value: p.current * p.cost, valueSell: p.current * p.sell, reserved: ready ? s.res : 0, transit: ready ? s.transit : 0 };
+    e.onShelf = p.current + e.reserved;
     e.dead = ready && p.current > 0 && (s.last == null || lastDays > 60);
     e.soon = ready && p.current > 0 && vel > 0 && daysLeft <= 14;
     e.reorder = ready && vel > 0 ? Math.max(0, Math.ceil(vel * 30 - p.current)) : 0;
@@ -23974,7 +23979,7 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
     let t = $('inv3-top'); if (t) return t;
     const grid = $('inv-cards'); if (!grid) return null;
     t = document.createElement('div'); t.id = 'inv3-top';
-    t.innerHTML = '<div id="inv3-act" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"><button class="btn" onclick="inv3Adjust()">⚖️ Stock Adjust</button><button class="btn" onclick="inv3Take()">📋 Stock Take</button><button class="btn" onclick="inv3Returns()">↩️ ফেরত যাচাই <span id="inv3-ret-n" class="inv3-pill o" style="display:none;margin-left:4px"></span></button></div><div id="inv3-kpi"></div><div id="inv3-ins"></div>' +
+    t.innerHTML = '<div id="inv3-act" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"><button class="btn" onclick="inv3Adjust()">⚖️ Stock Adjust</button><button class="btn" onclick="inv3Take()">📋 Stock Take</button><button class="btn" onclick="inv3Returns()">↩️ ফেরত যাচাই <span id="inv3-ret-n" class="inv3-pill o" style="display:none;margin-left:4px"></span></button><button class="btn" onclick="inv3SerLookup()">🔎 সিরিয়াল / ওয়ারেন্টি খুঁজুন</button><button class="btn" onclick="inv3Forecast()">📈 ফোরকাস্ট</button><button class="btn" onclick="inv3Label()">🏷️ লেবেল প্রিন্ট</button><button class="btn" onclick="inv3Kits()">🎁 কিট/বান্ডেল</button></div><div id="inv3-kpi"></div><div id="inv3-ins"></div>' +
       '<div id="inv3-bar"><input id="inv3-q" type="search" placeholder="🔎 প্রোডাক্ট / ID / ক্যাটাগরি / সাপ্লায়ার খুঁজুন…" autocomplete="off"><select id="inv3-cat"><option value="">সব ক্যাটাগরি</option></select>' +
       '<select id="inv3-sort"><option value="def">সাজানো: ডিফল্ট</option><option value="name">নাম (A→Z)</option><option value="stockAsc">স্টক কম → বেশি</option><option value="stockDesc">স্টক বেশি → কম</option><option value="valueDesc">স্টক ভ্যালু বেশি → কম</option><option value="daysAsc">কতদিন চলবে (কম আগে)</option><option value="soldDesc">বিক্রি বেশি → কম</option></select><span id="inv3-cnt"></span></div>' +
       '<div class="inv3-chips" id="inv3-chips" style="margin-bottom:12px"></div>';
@@ -23986,11 +23991,11 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
     return t;
   }
   function renderKpi() {
-    const R = ST.rows, E = ST.en; let units = 0, vc = 0, vs = 0, low = 0, out = 0, dead = 0, deadV = 0, soon = 0;
-    R.forEach((p, i) => { const e = E[i]; units += p.current; vc += e.value; vs += e.valueSell; if (p.current <= 0) out++; else if (p.current <= p.alert) low++; if (e.dead) { dead++; deadV += e.value; } if (e.soon) soon++; });
+    const R = ST.rows, E = ST.en; let units = 0, vc = 0, vs = 0, low = 0, out = 0, dead = 0, deadV = 0, soon = 0, resv = 0, trn = 0;
+    R.forEach((p, i) => { const e = E[i]; units += p.current; resv += e.reserved; trn += e.transit; vc += e.value; vs += e.valueSell; if (p.current <= 0) out++; else if (p.current <= p.alert) low++; if (e.dead) { dead++; deadV += e.value; } if (e.soon) soon++; });
     const k = (c, l, v, s) => `<div class="inv3-k ${c}"><label>${l}</label><b>${v}</b>${s ? `<small>${s}</small>` : ''}</div>`;
     $('inv3-kpi').innerHTML = k('', 'মোট প্রোডাক্ট', nf(R.length), 'ক্যাটাগরি ' + new Set(R.map(p => p.cat).filter(Boolean)).size + 'টি') +
-      k('', 'হাতে মোট ইউনিট', nf(units), 'সব প্রোডাক্ট মিলিয়ে') +
+      k('', 'বিক্রির জন্য Available', nf(units), salesReady() ? '🔒 রিজার্ভড ' + nf(resv) + ' · 🚚 ট্রানজিটে ' + nf(trn) : 'সব প্রোডাক্ট মিলিয়ে') +
       k('gold', 'স্টক ভ্যালু (কস্ট দামে)', money(vc), 'বিক্রয় দামে ' + money(vs)) +
       k('green', 'সম্ভাব্য লাভ (সব বিক্রি হলে)', money(vs - vc), vs > 0 ? 'মার্জিন ' + (Math.round((vs - vc) / vs * 1000) / 10) + '%' : '') +
       k(out ? 'red' : '', 'স্টক শেষ (Out)', nf(out), 'Current ০') +
@@ -24050,6 +24055,8 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
       }
       if (e.ready && e.s.last) chips.push(`<span>শেষ বিক্রি ${e.lastDays === 0 ? 'আজ' : e.lastDays + ' দিন আগে'}</span>`);
       if (e.build) chips.push(`<span title="Raw Material দিয়ে এখন বানানো সম্ভব (${esc(e.build.recipe)})">🏭 বানানো সম্ভব ${e.build.n}</span>`);
+      if (e.reserved > 0) chips.push(`<span class="o" title="Pending/Processing অর্ডারের জন্য আলাদা করা — Available-এ ধরা হয়নি">🔒 রিজার্ভ ${e.reserved}</span>`);
+      if (e.transit > 0) chips.push(`<span title="কুরিয়ারে আছে">🚚 ${e.transit}</span>`);
       chips.push(`<span>ভ্যালু ${money(e.value)}</span>`);
       const d = document.createElement('div'); d.className = 'inv3-sub'; d.innerHTML = chips.join(''); td.appendChild(d);
     });
@@ -24096,12 +24103,12 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
     $('inv3-tabs').innerHTML = TABS.map(t => `<button class="inv3-tab ${ST.tab === t[0] ? 'on' : ''}" data-tab="${t[0]}">${t[1]}</button>`).join('');
     $('inv3-f').innerHTML = `<button class="btn" onclick="inv3Edit(${ST.cur})">✏️ Edit</button><button class="btn" onclick="inv3StockIn(${ST.cur})">📦 Stock In</button><button class="btn" onclick="inv3Adjust(${ST.cur})">⚖️ Adjust</button><button class="btn" onclick="inv3GoProd()">🏭 Production</button>`;
     const b = $('inv3-b'), fn = { ov: tabOv, mv: tabMv, sl: tabSl, sr: tabSr, pd: tabPd }[ST.tab];
-    const html = fn(p, e); if (html != null) b.innerHTML = html; if (ST.tab === 'mv') loadMoves(p);
+    const html = fn(p, e); if (html != null) b.innerHTML = html; if (ST.tab === 'mv') loadMoves(p); if (ST.tab === 'sr' && window.inv3SerBox) inv3SerBox(p);
   }
   const cell = (l, v) => `<div class="inv3-c"><span>${l}</span><b>${v}</b></div>`;
   function tabOv(p, e) {
     const margin = p.sell > 0 ? Math.round((p.sell - p.cost) / p.sell * 1000) / 10 : 0, s = e.s;
-    let h = '<div class="inv3-g">' + cell('হাতে এখন (Current)', `<span style="color:${p.current <= p.alert ? 'var(--red)' : 'var(--green)'}">${nf(p.current)}</span>`) + cell('Alert Level', nf(p.alert)) + cell('মোট বিক্রি (Sold)', nf(p.sold)) +
+    let h = '<div class="inv3-g">' + cell('Available (বিক্রির জন্য)', `<span style="color:${p.current <= p.alert ? 'var(--red)' : 'var(--green)'}">${nf(p.current)}</span>`) + cell('🔒 Reserved (Pending/Processing)', e.ready ? nf(e.reserved) : '…') + cell('🚚 In Transit (কুরিয়ারে)', e.ready ? nf(e.transit) : '…') + cell('শেলফে ফিজিক্যাল (Available + Reserved)', e.ready ? nf(e.onShelf) : '…') + cell('Alert Level', nf(p.alert)) + cell('মোট বিক্রি (Sold)', nf(p.sold)) +
       cell('Opening', nf(p.opening)) + cell('Stock In (মোট)', nf(p.in)) + cell('মার্জিন', margin + '%') +
       cell('Cost Price', money(p.cost)) + cell('Sell Price', money(p.sell)) + cell('লাভ/ইউনিট', money(p.sell - p.cost)) +
       cell('স্টক ভ্যালু (কস্ট)', money(e.value)) + cell('স্টক ভ্যালু (বিক্রয়)', money(e.valueSell)) + cell('সম্ভাব্য লাভ', money(e.valueSell - e.value)) + '</div>';
@@ -24162,8 +24169,9 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   function tabSr(p) {
     if (!ST.prod) return ST.prodBusy ? '<div class="inv3-load">⏳ লোড হচ্ছে…</div>' : '<div class="inv3-note">Production ডেটা পাওয়া যায়নি (GS-এর নতুন ভার্সন ডিপ্লয় করেছেন?)।</div>';
     const bs = (ST.prod.batches || []).filter(b => key(b.product) === key(p.name));
-    let h = '<div class="inv3-note ok">প্রতিটি নতুন প্রোডাকশন ব্যাচে Lot ও সিরিয়াল রেঞ্জ তৈরি হয়। কোন সিরিয়াল কোন ব্যাচের — Production → Trace-এ খুঁজে পাবেন।<br>🔜 <b>বিক্রির সময় সিরিয়াল ধরে ট্র্যাক</b> (ওয়ারেন্টি/চুরি দাবির জন্য) ধাপ ৩-এ আসছে।</div>';
+    let h = '<div class="inv3-note ok">প্রতিটি নতুন প্রোডাকশন ব্যাচে Lot ও সিরিয়াল রেঞ্জ তৈরি হয়। কোন সিরিয়াল কোন ব্যাচের — Production → Trace-এ খুঁজে পাবেন।<br>🔢 <b>বিক্রির সময় সিরিয়াল বসান</b> (Sales → অর্ডারের 🔢 বাটন) — নিচের রেজিস্ট্রিতে কোন সিরিয়াল কার কাছে গেছে দেখা যাবে।</div>';
     h += bs.length ? '<table class="inv3-t"><thead><tr><th>ব্যাচ / Lot</th><th>তারিখ</th><th>ইউনিট</th><th>সিরিয়াল রেঞ্জ</th><th>ইউনিট কস্ট</th></tr></thead><tbody>' + bs.map(b => `<tr class="${b.status === 'Completed' ? '' : 'dim'}"><td><b>${esc(b.id)}</b><div style="color:var(--text3);font-size:12px">${esc(b.lot || '—')}${b.status !== 'Completed' ? ' · ' + esc(b.status) : ''}</div></td><td style="white-space:nowrap">${esc(String(b.time || '').slice(0, 16))}</td><td>${nf(b.units)}</td><td style="font-size:12px">${b.serialFrom ? esc(b.serialFrom) + '<br>→ ' + esc(b.serialTo) : '<span style="color:var(--text3)">নেই (পুরোনো ব্যাচ)</span>'}</td><td>${money(b.unitCost)}</td></tr>`).join('') + '</tbody></table>' : '<div class="inv3-empty">এই প্রোডাক্টের কোনো প্রোডাকশন ব্যাচ নেই</div>';
+    h += '<div id="inv3-serbox"></div>';
     return h;
   }
   function tabPd(p, e) {
@@ -24217,6 +24225,8 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   const okm = (m, d) => /^✅/.test(m || '') ? m : '✅ ' + (m || d);
   const rid = p => p + Date.now() + Math.random().toString(36).slice(2, 7);
   const prodByName = n => (ST.rows || []).find(p => key(p.name) === key(n));
+  const resOf = i => (ST.en && ST.en[i] ? ST.en[i].reserved || 0 : 0);   // Pending/Processing — এখনো শেলফে
+  const sysOf = i => ST.rows[i].current + resOf(i);                        // শেলফে থাকার কথা
   function mkModal(id, title, width) {
     if ($('modal-' + id)) return $('modal-' + id);
     const m = document.createElement('div'); m.className = 'modal-overlay'; m.id = 'modal-' + id; m.onclick = e => { if (e.target === m) closeModal(id); };
@@ -24275,19 +24285,19 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   function takeCalc() {
     let n = 0, fl = 0, loss = 0, gain = 0;
     document.querySelectorAll('#i3t-body tr').forEach(tr => {
-      const inp = tr.querySelector('input'), p = ST.rows[+tr.dataset.i], out = tr.querySelector('.v'), val = tr.querySelector('.vv');
+      const inp = tr.querySelector('input'), p = ST.rows[+tr.dataset.i], out = tr.querySelector('.v'), val = tr.querySelector('.vv'), sysq = sysOf(+tr.dataset.i);
       if (inp.value === '') { out.textContent = ''; val.textContent = ''; return; }
-      const c = Math.round(Number(inp.value)), v = c - p.current; n++; if (v !== 0) fl++; if (v < 0) loss += -v * p.cost; if (v > 0) gain += v * p.cost;
+      const c = Math.round(Number(inp.value)), v = c - sysq; n++; if (v !== 0) fl++; if (v < 0) loss += -v * p.cost; if (v > 0) gain += v * p.cost;
       out.innerHTML = v === 0 ? '<span class="inv3-pos">✔ মিলেছে</span>' : `<span class="${v < 0 ? 'inv3-neg' : 'inv3-pos'}">${v > 0 ? '+' : ''}${v}</span>`; val.textContent = v ? money(Math.abs(v * p.cost)) : '';
     });
     $('i3t-sum').innerHTML = `গণনা করা: <b>${n}</b>টি · গরমিল: <b style="color:${fl ? 'var(--orange)' : 'var(--green)'}">${fl}</b>টি` + (loss ? ` · ঘাটতির মূল্য <b style="color:var(--red)">${money(loss)}</b>` : '') + (gain ? ` · উদ্বৃত্তের মূল্য <b style="color:var(--green)">${money(gain)}</b>` : '');
   }
   window.inv3Take = function () {
     mkModal('inv3-take', '📋 Stock Take — ফিজিক্যাল গণনা', 860);
-    $('inv3-take-body').innerHTML = `<div class="inv3-note" style="margin-top:0">শেলফে যা আছে গুনে "গণনা" ঘরে লিখুন (যেগুলো গোনেননি ফাঁকা রাখুন)। সেভ করলে গরমিলের স্টক সংশোধন হবে ও অডিট লগে যাবে। <b>সিস্টেম সংখ্যা আগে না দেখে গুনলে ভালো।</b></div>
+    $('inv3-take-body').innerHTML = `<div class="inv3-note" style="margin-top:0">শেলফে যা আছে গুনে "গণনা" ঘরে লিখুন (যেগুলো গোনেননি ফাঁকা রাখুন)। সেভ করলে গরমিলের স্টক সংশোধন হবে ও অডিট লগে যাবে। <b>সিস্টেম সংখ্যা আগে না দেখে গুনলে ভালো।</b><br>🔒 Pending/Processing অর্ডারের মাল এখনো শেলফেই থাকে, তাই "সিস্টেমে" = Available + Reserved (ছোট লেখায় ভাঙন দেখানো)। কুরিয়ারে থাকা মাল শেলফে ধরা হয় না।</div>
       <div class="form-grid"><div class="form-group"><label class="form-label">গণনাকারী *</label><input class="form-input" id="i3t-who" value="${esc(who())}" maxlength="50"></div><div class="form-group"><label class="form-label">নোট</label><input class="form-input" id="i3t-note" maxlength="150" placeholder="যেমন: মাসিক গণনা"></div></div>
       <input class="form-input" id="i3t-q" placeholder="🔎 প্রোডাক্ট খুঁজুন…" style="margin-bottom:8px" autocomplete="off">
-      <table class="inv3-t"><thead><tr><th>ID</th><th>প্রোডাক্ট</th><th style="text-align:right">সিস্টেমে</th><th style="width:110px">গণনা</th><th>ফারাক</th><th>মূল্য</th></tr></thead><tbody id="i3t-body">${ST.rows.map((p, i) => `<tr data-i="${i}" data-s="${esc(key(p.name + ' ' + p.id))}"><td style="font-family:monospace;font-size:12px">${esc(p.id)}</td><td><b>${esc(p.name)}</b></td><td style="text-align:right">${p.current}</td><td><input class="form-input" type="number" min="0" step="1" style="padding:5px 8px"></td><td class="v"></td><td class="vv" style="color:var(--text3)"></td></tr>`).join('')}</tbody></table>
+      <table class="inv3-t"><thead><tr><th>ID</th><th>প্রোডাক্ট</th><th style="text-align:right">সিস্টেমে</th><th style="width:110px">গণনা</th><th>ফারাক</th><th>মূল্য</th></tr></thead><tbody id="i3t-body">${ST.rows.map((p, i) => `<tr data-i="${i}" data-s="${esc(key(p.name + ' ' + p.id))}"><td style="font-family:monospace;font-size:12px">${esc(p.id)}</td><td><b>${esc(p.name)}</b></td><td style="text-align:right">${sysOf(i)}${resOf(i) ? `<div style="font-size:11px;color:var(--text3)">${p.current} + 🔒${resOf(i)}</div>` : ''}</td><td><input class="form-input" type="number" min="0" step="1" style="padding:5px 8px"></td><td class="v"></td><td class="vv" style="color:var(--text3)"></td></tr>`).join('')}</tbody></table>
       <div id="i3t-sum" class="inv3-note" style="margin:10px 0 0"></div><div id="i3t-err" class="pr-err" style="display:none;margin-top:8px"></div>`;
     $('inv3-take-foot').innerHTML = '<button class="btn" onclick="closeModal(\'inv3-take\')">বাতিল</button><button class="btn btn-gold" id="i3t-go" onclick="inv3TakeSubmit()">✅ গণনা সেভ ও স্টক সংশোধন</button>';
     $('i3t-body').oninput = takeCalc; $('i3t-q').oninput = e => { const q = key(e.target.value); document.querySelectorAll('#i3t-body tr').forEach(tr => tr.style.display = !q || tr.dataset.s.includes(q) ? '' : 'none'); };
@@ -24296,10 +24306,10 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   window.inv3TakeSubmit = async function () {
     const err = m => { const e = $('i3t-err'); e.textContent = '❌ ' + m; e.style.display = 'block'; }; $('i3t-err').style.display = 'none';
     const counter = $('i3t-who').value.trim(); if (!counter) return err('গণনাকারীর নাম দিন');
-    const counts = []; document.querySelectorAll('#i3t-body tr').forEach(tr => { const v = tr.querySelector('input').value; if (v !== '') { const c = Math.round(Number(v)); if (c >= 0) counts.push({ type: 'FG', id: ST.rows[+tr.dataset.i].id, counted: c }); } });
+    const counts = [], shortRes = []; document.querySelectorAll('#i3t-body tr').forEach(tr => { const v = tr.querySelector('input').value; if (v !== '') { const i = +tr.dataset.i, c = Math.round(Number(v)); if (c >= 0) { const adj = Math.max(0, c - resOf(i)); if (c < resOf(i)) shortRes.push(ST.rows[i].name + ' (গোনা ' + c + ' < রিজার্ভ ' + resOf(i) + ')'); counts.push({ type: 'FG', id: ST.rows[i].id, counted: adj }); } } });
     if (!counts.length) return err('কমপক্ষে একটা প্রোডাক্টের গণনা দিন');
     const flagged = counts.filter(c => { const p = ST.rows.find(x => x.id === c.id); return p && p.current !== c.counted; }).length;
-    if (!confirm(`${counts.length}টি প্রোডাক্ট গণনা, ${flagged}টিতে গরমিল।\nগরমিলের স্টক গণনার সংখ্যায় সংশোধন হবে। নিশ্চিত?`)) return;
+    if (!confirm(`${counts.length}টি প্রোডাক্ট গণনা, ${flagged}টিতে গরমিল।\nগরমিলের স্টক গণনার সংখ্যায় সংশোধন হবে।` + (shortRes.length ? '\n\n⚠ রিজার্ভ অর্ডার পূরণের মতো মাল নেই:\n' + shortRes.join('\n') : '') + '\n\nনিশ্চিত?')) return;
     const b = $('i3t-go'); b.disabled = true; const t0 = b.textContent; b.textContent = '⏳ সেভ হচ্ছে…';
     const res = await pinCall((who() || 'আপনার') + '-এর PIN দিন — Stock Take', { action: 'auditSave', counter, note: $('i3t-note').value.trim(), adjust: true, counts });
     b.disabled = false; b.textContent = t0; if (!res) { if (window.__lastAPIErrorReason) err(window.__lastAPIErrorReason); return; }
@@ -24342,12 +24352,504 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   window.inv3RetDo = async function (orderId, pid, qty, verdict) {
     const p = ST.rows.find(x => String(x.id) === String(pid)); if (!p) return;
     const bad = verdict === 'BAD';
-    if (!confirm(`অর্ডার #${orderId} — ${p.name} × ${qty}\n${bad ? 'নষ্ট ধরে স্টক থেকে ' + qty + 'টি বাদ যাবে' : 'ভালো — স্টক অপরিবর্তিত থাকবে'}।\nনিশ্চিত?`)) return;
-    const payload = { action: 'fgAdjust', product: p.id, kind: bad ? 'RETURN_DAMAGED' : 'RETURN_OK', qty, ref: String(orderId), reason: bad ? 'ফেরত মাল নষ্ট' : '' };
+    let sers = []; try { if (window.__inv3SerForReturn) sers = await window.__inv3SerForReturn(orderId, p.name); } catch (e) {}
+    if (!confirm(`অর্ডার #${orderId} — ${p.name} × ${qty}${sers.length ? '\nসিরিয়াল: ' + sers.join(', ') : ''}\n${bad ? 'নষ্ট ধরে স্টক থেকে ' + qty + 'টি বাদ যাবে' : 'ভালো — স্টক অপরিবর্তিত থাকবে'}।\nনিশ্চিত?`)) return;
+    const payload = { action: 'fgAdjust', product: p.id, kind: bad ? 'RETURN_DAMAGED' : 'RETURN_OK', qty, ref: String(orderId), reason: bad ? 'ফেরত মাল নষ্ট' : '', serials: sers };
     const res = bad ? await pinCall((who() || 'আপনার') + '-এর PIN দিন — নষ্ট ফেরত মাল বাদ', payload) : await postToAPI(Object.assign({ by: who(), reqId: rid('i3r') }, payload));
     if (!res) return; toast(okm(res.message, 'যাচাই সংরক্ষিত')); ST.mv = {}; ST.movAll = null; try { loadLiveInventory(); } catch (e) {} drawReturns(); setTimeout(() => badge(true), 1500);
   };
   setTimeout(() => { try { badge(false); } catch (e) {} }, 2500);
+})();
+</script>
+<script id="inv3c-js">
+/* ═══ ধাপ ৩A — অর্ডার ফর্মে স্টক সতর্কতা (শুধু সতর্কতা; ব্লক নয়) ═══
+   Available = Inventory-র Current (Pending/Processing আগে থেকেই বাদ)। এডিট করার সময় ওই অর্ডারের নিজের পরিমাণ ফেরত ধরা হয়। */
+(function () {
+  'use strict';
+  const key = s => String(s || '').trim().toLowerCase();
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const inactive = st => { st = key(st); return st === 'cancelled' || st === 'returned'; };
+  function ownQty(product) {
+    let id = null; try { id = (typeof currentEditOrderId !== 'undefined') ? currentEditOrderId : null; } catch (e) {}
+    if (!id) return 0; let q = 0;
+    (window.liveSalesData || []).forEach(r => { if (String(r.id) === String(id) && key(r.product) === key(product) && !inactive(r.status)) q += Number(r.qty) || 0; });
+    return q;
+  }
+  function check() {
+    const stEl = document.getElementById('order-status'); if (stEl && inactive(stEl.value)) return { skip: true, rows: [] };
+    const items = Array.isArray(window._orderItems) ? window._orderItems : [], need = {}, rows = [];
+    items.forEach(it => { if (it.product) need[key(it.product)] = (need[key(it.product)] || 0) + (Number(it.qty) || 0); });
+    items.forEach((it, idx) => {
+      if (!it.product) { rows.push(null); return; }
+      const p = (window.liveInventoryData || []).find(x => key(x.name) === key(it.product)); if (!p) { rows.push(null); return; }
+      const cur = parseInt(Number(p.current) || 0), avail = cur + ownQty(it.product), tot = need[key(it.product)], alert = parseInt(Number(p.alert) || 5);
+      rows.push({ idx, name: it.product, avail, tot, short: Math.max(0, tot - avail), left: avail - tot, alert });
+    });
+    return { skip: false, rows };
+  }
+  function hints() {
+    const box = document.getElementById('order-items-list'); if (!box) return;
+    const r = check(), els = box.querySelectorAll('.order-item-row');
+    els.forEach((row, i) => {
+      let h = row.nextElementSibling; if (!h || !h.classList || !h.classList.contains('ord-hint')) { h = document.createElement('div'); h.className = 'ord-hint'; h.style.cssText = 'margin:-2px 0 8px 2px;font-size:12.5px;'; row.parentNode.insertBefore(h, row.nextSibling); }
+      const x = r.rows[i]; if (r.skip || !x) { h.textContent = ''; return; }
+      if (x.short > 0) h.innerHTML = `<span style="color:var(--red);font-weight:600">⚠️ স্টকে Available মাত্র ${x.avail}টি — আপনি ${x.tot}টি দিচ্ছেন (${x.short}টি কম)।</span> <span style="color:var(--text3)">সতর্কতা মাত্র, তবুও সেভ করা যাবে।</span>`;
+      else if (x.left <= x.alert) h.innerHTML = `<span style="color:var(--orange)">🟡 Available ${x.avail}টি — এই অর্ডারের পর ${x.left}টি বাকি থাকবে (Alert Level ${x.alert})।</span>`;
+      else h.innerHTML = `<span style="color:var(--green)">✅ Available ${x.avail}টি</span>`;
+    });
+  }
+  // রেন্ডার/লাইভ আপডেটের পর হিন্ট বসাও
+  ['_renderOrderItems', '_updateOrderItemLive'].forEach(n => { const f = window[n]; if (typeof f === 'function') window[n] = function () { const r = f.apply(this, arguments); try { hints(); } catch (e) {} return r; }; });
+  document.addEventListener('change', e => { if (e.target && e.target.id === 'order-status') { try { hints(); } catch (x) {} } });
+  // সেভের আগে কনফার্ম (ব্লক নয়)
+  const so = window.submitOrder;
+  if (typeof so === 'function') window.submitOrder = async function () {
+    try {
+      const r = check(); const bad = r.rows.filter(x => x && x.short > 0); const seen = {};
+      const lines = bad.filter(x => (seen[key(x.name)] ? false : (seen[key(x.name)] = 1))).map(x => `• ${x.name}: Available ${x.avail}, দিচ্ছেন ${x.tot} (${x.short}টি কম)`);
+      if (!r.skip && lines.length && !confirm('⚠️ স্টক কম পড়তে পারে:\n' + lines.join('\n') + '\n\nতবুও অর্ডার সেভ করবেন?')) return;
+    } catch (e) {}
+    return so.apply(this, arguments);
+  };
+  window.__ordStockCheck = check;
+})();
+</script>
+<script id="inv3d-js">
+/* ═══ ধাপ ৩B — Serial Registry (বিক্রির সময় সিরিয়াল বসানো · ওয়ারেন্টি/চুরি দাবিতে খোঁজা · ফেরতে সিরিয়াল ছাড়া) ═══
+   সব ডেটা GS-এর '🔢 Serial_Registry' শিটে। বসানো = PIN ছাড়া; ভুল সিরিয়াল ছাড়ানো = PIN + কারণ। */
+(function () {
+  'use strict';
+  const A = window.__inv3api; if (!A) return;
+  const { ST, esc, key, parseD, fmtD } = A;
+  const $ = id => document.getElementById(id);
+  const who = () => (typeof currentPartner !== 'undefined' && currentPartner) ? currentPartner : '';
+  const toast = (m, t) => { try { showToast(m, t || 'success'); } catch (e) {} };
+  const rid = p => p + Date.now() + Math.random().toString(36).slice(2, 7);
+  const jsq = s => String(s == null ? '' : s).replace(/[\\'"<>&\s]/g, '');
+  const prodByName = n => (ST.rows || []).find(p => key(p.name) === key(n));
+  const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  function mkModal(id, title, width) {
+    if ($('modal-' + id)) return $('modal-' + id);
+    const m = document.createElement('div'); m.className = 'modal-overlay'; m.id = 'modal-' + id; m.onclick = e => { if (e.target === m) closeModal(id); };
+    m.innerHTML = `<div class="modal-box" style="max-width:${width || 600}px;width:96vw;"><div class="modal-header"><span class="modal-title">${title}</span><button class="modal-close" onclick="closeModal('${id}')">✕</button></div><div class="modal-body" id="${id}-body" style="max-height:72vh;overflow:auto;"></div><div class="modal-footer" id="${id}-foot"></div></div>`;
+    document.body.appendChild(m); return m;
+  }
+  function warrantyOf(product, startStr) {   // order-date থেকে ওয়ারেন্টির শেষ তারিখ (বিদ্যমান Warranty কনফিগ অনুযায়ী)
+    try {
+      const T = window.IGXW && IGXW._t; if (!T) return '';
+      const cfg = T.resolve(product); if (!cfg || !cfg.enabled) return '';
+      const st = T.parseDate(startStr) || parseD(startStr); if (!st) return '';
+      const e = T.addPeriod(st, cfg); return e ? iso(e) : '';
+    } catch (e) { return ''; }
+  }
+  function warBadge(until) {
+    if (!until) return '<span class="inv3-pill">ওয়ারেন্টি তথ্য নেই</span>';
+    const d = parseD(until); if (!d) return '<span class="inv3-pill">' + esc(until) + '</span>';
+    const left = Math.ceil((d.getTime() - Date.now()) / 86400000);
+    return left >= 0 ? `<span class="inv3-pill g">✅ ওয়ারেন্টি বৈধ — ${esc(fmtD(d))} পর্যন্ত (${left} দিন বাকি)</span>` : `<span class="inv3-pill r">❌ ওয়ারেন্টি শেষ — ${esc(fmtD(d))}</span>`;
+  }
+  const ST_LBL = { Sold: ['🟢 বিক্রি হয়েছে', 'g'], Released: ['⚪ স্টকে ফিরেছে', ''], Defective: ['🔴 নষ্ট (Defective)', 'r'] };
+  const stPill = s => { const x = ST_LBL[s] || [s, '']; return `<span class="inv3-pill ${x[1]}">${x[0]}</span>`; };
+
+  // ═════════ 🔎 সিরিয়াল / ওয়ারেন্টি খুঁজুন ═════════
+  window.inv3SerLookup = function (q) {
+    mkModal('inv3-sl', '🔎 সিরিয়াল / ওয়ারেন্টি খুঁজুন', 680);
+    $('inv3-sl-body').innerHTML = `<div style="display:flex;gap:8px;margin-bottom:10px"><input id="i3sl-q" class="form-input" style="flex:1" placeholder="সিরিয়াল (P1-000012) / অর্ডার নং / ফোন / গ্রাহকের নাম" autocomplete="off"><button class="btn primary" onclick="inv3SerLookupGo()">খুঁজুন</button></div><div id="i3sl-res"><div class="inv3-empty">সিরিয়াল, অর্ডার নম্বর, ফোন বা নাম লিখে খুঁজুন — কোন ইউনিট কার কাছে গেছে, কোন ব্যাচের, ওয়ারেন্টি আছে কিনা সব দেখাবে।</div></div>`;
+    $('inv3-sl-foot').innerHTML = '<button class="btn" onclick="closeModal(\'inv3-sl\')">বন্ধ করুন</button>';
+    const inp = $('i3sl-q'); inp.addEventListener('keydown', e => { if (e.key === 'Enter') inv3SerLookupGo(); });
+    openModal('inv3-sl'); if (q) { inp.value = q; inv3SerLookupGo(); } else setTimeout(() => inp.focus(), 60);
+  };
+  window.inv3SerLookupGo = async function () {
+    const q = ($('i3sl-q').value || '').trim(), box = $('i3sl-res'); if (!q) return;
+    box.innerHTML = '<div class="inv3-load">⏳ খোঁজা হচ্ছে…</div>';
+    const d = await fetchFromAPI('serialLookup', { q });
+    if (!d) { box.innerHTML = '<div class="inv3-note warn">খোঁজা যায়নি — GS নতুন ভার্সনে ডিপ্লয় করেছেন? (Deploy → Manage deployments → Edit → New version)</div>'; return; }
+    const rows = d.data || [];
+    if (!rows.length) {
+      box.innerHTML = d.unsold ? `<div class="inv3-note ok"><b>${esc(d.unsold.serial)}</b> — আমাদের তৈরি (${esc(d.unsold.product)}), ব্যাচ <b>${esc(d.unsold.batch)}</b> · ${esc(d.unsold.lot)}${d.unsold.batchWorker ? ' · কারিগর: ' + esc(d.unsold.batchWorker) : ''}<br>📦 <b>রেজিস্ট্রিতে বিক্রির রেকর্ড নেই</b> — এখনো স্টকে আছে, অথবা বিক্রির সময় সিরিয়াল বসানো হয়নি।<br><span style="color:var(--text3)">⚠ গ্রাহক এই সিরিয়াল দাবি করলে যাচাই করুন — সিরিয়াল ছাড়া পুরোনো বিক্রিও হতে পারে।</span></div>` : '<div class="inv3-note warn">কিছু পাওয়া যায়নি। পুরোনো অর্ডারে সিরিয়াল বসানো না থাকলে এখানে আসবে না।</div>';
+      return;
+    }
+    box.innerHTML = rows.map(r => `<div class="inv3-note ${r.status === 'Sold' ? 'ok' : r.status === 'Defective' ? 'bad' : ''}" style="margin-bottom:10px">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b style="font-size:15px">${esc(r.serial)}</b>${stPill(r.status)}<span style="color:var(--text3)">${esc(r.product)}</span></div>
+      ${r.status === 'Sold' ? `<div style="margin-top:6px">👤 <b>${esc(r.customer || '—')}</b>${r.phone ? ' · 📞 ' + esc(r.phone) : ''} · অর্ডার <b>#${esc(r.orderId)}</b>${r.soldDate ? ' · বিক্রি: ' + esc(r.soldDate) : ''}</div><div style="margin-top:6px">${warBadge(r.warrantyUntil)}</div>` : (r.note ? `<div style="margin-top:6px;color:var(--text2)">${esc(r.note)}</div>` : '')}
+      <div style="margin-top:6px;color:var(--text3);font-size:12.5px">🏭 ব্যাচ ${esc(r.batch || '—')} · ${esc(r.lot || '—')}${r.batchTime ? ' · ' + esc(String(r.batchTime).slice(0, 17)) : ''}${r.batchWorker ? ' · কারিগর: ' + esc(r.batchWorker) : ''}</div>
+      ${r.status === 'Sold' ? `<div style="margin-top:8px"><button class="btn" onclick="inv3SerUnassign('${jsq(r.serial)}')">↩️ ভুল হলে ছাড়ুন (PIN)</button></div>` : ''}</div>`).join('') +
+      (d.history && d.history.length ? `<div class="inv3-h">📜 ইতিহাস</div><table class="inv3-t"><tbody>${d.history.map(h => `<tr><td style="white-space:nowrap">${esc(String(h.time).slice(0, 17))}</td><td>${esc(h.action.replace('SERIAL_', ''))}</td><td>অর্ডার #${esc(h.ref)}</td><td style="color:var(--text3)">${esc(h.note)}${h.by ? ' — ' + esc(h.by) : ''}</td></tr>`).join('')}</tbody></table>` : '');
+  };
+  window.inv3SerUnassign = async function (serial) {
+    const reason = prompt('কেন ছাড়াচ্ছেন? (যেমন: ভুল সিরিয়াল বসানো হয়েছিল)'); if (reason == null) return;
+    if (String(reason).trim().length < 3) { toast('কারণ লিখুন (কমপক্ষে ৩ অক্ষর)', 'error'); return; }
+    const pin = await _askPartnerPin((who() || 'আপনার') + '-এর PIN দিন — সিরিয়াল ছাড়া'); if (!pin) return;
+    const res = await postToAPI({ action: 'serialUnassign', serial, reason: String(reason).trim(), pin, by: who(), reqId: rid('sr') });
+    if (!res) return; toast('✅ ' + (res.message || 'ছাড়া হয়েছে')); inv3SerLookupGo(); ST.serCache = {};
+  };
+
+  // ═════════ 🔢 অর্ডারে সিরিয়াল বসানো ═════════
+  let CUR = null;
+  window.inv3SerOpen = async function (orderId) {
+    const lines = (window.liveSalesData || []).filter(r => String(r.id) === String(orderId) && !/^(cancelled|returned)$/i.test(String(r.status || '').trim()));
+    if (!lines.length) { toast('এই অর্ডারের সক্রিয় লাইন পাওয়া যায়নি (Cancelled/Returned হলে সিরিয়াল বসানো যায় না)', 'error'); return; }
+    const first = lines[0], agg = {};
+    lines.forEach(l => { const k = key(l.product); if (!agg[k]) agg[k] = { product: l.product, qty: 0, p: prodByName(l.product) }; agg[k].qty += Number(l.qty) || 0; });
+    CUR = { orderId: String(orderId), customer: first.customer || '', phone: first.phone || '', date: first.date || '', items: Object.values(agg), existing: {} };
+    mkModal('inv3-sa', '🔢 সিরিয়াল বসান — অর্ডার #' + esc(orderId), 640);
+    $('inv3-sa-body').innerHTML = '<div class="inv3-load">⏳ লোড হচ্ছে…</div>';
+    $('inv3-sa-foot').innerHTML = '<button class="btn" onclick="closeModal(\'inv3-sa\')">বাতিল</button><button class="btn primary" onclick="inv3SerAssignSubmit()">💾 সিরিয়াল সংরক্ষণ</button>';
+    openModal('inv3-sa');
+    const d = await fetchFromAPI('serialLookup', { q: '#' + orderId });
+    if (d && d.data) d.data.forEach(r => { if (r.status === 'Sold' && String(r.orderId) === CUR.orderId) (CUR.existing[key(r.product)] = CUR.existing[key(r.product)] || []).push(r.serial); });
+    drawAssign(d == null);
+  };
+  function drawAssign(offline) {
+    const c = CUR; if (!c) return;
+    $('inv3-sa-body').innerHTML = `<div class="inv3-note" style="margin-top:0">👤 <b>${esc(c.customer)}</b>${c.phone ? ' · ' + esc(c.phone) : ''} · ${esc(c.date)}<br>প্রতিটি ইউনিটের সিরিয়াল (বক্সের গায়ের/ডিভাইসের) লিখুন — প্রতি লাইনে একটা, বা কমা দিয়ে। এতে ভবিষ্যতে ওয়ারেন্টি/চুরি দাবিতে সিরিয়াল দিয়ে খুঁজে বের করা যাবে।</div>` +
+      (offline ? '<div class="inv3-note warn">রেজিস্ট্রি লোড হয়নি (GS নতুন ভার্সনে ডিপ্লয় হয়নি?) — তাই আগে বসানো সিরিয়াল দেখাতে পারছি না।</div>' : '') +
+      c.items.map((it, i) => {
+        const ex = c.existing[key(it.product)] || [], need = Math.max(0, it.qty - ex.length);
+        return `<div class="inv3-h">${esc(it.product)} × ${it.qty} <span style="color:var(--text3);font-weight:400">— বসানো ${ex.length}/${it.qty}</span></div>
+        ${it.p ? '' : '<div class="inv3-note warn">⚠ ইনভেন্টরিতে এই নামে প্রোডাক্ট নেই — সিরিয়াল বসানো যাবে না</div>'}
+        ${ex.length ? `<div style="font-size:12.5px;color:var(--green);margin-bottom:6px">✅ আগে বসানো: ${ex.map(esc).join(', ')}</div>` : ''}
+        ${it.p && need > 0 ? `<textarea id="i3sa-t${i}" class="form-input" rows="${Math.min(6, Math.max(2, need))}" style="width:100%;font-family:monospace" placeholder="P1-000001&#10;P1-000002"></textarea>
+        <div style="display:flex;gap:8px;margin-top:6px;align-items:center;flex-wrap:wrap"><button class="btn" onclick="inv3SerAuto(${i},${need})">⚡ Auto (পুরোনো ব্যাচ আগে — FIFO)</button><span id="i3sa-n${i}" style="font-size:12.5px;color:var(--text3)">বাকি ${need}টি</span></div>` : ''}`;
+      }).join('') +
+      `<label style="display:flex;gap:8px;align-items:center;margin-top:14px;font-size:13px;color:var(--text2)"><input type="checkbox" id="i3sa-cust"> ব্যাচ-বহির্ভূত সিরিয়াল অনুমতি দিন (পুরোনো স্টক/সাপ্লায়ারের সিরিয়াল)</label>`;
+    c.items.forEach((it, i) => { const t = $('i3sa-t' + i); if (t) t.addEventListener('input', () => { const n = parseList(t.value).length, e = $('i3sa-n' + i); if (e) e.textContent = n + 'টি লেখা হয়েছে'; }); });
+  }
+  const parseList = s => { const seen = {}, out = []; String(s || '').split(/[\n,;]+/).forEach(x => { const v = x.trim().toUpperCase().replace(/\s+/g, ''); if (v && !seen[v]) { seen[v] = 1; out.push(v); } }); return out; };
+  window.inv3SerAuto = async function (i, need) {
+    const it = CUR.items[i], t = $('i3sa-t' + i); if (!it || !it.p) return;
+    const taken = new Set(); CUR.items.forEach((_, j) => { const e = $('i3sa-t' + j); if (e && j !== i) parseList(e.value).forEach(s => taken.add(s)); });
+    const d = await fetchFromAPI('serialSuggest', { product: it.p.id, qty: need + 20 });
+    if (!d) { toast('সাজেশন আনা যায়নি — GS ডিপ্লয় করেছেন?', 'error'); return; }
+    const mine = parseList(t.value), pick = mine.slice(); (d.serials || []).forEach(s => { if (pick.length < need && !pick.includes(s) && !taken.has(s)) pick.push(s); });
+    t.value = pick.join('\n'); t.dispatchEvent(new Event('input'));
+    if (pick.length < need) toast('⚠ রেজিস্ট্রি অনুযায়ী মাত্র ' + pick.length + 'টি সিরিয়াল পাওয়া গেল — বাকি হাতে লিখুন', 'error');
+  };
+  window.inv3SerAssignSubmit = async function () {
+    const c = CUR; if (!c) return; const allow = $('i3sa-cust') && $('i3sa-cust').checked; let total = 0, short = [];
+    const jobs = []; c.items.forEach((it, i) => { const t = $('i3sa-t' + i); if (!t || !it.p) return; const list = parseList(t.value); if (!list.length) return;
+      const need = Math.max(0, it.qty - (c.existing[key(it.product)] || []).length); if (list.length > need) short.push(it.product + ': ' + list.length + ' লিখেছেন, বাকি মাত্র ' + need); jobs.push({ it, list }); total += list.length; });
+    if (!jobs.length) { toast('কোনো সিরিয়াল লেখা হয়নি', 'error'); return; }
+    if (short.length && !confirm('⚠ অর্ডারের পরিমাণের চেয়ে বেশি সিরিয়াল:\n' + short.join('\n') + '\n\nতবুও সংরক্ষণ করবেন?')) return;
+    let ok = 0, fail = false;
+    for (const j of jobs) {
+      const res = await postToAPI({ action: 'serialAssign', product: j.it.p.id, orderId: c.orderId, customer: c.customer, phone: c.phone, soldDate: iso(parseD(c.date) || new Date()), warrantyUntil: warrantyOf(j.it.product, c.date), serials: j.list, allowCustom: !!allow, by: who(), reqId: rid('sa') });
+      if (!res) { fail = true; break; } ok += (res.assigned || 0);
+    }
+    if (fail) { toast('কিছু সিরিয়াল সংরক্ষণ হয়নি — উপরের ত্রুটি দেখুন; যেগুলো ঠিক ছিল সেগুলো আগে সেভ হয়ে থাকতে পারে', 'error'); try { inv3SerOpen(c.orderId); } catch (e) {} return; }
+    toast('✅ ' + ok + 'টি সিরিয়াল অর্ডার #' + c.orderId + '-এ বসানো হয়েছে'); closeModal('inv3-sa'); ST.serCache = {}; ST.mv = {}; ST.movAll = null;
+  };
+
+  // ═════════ প্রোডাক্ট ড্রয়ার → সিরিয়াল ট্যাব (রেজিস্ট্রি অংশ) ═════════
+  ST.serCache = ST.serCache || {};
+  window.inv3SerBox = async function (p) {
+    const box = $('inv3-serbox'); if (!box || !p) return;
+    let d = ST.serCache[p.id]; if (!d || Date.now() - d.at > 45000) { box.innerHTML = '<div class="inv3-load">⏳ সিরিয়াল রেজিস্ট্রি লোড হচ্ছে…</div>'; const r = await fetchFromAPI('serialList', { product: p.id }); d = r ? { at: Date.now(), r } : null; if (d) ST.serCache[p.id] = d; }
+    if (!$('inv3-serbox') || !ST.rows[ST.cur] || ST.rows[ST.cur].id !== p.id) return;
+    if (!d) { box.innerHTML = '<div class="inv3-note warn">সিরিয়াল রেজিস্ট্রি লোড হয়নি (GS নতুন ভার্সনে ডিপ্লয় করেছেন?)</div>'; return; }
+    const r = d.r;
+    box.innerHTML = `<div class="inv3-h">🔢 সিরিয়াল রেজিস্ট্রি</div><div class="inv3-g"><div class="inv3-c"><span>তৈরি (মোট সিরিয়াল)</span><b>${r.produced}</b></div><div class="inv3-c"><span>বিক্রি (Sold)</span><b class="inv3-pos">${r.sold}</b></div><div class="inv3-c"><span>স্টকে থাকার কথা</span><b>${r.inStockSerials}</b></div><div class="inv3-c"><span>নষ্ট (Defective)</span><b class="${r.defective ? 'inv3-neg' : ''}">${r.defective}</b></div><div class="inv3-c"><span>ছাড়া/ফেরত</span><b>${r.released}</b></div></div>` +
+      (r.data && r.data.length ? `<table class="inv3-t"><thead><tr><th>সিরিয়াল</th><th>অবস্থা</th><th>অর্ডার / গ্রাহক</th><th>ওয়ারেন্টি</th></tr></thead><tbody>${r.data.slice(0, 80).map(x => `<tr><td><a href="#" style="color:var(--gold)" onclick="inv3SerLookup('${jsq(x.serial)}');return false">${esc(x.serial)}</a></td><td>${stPill(x.status)}</td><td>${x.status === 'Sold' ? '#' + esc(x.orderId) + '<div style="color:var(--text3);font-size:12px">' + esc(x.customer) + '</div>' : '—'}</td><td style="font-size:12px">${x.status === 'Sold' && x.warrantyUntil ? esc(x.warrantyUntil) : '—'}</td></tr>`).join('')}</tbody></table>${r.data.length > 80 ? '<div class="inv3-empty">…আরও আছে — সিরিয়াল/অর্ডার দিয়ে খুঁজুন</div>' : ''}` : '<div class="inv3-empty">এখনো কোনো সিরিয়াল বিক্রিতে বসানো হয়নি — Sales → অর্ডারের 🔢 বাটন থেকে বসান</div>') +
+      '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="inv3SerLookup()">🔎 সিরিয়াল / ওয়ারেন্টি খুঁজুন</button><button class="btn" onclick="inv3Label(\''+jsq(p.id)+'\')">🏷️ লেবেল প্রিন্ট</button></div>';
+  };
+
+  // ═════════ ফেরত-যাচাইয়ে সিরিয়াল ═════════
+  window.__inv3SerForReturn = async function (orderId, productName) {   // ওই অর্ডারের ওই প্রোডাক্টের Sold সিরিয়াল
+    const d = await fetchFromAPI('serialLookup', { q: '#' + orderId });
+    if (!d || !d.data) return [];
+    return d.data.filter(r => r.status === 'Sold' && String(r.orderId) === String(orderId) && key(r.product) === key(productName)).map(r => r.serial);
+  };
+})();
+</script>
+<script id="inv3e-js">
+/* ═══ ধাপ ৪ — 📈 ফোরকাস্ট · 🏷️ বারকোড/QR লেবেল · 🎁 কিট/বান্ডেল ═══
+   বাইরের কোনো লাইব্রেরি নেই (QR ও Code128 এনকোডার নিজেই লেখা)। কিট বাছলে অর্ডার ফর্মে উপাদানগুলো আলাদা লাইনে ভেঙে যায় —
+   তাই স্টক, সিরিয়াল, COGS সব আগের নিয়মেই ঠিক থাকে। */
+(function () {
+  'use strict';
+  const A = window.__inv3api; if (!A) return;
+  const { ST, esc, nf, money, parseD, fmtD, key } = A;
+  const $ = id => document.getElementById(id);
+  const who = () => (typeof currentPartner !== 'undefined' && currentPartner) ? currentPartner : '';
+  const toast = (m, t) => { try { showToast(m, t || 'success'); } catch (e) {} };
+  const rid = p => p + Date.now() + Math.random().toString(36).slice(2, 7);
+  const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+  const prodByName = n => (ST.rows || []).find(p => key(p.name) === key(n));
+  function mkModal(id, title, width) {
+    if ($('modal-' + id)) return $('modal-' + id);
+    const m = document.createElement('div'); m.className = 'modal-overlay'; m.id = 'modal-' + id; m.onclick = e => { if (e.target === m) closeModal(id); };
+    m.innerHTML = `<div class="modal-box" style="max-width:${width || 640}px;width:96vw;"><div class="modal-header"><span class="modal-title">${title}</span><button class="modal-close" onclick="closeModal('${id}')">✕</button></div><div class="modal-body" id="${id}-body" style="max-height:72vh;overflow:auto;"></div><div class="modal-footer" id="${id}-foot"></div></div>`;
+    document.body.appendChild(m); return m;
+  }
+
+  // ═════════ 🔲 QR কোড এনকোডার (Byte mode · ECC M · Version 1–6) ═════════
+  const QR = (function () {
+    const EXP = new Array(512), LOG = new Array(256); let x = 1;
+    for (let i = 0; i < 255; i++) { EXP[i] = x; LOG[x] = i; x <<= 1; if (x & 256) x ^= 0x11d; } for (let i = 255; i < 512; i++) EXP[i] = EXP[i - 255];
+    const mul = (a, b) => (a === 0 || b === 0) ? 0 : EXP[LOG[a] + LOG[b]];
+    function rsDiv(deg) { const r = new Array(deg - 1).fill(0).concat([1]); let root = 1; for (let i = 0; i < deg; i++) { for (let j = 0; j < r.length; j++) { r[j] = mul(r[j], root); if (j + 1 < r.length) r[j] ^= r[j + 1]; } root = mul(root, 2); } return r; }
+    function rsRem(data, div) { const r = div.map(() => 0); data.forEach(b => { const f = b ^ r.shift(); r.push(0); div.forEach((c, i) => { r[i] ^= mul(c, f); }); }); return r; }
+    const V = [null, { ec: 10, n: 1, d: 16 }, { ec: 16, n: 1, d: 28 }, { ec: 26, n: 1, d: 44 }, { ec: 18, n: 2, d: 32 }, { ec: 24, n: 2, d: 43 }, { ec: 16, n: 4, d: 27 }];
+    const ALIGN = [null, [], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34]];
+    function encode(text) {
+      const bytes = Array.from(new TextEncoder().encode(String(text))); let v = 0;
+      for (let i = 1; i <= 6; i++) { if (4 + 8 + bytes.length * 8 <= V[i].n * V[i].d * 8) { v = i; break; } }
+      if (!v) return null; const info = V[v], total = info.n * info.d, size = 17 + 4 * v, bits = [];
+      const push = (val, len) => { for (let i = len - 1; i >= 0; i--) bits.push((val >>> i) & 1); };
+      push(4, 4); push(bytes.length, 8); bytes.forEach(b => push(b, 8)); for (let i = 0; i < 4 && bits.length < total * 8; i++) bits.push(0); while (bits.length % 8) bits.push(0);
+      const cw = []; for (let i = 0; i < bits.length; i += 8) { let b = 0; for (let j = 0; j < 8; j++) b = (b << 1) | bits[i + j]; cw.push(b); }
+      for (let pad = 0xEC; cw.length < total; pad ^= 0xEC ^ 0x11) cw.push(pad);
+      const div = rsDiv(info.ec), blocks = [], ecs = []; for (let i = 0; i < info.n; i++) { const d = cw.slice(i * info.d, (i + 1) * info.d); blocks.push(d); ecs.push(rsRem(d, div)); }
+      const out = []; for (let i = 0; i < info.d; i++) blocks.forEach(b => out.push(b[i])); for (let i = 0; i < info.ec; i++) ecs.forEach(e => out.push(e[i]));
+      const m = Array.from({ length: size }, () => new Array(size).fill(false)), fn = Array.from({ length: size }, () => new Array(size).fill(false));
+      const setFn = (xx, yy, d) => { m[yy][xx] = d; fn[yy][xx] = true; };
+      for (let i = 0; i < size; i++) { setFn(6, i, i % 2 === 0); setFn(i, 6, i % 2 === 0); }
+      const finder = (cx, cy) => { for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) { const d = Math.max(Math.abs(dx), Math.abs(dy)), xx = cx + dx, yy = cy + dy; if (xx >= 0 && xx < size && yy >= 0 && yy < size) setFn(xx, yy, d !== 2 && d !== 4); } };
+      finder(3, 3); finder(size - 4, 3); finder(3, size - 4);
+      const pos = ALIGN[v], np = pos.length;
+      for (let i = 0; i < np; i++) for (let j = 0; j < np; j++) { if ((i === 0 && j === 0) || (i === 0 && j === np - 1) || (i === np - 1 && j === 0)) continue; for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) setFn(pos[i] + dx, pos[j] + dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1); }
+      const fmt = mask => { const data = mask; let rem = data; for (let i = 0; i < 10; i++) rem = (rem << 1) ^ ((rem >>> 9) * 0x537); const b = ((data << 10) | rem) ^ 0x5412, g = i => ((b >>> i) & 1) !== 0;
+        for (let i = 0; i <= 5; i++) setFn(8, i, g(i)); setFn(8, 7, g(6)); setFn(8, 8, g(7)); setFn(7, 8, g(8)); for (let i = 9; i < 15; i++) setFn(14 - i, 8, g(i));
+        for (let i = 0; i < 8; i++) setFn(size - 1 - i, 8, g(i)); for (let i = 8; i < 15; i++) setFn(8, size - 15 + i, g(i)); setFn(8, size - 8, true); };
+      fmt(0);
+      let k = 0; for (let right = size - 1; right >= 1; right -= 2) { if (right === 6) right = 5; for (let vert = 0; vert < size; vert++) for (let j = 0; j < 2; j++) { const xx = right - j, up = ((right + 1) & 2) === 0, yy = up ? size - 1 - vert : vert; if (!fn[yy][xx] && k < out.length * 8) { m[yy][xx] = ((out[k >>> 3] >>> (7 - (k & 7))) & 1) !== 0; k++; } } }
+      const MK = [(a, b) => (a + b) % 2 === 0, (a, b) => b % 2 === 0, a => a % 3 === 0, (a, b) => (a + b) % 3 === 0, (a, b) => (Math.floor(a / 3) + Math.floor(b / 2)) % 2 === 0, (a, b) => a * b % 2 + a * b % 3 === 0, (a, b) => (a * b % 2 + a * b % 3) % 2 === 0, (a, b) => ((a + b) % 2 + a * b % 3) % 2 === 0];
+      const apply = mask => { for (let yy = 0; yy < size; yy++) for (let xx = 0; xx < size; xx++) if (!fn[yy][xx] && MK[mask](xx, yy)) m[yy][xx] = !m[yy][xx]; };
+      function penalty() {
+        let p = 0, dark = 0;
+        for (let yy = 0; yy < size; yy++) for (let pass = 0; pass < 2; pass++) { let run = 1; for (let xx = 1; xx < size; xx++) { const a = pass ? m[xx][yy] : m[yy][xx], b = pass ? m[xx - 1][yy] : m[yy][xx - 1]; if (a === b) { run++; if (run === 5) p += 3; else if (run > 5) p++; } else run = 1; } }
+        for (let yy = 0; yy < size - 1; yy++) for (let xx = 0; xx < size - 1; xx++) { const c = m[yy][xx]; if (c === m[yy][xx + 1] && c === m[yy + 1][xx] && c === m[yy + 1][xx + 1]) p += 3; }
+        m.forEach(r => r.forEach(c => { if (c) dark++; })); p += Math.floor(Math.abs(dark * 20 - size * size * 10) / (size * size)) * 10; return p;
+      }
+      let best = 0, bestP = Infinity; for (let mask = 0; mask < 8; mask++) { apply(mask); fmt(mask); const p = penalty(); if (p < bestP) { bestP = p; best = mask; } apply(mask); }
+      apply(best); fmt(best); return { size, m };
+    }
+    return { encode };
+  })();
+  // SVG (px = মডিউল; quiet zone ৪ মডিউল) — mm-এ আকার দিতে চাইলে width/height আলাদা বসাও
+  function qrSvg(text, mm) {
+    const q = QR.encode(text); if (!q) return ''; const n = q.size + 8; let d = '';
+    for (let y = 0; y < q.size; y++) for (let x = 0; x < q.size; x++) if (q.m[y][x]) d += `M${x + 4},${y + 4}h1v1h-1z`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${n} ${n}" width="${mm}mm" height="${mm}mm" shape-rendering="crispEdges"><rect width="${n}" height="${n}" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+  }
+
+  // ═════════ ▮▯ Code 128 (Set B) ═════════
+  const C128 = ('212222 222122 222221 121223 121322 131222 122213 122312 132212 221213 221312 231212 112232 122132 122231 113222 123122 123221 223211 221132 221231 213212 223112 312131 311222 321122 321221 312212 322112 322211 212123 212321 232121 111323 131123 131321 112313 132113 132311 211313 231113 231311 112133 112331 132131 113123 113321 133121 313121 211331 231131 213113 213311 213131 311123 311321 331121 312113 312311 332111 314111 221411 431111 111224 111422 121124 121421 141122 141221 112214 112412 122114 122411 142112 142211 241211 221114 413111 241112 134111 111242 121142 121241 114212 124112 124211 411212 421112 421211 212141 214121 412121 111143 111341 131141 114113 114311 411113 411311 113141 114131 311141 411131 211412 211214 211232 2331112').split(' ');
+  function c128Mods(text) {   // মডিউল-প্রস্থের তালিকা (বার, স্পেস, বার…)
+    const s = String(text).replace(/[^\x20-\x7e]/g, '?'); let sum = 104; const codes = [104];
+    for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i) - 32; codes.push(c); sum += c * (i + 1); } codes.push(sum % 103); codes.push(106);
+    const w = []; codes.forEach(c => { for (const ch of C128[c]) w.push(+ch); }); return w;
+  }
+  function c128Svg(text, wMm, hMm) {
+    const w = c128Mods(text), tot = w.reduce((a, b) => a + b, 0) + 20; let xx = 10, d = '';
+    w.forEach((n, i) => { if (i % 2 === 0) d += `M${xx},0h${n}v1h-${n}z`; xx += n; });
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${tot} 1" preserveAspectRatio="none" width="${wMm}mm" height="${hMm}mm" shape-rendering="crispEdges"><rect width="${tot}" height="1" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+  }
+  window.__igxBC = { qrSvg, c128Svg, c128Mods, QR };
+
+  // ═════════ 🏷️ লেবেল প্রিন্ট ═════════
+  const SIZES = { '50x30': [50, 30], '40x25': [40, 25], '70x40': [70, 40] };
+  function parseSerial(sv) { const m = String(sv || '').match(/^(.+)-(\d+)$/); return m ? { p: m[1], n: parseInt(m[2], 10), pad: m[2].length } : null; }
+  function serialRange(a, b) {
+    const x = parseSerial(a), y = parseSerial(b); if (!x || !y || x.p !== y.p || y.n < x.n) return [];
+    const out = []; for (let n = x.n; n <= y.n && out.length < 500; n++) out.push(x.p + '-' + String(n).padStart(x.pad, '0')); return out;
+  }
+  const L = { items: [], prod: null };
+  window.inv3Label = async function (pid) {
+    mkModal('inv3-lb', '🏷️ বারকোড / QR লেবেল প্রিন্ট', 760);
+    const rows = ST.rows || []; if (!rows.length) { toast('Inventory লোড হয়নি', 'error'); return; }
+    const sel = pid && rows.find(p => String(p.id) === String(pid)) || rows[0]; L.prod = sel;
+    $('inv3-lb-body').innerHTML = `<div class="inv3-note" style="margin-top:0">প্রতিটি ইউনিটের সিরিয়ালের লেবেল প্রিন্ট করে বক্সে লাগান। QR-এ/বারকোডে সিরিয়ালই থাকে — স্ক্যান করলে সিরিয়াল সরাসরি বসানোর ঘরে চলে আসবে (USB স্ক্যানার কিবোর্ডের মতো টাইপ করে)।</div>
+      <div class="inv3-g" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+        <div><label class="form-label">প্রোডাক্ট</label><select id="i3l-p" class="form-select" onchange="inv3LabelProd()">${rows.map(p => `<option value="${esc(p.id)}" ${p.id === sel.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></div>
+        <div><label class="form-label">কী প্রিন্ট করবেন</label><select id="i3l-src" class="form-select" onchange="inv3LabelSrc()"><option value="batch">ব্যাচের সিরিয়াল</option><option value="range">সিরিয়াল রেঞ্জ (হাতে)</option><option value="prod">প্রোডাক্ট লেবেল (ID)</option></select></div>
+        <div id="i3l-srcbox" style="grid-column:1/-1"></div>
+        <div><label class="form-label">কোড</label><select id="i3l-type" class="form-select" onchange="inv3LabelDraw()"><option value="qr">QR কোড</option><option value="c128">বারকোড (Code128)</option><option value="both">দুটোই</option></select></div>
+        <div><label class="form-label">লেবেলের মাপ (মিমি)</label><select id="i3l-size" class="form-select" onchange="inv3LabelDraw()"><option value="50x30">৫০ × ৩০</option><option value="40x25">৪০ × ২৫</option><option value="70x40">৭০ × ৪০</option></select></div>
+        <div><label class="form-label">লেআউট</label><select id="i3l-lay" class="form-select"><option value="single">লেবেল প্রিন্টার (১টি লেবেল = ১ পাতা)</option><option value="sheet">A4 শিট (গ্রিড)</option></select></div>
+        <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap"><label style="font-size:13px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="i3l-price" onchange="inv3LabelDraw()"> দাম দেখান</label><label style="font-size:13px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="i3l-brand" checked onchange="inv3LabelDraw()"> InnoGix নাম</label></div>
+      </div><div class="inv3-h">প্রিভিউ <span id="i3l-cnt" style="color:var(--text3);font-weight:400"></span></div><div id="i3l-prev" style="display:flex;flex-wrap:wrap;gap:10px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px;max-height:300px;overflow:auto"></div>`;
+    $('inv3-lb-foot').innerHTML = '<button class="btn" onclick="closeModal(\'inv3-lb\')">বন্ধ</button><button class="btn primary" onclick="inv3LabelPrint()">🖨️ প্রিন্ট</button>';
+    openModal('inv3-lb'); inv3LabelProd();
+  };
+  window.inv3LabelProd = async function () {
+    const p = (ST.rows || []).find(x => String(x.id) === ($('i3l-p') ? $('i3l-p').value : '')); if (!p) return; L.prod = p;
+    if (!ST.prod) { try { const d = await fetchFromAPI('prodData', {}); if (d) ST.prod = d; } catch (e) {} }
+    inv3LabelSrc();
+  };
+  window.inv3LabelSrc = function () {
+    const src = $('i3l-src').value, box = $('i3l-srcbox'), p = L.prod;
+    if (src === 'batch') {
+      const bs = ((ST.prod && ST.prod.batches) || []).filter(b => key(b.product) === key(p.name) && b.serialFrom && b.status === 'Completed');
+      box.innerHTML = bs.length ? `<label class="form-label">ব্যাচ</label><select id="i3l-batch" class="form-select" onchange="inv3LabelDraw()">${bs.map(b => `<option value="${esc(b.id)}" data-f="${esc(b.serialFrom)}" data-t="${esc(b.serialTo)}">${esc(b.id)} · ${esc(b.lot || '')} · ${esc(b.serialFrom)} → ${esc(b.serialTo)} (${b.units}টি)</option>`).join('')}</select>` : '<div class="inv3-note warn" style="margin:0">এই প্রোডাক্টের সিরিয়ালসহ কোনো সম্পন্ন প্রোডাকশন ব্যাচ পাওয়া যায়নি। "সিরিয়াল রেঞ্জ" বেছে নিন।</div>';
+    } else if (src === 'range') {
+      box.innerHTML = `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><input id="i3l-f" class="form-input" style="flex:1;min-width:150px" placeholder="শুরু: ${esc(p.id)}-000001" oninput="inv3LabelDraw()"><span>→</span><input id="i3l-t" class="form-input" style="flex:1;min-width:150px" placeholder="শেষ: ${esc(p.id)}-000020" oninput="inv3LabelDraw()"></div><div style="font-size:12px;color:var(--text3);margin-top:4px">একবারে সর্বোচ্চ ৫০০টি</div>`;
+    } else box.innerHTML = `<label class="form-label">কপি সংখ্যা</label><input id="i3l-copies" type="number" min="1" max="500" value="10" class="form-input" style="max-width:140px" oninput="inv3LabelDraw()">`;
+    inv3LabelDraw();
+  };
+  function labelCfg() {
+    const p = L.prod, src = $('i3l-src').value; let codes = [];
+    if (src === 'batch') { const o = $('i3l-batch') && $('i3l-batch').selectedOptions[0]; if (o) codes = serialRange(o.dataset.f, o.dataset.t); }
+    else if (src === 'range') codes = serialRange(($('i3l-f').value || '').trim().toUpperCase(), ($('i3l-t').value || '').trim().toUpperCase());
+    else { const n = Math.max(1, Math.min(500, parseInt($('i3l-copies').value) || 1)); codes = new Array(n).fill(String(p.id)); }
+    return { p, codes, type: $('i3l-type').value, size: $('i3l-size').value, price: $('i3l-price').checked, brand: $('i3l-brand').checked, src };
+  }
+  function labelHtml(c, code) {
+    const [W, H] = SIZES[c.size], both = c.type === 'both', qrMm = both ? Math.min(H - 6, 14) : (c.type === 'qr' ? Math.min(H - 5, 20) : 0);
+    const name = String(c.p.name || '').slice(0, 34), bcW = both ? W - 4 : (W - 4), bcH = c.type === 'c128' ? Math.max(8, H - 14) : (both ? 6.5 : 0);
+    let h = `<div class="lb" style="width:${W}mm;height:${H}mm">`;
+    h += `<div class="lt">${c.brand ? '<b>InnoGix</b> ' : ''}<span>${esc(name)}</span>${c.price && c.p.sell ? ` <em>৳${nf(c.p.sell)}</em>` : ''}</div>`;
+    h += '<div class="lm">';
+    if (c.type !== 'c128') h += `<div class="lq">${qrSvg(code, qrMm)}</div>`;
+    if (c.type === 'qr') h += `<div class="ls"><div class="sn">${esc(code)}</div>${c.src === 'prod' ? '' : '<div class="sm">Serial No.</div>'}</div>`;
+    if (c.type === 'c128') h += `<div class="lc">${c128Svg(code, bcW, bcH, false)}<div class="sn" style="text-align:center">${esc(code)}</div></div>`;
+    if (both) h += `<div class="ls"><div class="sn">${esc(code)}</div>${c128Svg(code, W - qrMm - 6, bcH, false)}</div>`;
+    return h + '</div></div>';
+  }
+  const LB_CSS = '.lb{box-sizing:border-box;overflow:hidden;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;padding:1.4mm 1.8mm;display:flex;flex-direction:column;gap:.8mm;page-break-inside:avoid}.lb .lt{font-size:7pt;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lb .lt b{font-weight:800}.lb .lt em{font-style:normal;font-weight:700;float:right}.lb .lm{display:flex;align-items:center;gap:1.8mm;flex:1;min-height:0}.lb .lq svg,.lb .lc svg,.lb .ls svg{display:block}.lb .ls{flex:1;min-width:0}.lb .lc{flex:1;text-align:center}.lb .sn{font-family:"Courier New",monospace;font-weight:700;font-size:9pt;word-break:break-all;line-height:1.15}.lb .sm{font-size:6pt;color:#444}';
+  window.inv3LabelDraw = function () {
+    const c = labelCfg(), prev = $('i3l-prev'); $('i3l-cnt').textContent = c.codes.length ? `— মোট ${c.codes.length}টি লেবেল` + (c.codes.length > 12 ? ' (প্রথম ১২টি দেখাচ্ছে)' : '') : '';
+    prev.innerHTML = c.codes.length ? `<style>${LB_CSS}#i3l-prev .lb{border:1px dashed #999}</style>` + c.codes.slice(0, 12).map(x => labelHtml(c, x)).join('') : '<div class="inv3-empty">লেবেল বানানোর মতো সিরিয়াল নেই — ব্যাচ/রেঞ্জ ঠিক করুন</div>';
+  };
+  window.inv3LabelPrint = function () {
+    const c = labelCfg(); if (!c.codes.length) { toast('প্রিন্ট করার মতো লেবেল নেই', 'error'); return; }
+    const [W, H] = SIZES[c.size], single = $('i3l-lay').value === 'single';
+    const css = single ? `@page{size:${W}mm ${H}mm;margin:0}body{margin:0}.lb{page-break-after:always;break-after:page}` : `@page{size:A4;margin:8mm}body{margin:0;display:flex;flex-wrap:wrap;gap:2mm;align-content:flex-start}.lb{outline:.2mm dashed #bbb}`;
+    const doc = `<!doctype html><html><head><meta charset="utf-8"><title>Labels</title><style>${LB_CSS}${css}</style></head><body>${c.codes.map(x => labelHtml(c, x)).join('')}</body></html>`;
+    const f = document.createElement('iframe'); f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;'; document.body.appendChild(f);
+    f.contentDocument.open(); f.contentDocument.write(doc); f.contentDocument.close(); window.__lastLabelDoc = doc;
+    setTimeout(() => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { toast('প্রিন্ট শুরু করা যায়নি', 'error'); } setTimeout(() => f.remove(), 60000); }, 400);
+  };
+
+  // ═════════ 📈 ফোরকাস্ট ═════════
+  const F = { lead: Number(lsGet('inv3f-lead', 15)), safety: Number(lsGet('inv3f-safe', 7)), cover: Number(lsGet('inv3f-cover', 30)), basis: lsGet('inv3f-basis', '30'), rows: [] };
+  function fcRows() {
+    const out = [];
+    (ST.rows || []).forEach(p => {
+      const s = (ST.stats || {})[key(p.name)] || { u7: 0, u30: 0, u90: 0, last: null }, b = Number(F.basis), q = b === 7 ? s.u7 : b === 90 ? s.u90 : s.u30, vel = q / b;
+      const v7 = s.u7 / 7, v90 = s.u90 / 90, trend = (s.u90 >= 6 && v90 > 0) ? (v7 > v90 * 1.3 ? 1 : v7 < v90 * 0.7 ? -1 : 0) : 0;
+      const cur = Math.max(0, Number(p.current) || 0), days = cur <= 0 ? 0 : vel > 0 ? cur / vel : Infinity;
+      const need = vel * (F.lead + F.safety + F.cover), order = vel > 0 ? Math.max(0, Math.ceil(need - cur)) : 0;
+      let st = 'ok'; if (vel <= 0) st = 'none'; else if (days <= F.lead) st = 'now'; else if (days <= F.lead + F.safety) st = 'soon';
+      const out_d = isFinite(days) ? new Date(Date.now() + days * 86400000) : null;
+      out.push({ p, vel, days, trend, cur, order, cost: order * (Number(p.cost) || 0), st, out: out_d, reorderPt: Math.ceil(vel * (F.lead + F.safety)) });
+    });
+    const rank = { now: 0, soon: 1, ok: 2, none: 3 }; return out.sort((a, b) => rank[a.st] - rank[b.st] || a.days - b.days);
+  }
+  window.inv3Forecast = function () {
+    mkModal('inv3-fc', '📈 ফোরকাস্ট — কখন কত অর্ডার দিতে হবে', 900);
+    $('inv3-fc-foot').innerHTML = '<button class="btn" onclick="inv3FcCsv()">⬇️ CSV</button><button class="btn" onclick="closeModal(\'inv3-fc\')">বন্ধ করুন</button>';
+    openModal('inv3-fc'); drawFc();
+  };
+  function drawFc() {
+    const body = $('inv3-fc-body'); if (!body) return;
+    if (!(window.liveSalesData || []).length) { body.innerHTML = '<div class="inv3-note warn">বিক্রির ডেটা এখনো লোড হয়নি — Sales পেজ একবার খুলে আবার চেষ্টা করুন। (ডেটা ছাড়া ফোরকাস্ট সম্ভব নয়)</div>'; return; }
+    F.rows = fcRows(); const tot = F.rows.reduce((a, r) => a + r.cost, 0), nNow = F.rows.filter(r => r.st === 'now').length, nSoon = F.rows.filter(r => r.st === 'soon').length;
+    const T = { 1: '<span class="inv3-pos" title="গত ৭ দিনে বিক্রি বাড়ছে">↑</span>', '-1': '<span class="inv3-neg" title="বিক্রি কমছে">↓</span>', 0: '' };
+    const pill = { now: '<span class="inv3-pill r">🔴 এখনই অর্ডার</span>', soon: '<span class="inv3-pill o">🟡 শীঘ্রই</span>', ok: '<span class="inv3-pill g">🟢 ঠিক আছে</span>', none: '<span class="inv3-pill">⚪ বিক্রি নেই</span>' };
+    body.innerHTML = `<div class="inv3-note" style="margin-top:0">গত বিক্রির গতি (Cancelled/Returned বাদ) থেকে হিসাব। <b>Available</b> স্টক ধরা হয়েছে (Pending-এর মাল আগেই বাদ)। এটা অনুমান — মৌসুম, অফার বা বড় অর্ডারে বদলাতে পারে।</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:12px">
+        <div><label class="form-label">কতদিনে মাল আসে (Lead)</label><input id="i3f-lead" type="number" min="0" max="365" class="form-input" value="${F.lead}" oninput="inv3FcSet()"></div>
+        <div><label class="form-label">নিরাপত্তা দিন (Safety)</label><input id="i3f-safe" type="number" min="0" max="365" class="form-input" value="${F.safety}" oninput="inv3FcSet()"></div>
+        <div><label class="form-label">বাড়তি কত দিনের মাল রাখবেন</label><input id="i3f-cover" type="number" min="0" max="365" class="form-input" value="${F.cover}" oninput="inv3FcSet()"></div>
+        <div><label class="form-label">বিক্রির গতি ধরা হবে</label><select id="i3f-basis" class="form-select" onchange="inv3FcSet()"><option value="7" ${F.basis === '7' ? 'selected' : ''}>গত ৭ দিন</option><option value="30" ${F.basis === '30' ? 'selected' : ''}>গত ৩০ দিন</option><option value="90" ${F.basis === '90' ? 'selected' : ''}>গত ৯০ দিন</option></select></div></div>
+      <div class="inv3-g" style="grid-template-columns:repeat(3,minmax(0,1fr))"><div class="inv3-c"><span>🔴 এখনই অর্ডার দরকার</span><b class="${nNow ? 'inv3-neg' : ''}">${nNow}টি</b></div><div class="inv3-c"><span>🟡 শীঘ্রই লাগবে</span><b>${nSoon}টি</b></div><div class="inv3-c"><span>প্রস্তাবিত কেনা/বানানোর আনুমানিক খরচ</span><b>${money(tot)}</b></div></div>
+      <div style="overflow:auto"><table class="inv3-t"><thead><tr><th>প্রোডাক্ট</th><th>Available</th><th>দৈনিক বিক্রি</th><th>চলবে</th><th>শেষ হবে</th><th>Reorder Point</th><th>প্রস্তাবিত পরিমাণ</th><th>অবস্থা</th></tr></thead><tbody>${F.rows.map(r => `<tr><td><b>${esc(r.p.name)}</b></td><td>${nf(r.cur)}</td><td>${r.vel > 0 ? r.vel.toFixed(2) : '—'} ${T[r.trend]}</td><td>${isFinite(r.days) ? Math.floor(r.days) + ' দিন' : '—'}</td><td style="white-space:nowrap">${r.out ? esc(fmtD(r.out)) : '—'}</td><td>${r.vel > 0 ? r.reorderPt : '—'}</td><td>${r.order > 0 ? '<b style="color:var(--gold)">+' + nf(r.order) + '</b><div style="font-size:11.5px;color:var(--text3)">' + money(r.cost) + '</div>' : '—'}</td><td>${pill[r.st]}</td></tr>`).join('')}</tbody></table></div>
+      <div style="font-size:12px;color:var(--text3);margin-top:8px">Reorder Point = দৈনিক বিক্রি × (Lead + Safety)। প্রস্তাবিত পরিমাণ = দৈনিক বিক্রি × (Lead + Safety + বাড়তি দিন) − বর্তমান স্টক।</div>`;
+  }
+  window.inv3FcSet = function () {
+    F.lead = Math.max(0, Number($('i3f-lead').value) || 0); F.safety = Math.max(0, Number($('i3f-safe').value) || 0); F.cover = Math.max(0, Number($('i3f-cover').value) || 0); F.basis = $('i3f-basis').value;
+    lsSet('inv3f-lead', F.lead); lsSet('inv3f-safe', F.safety); lsSet('inv3f-cover', F.cover); lsSet('inv3f-basis', F.basis);
+    const act = document.activeElement && document.activeElement.id; drawFc(); const el = act && $(act); if (el) { el.focus(); try { el.setSelectionRange(el.value.length, el.value.length); } catch (e) {} }
+  };
+  window.inv3FcCsv = function () {
+    const q = v => '"' + String(v).replace(/"/g, '""') + '"', head = ['Product', 'Available', 'Daily sales', 'Days left', 'Stock-out date', 'Reorder point', 'Suggested qty', 'Est. cost', 'Status'];
+    const rows = F.rows.map(r => [r.p.name, r.cur, r.vel.toFixed(2), isFinite(r.days) ? Math.floor(r.days) : '', r.out ? r.out.toISOString().slice(0, 10) : '', r.vel > 0 ? r.reorderPt : '', r.order, Math.round(r.cost), r.st]);
+    const csv = '﻿' + [head].concat(rows).map(r => r.map(q).join(',')).join('\n'), a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'forecast_' + new Date().toISOString().slice(0, 10) + '.csv'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  };
+
+  // ═════════ 🎁 কিট / বান্ডেল ═════════
+  const K = { list: null, edit: null };
+  async function loadKits(force) {
+    if (!force && K.list) return K.list; const d = await fetchFromAPI('kitList', {}); K.list = d && d.data ? d.data : null; return K.list;
+  }
+  window.inv3Kits = async function () {
+    mkModal('inv3-kit', '🎁 কিট / বান্ডেল', 760); $('inv3-kit-foot').innerHTML = '<button class="btn" onclick="closeModal(\'inv3-kit\')">বন্ধ করুন</button>';
+    $('inv3-kit-body').innerHTML = '<div class="inv3-load">⏳ লোড হচ্ছে…</div>'; openModal('inv3-kit'); await loadKits(true); drawKits();
+  };
+  function drawKits() {
+    const body = $('inv3-kit-body'); if (!body) return;
+    if (K.list == null) { body.innerHTML = '<div class="inv3-note warn">কিট লোড হয়নি (GS নতুন ভার্সনে ডিপ্লয় করেছেন?)</div>'; return; }
+    body.innerHTML = '<div class="inv3-note" style="margin-top:0">কিট = একাধিক প্রোডাক্টের প্যাকেজ (যেমন অ্যালার্ম + সাইরেন)। অর্ডার ফর্মে কিট বাছলে উপাদানগুলো আলাদা লাইনে বসে যায়, কিটের দাম সেগুলোর মধ্যে ভাগ হয় — তাই স্টক, সিরিয়াল ও খরচ আগের মতোই ঠিক থাকে।</div><div style="margin-bottom:10px"><button class="btn primary" onclick="inv3KitEdit()">➕ নতুন কিট</button></div>' +
+      (K.list.length ? K.list.map(k => `<div class="inv3-note" style="margin-bottom:8px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b style="font-size:15px">🎁 ${esc(k.name)}</b><span class="inv3-pill g">৳${nf(k.price)}</span><span class="inv3-pill ${k.avail > 0 ? '' : 'r'}">এখন বানানো/দেওয়া যাবে: ${k.avail}টি</span><span style="margin-left:auto"><button class="btn" onclick="inv3KitEdit('${esc(k.id)}')">✏️</button> <button class="btn" onclick="inv3KitDel('${esc(k.id)}')">🗑️</button></span></div><div style="margin-top:6px;color:var(--text2)">${k.lines.map(l => esc(l.product) + ' × ' + l.qty).join(' + ')}</div><div style="margin-top:4px;font-size:12.5px;color:var(--text3)">আলাদা কিনলে ৳${nf(k.sellSum)}${k.sellSum > k.price ? ' → ছাড় ৳' + nf(k.sellSum - k.price) : ''}${k.missing && k.missing.length ? ' · <span style="color:var(--red)">⚠ ইনভেন্টরিতে নেই: ' + k.missing.map(esc).join(', ') + '</span>' : ''}</div></div>`).join('') : '<div class="inv3-empty">এখনো কোনো কিট নেই</div>');
+  }
+  window.inv3KitEdit = function (id) {
+    const k = id && (K.list || []).find(x => x.id === id); K.edit = k ? { id: k.id, name: k.name, price: k.price, lines: k.lines.map(l => Object.assign({}, l)) } : { id: '', name: '', price: '', lines: [{ product: '', qty: 1 }, { product: '', qty: 1 }] };
+    drawKitForm();
+  };
+  function kitOpts(sel) { return '<option value="">— প্রোডাক্ট —</option>' + (ST.rows || []).map(p => `<option value="${esc(p.name)}" ${key(p.name) === key(sel) ? 'selected' : ''}>${esc(p.name)} (স্টক ${p.current})</option>`).join(''); }
+  function drawKitForm() {
+    const e = K.edit, body = $('inv3-kit-body');
+    body.innerHTML = `<div class="inv3-h" style="margin-top:0">${e.id ? '✏️ কিট এডিট' : '➕ নতুন কিট'}</div><div style="display:grid;grid-template-columns:2fr 1fr;gap:8px"><div><label class="form-label">কিটের নাম</label><input id="i3k-name" class="form-input" value="${esc(e.name)}" placeholder="যেমন: Combo A (অ্যালার্ম + সাইরেন)"></div><div><label class="form-label">কিটের দাম (৳)</label><input id="i3k-price" type="number" min="0" class="form-input" value="${esc(e.price)}"></div></div>
+      <div class="inv3-h">উপাদান</div>${e.lines.map((l, i) => `<div style="display:grid;grid-template-columns:2fr .6fr auto;gap:8px;margin-bottom:6px"><select class="form-select i3k-p" onchange="inv3KitLine(${i},'product',this.value)">${kitOpts(l.product)}</select><input class="form-input" type="number" min="1" value="${l.qty}" oninput="inv3KitLine(${i},'qty',this.value)"><button class="btn" onclick="inv3KitRm(${i})" ${e.lines.length <= 2 ? 'disabled' : ''}>✕</button></div>`).join('')}
+      <button class="btn" onclick="inv3KitAdd()">➕ উপাদান যোগ</button><div id="i3k-sum" style="margin-top:10px;font-size:13px;color:var(--text2)"></div><div id="i3k-err" style="color:var(--red);font-size:13px;margin-top:6px"></div>`;
+    $('inv3-kit-foot').innerHTML = '<button class="btn" onclick="inv3Kits()">← ফিরে যান</button><button class="btn primary" onclick="inv3KitSave()">💾 সংরক্ষণ</button>'; kitSum();
+  }
+  function kitSum() {
+    const e = K.edit; let s = 0; e.lines.forEach(l => { const p = prodByName(l.product); if (p) s += p.sell * (Number(l.qty) || 0); }); const pr = Number($('i3k-price') ? $('i3k-price').value : e.price) || 0;
+    if ($('i3k-sum')) $('i3k-sum').innerHTML = s > 0 ? `আলাদা কিনলে মোট <b>৳${nf(s)}</b>${pr > 0 ? (pr < s ? ' → কিটে ছাড় <b style="color:var(--green)">৳' + nf(s - pr) + '</b>' : pr > s ? ' → <span style="color:var(--orange)">কিটের দাম আলাদা কেনার চেয়ে বেশি!</span>' : '') : ''}` : '';
+  }
+  window.inv3KitLine = (i, f, v) => { K.edit.lines[i][f] = f === 'qty' ? Math.max(1, parseInt(v) || 1) : v; kitSum(); };
+  window.inv3KitAdd = () => { K.edit.name = $('i3k-name').value; K.edit.price = $('i3k-price').value; K.edit.lines.push({ product: '', qty: 1 }); drawKitForm(); };
+  window.inv3KitRm = i => { K.edit.name = $('i3k-name').value; K.edit.price = $('i3k-price').value; K.edit.lines.splice(i, 1); drawKitForm(); };
+  document.addEventListener('input', e => { if (e.target && e.target.id === 'i3k-price') kitSum(); });
+  window.inv3KitSave = async function () {
+    const e = K.edit, err = $('i3k-err'); err.textContent = ''; e.name = $('i3k-name').value.trim(); e.price = $('i3k-price').value;
+    if (!e.name) { err.textContent = '❌ কিটের নাম দিন'; return; } if (e.price === '' || !(Number(e.price) >= 0)) { err.textContent = '❌ কিটের দাম দিন'; return; }
+    const ls = e.lines.filter(l => l.product); if (ls.length < 2) { err.textContent = '❌ কমপক্ষে ২টি প্রোডাক্ট বেছে নিন'; return; }
+    const res = await postToAPI({ action: 'kitSave', id: e.id, name: e.name, price: Number(e.price), lines: ls.map(l => ({ product: l.product, qty: Number(l.qty) || 1 })), by: who(), reqId: rid('kt') });
+    if (!res) return; toast(res.message || '✅ সংরক্ষিত'); await loadKits(true); K.edit = null; inv3Kits();
+  };
+  window.inv3KitDel = async function (id) {
+    const k = (K.list || []).find(x => x.id === id); if (!k || !confirm('কিট "' + k.name + '" মুছবেন? (আগের অর্ডার অক্ষত থাকবে)')) return;
+    const res = await postToAPI({ action: 'kitDelete', id, by: who(), reqId: rid('kd') }); if (!res) return; toast(res.message || '✅ মুছেছে'); await loadKits(true); drawKits();
+  };
+
+  // ── অর্ডার ফর্ম: কিট যোগ ──
+  function alloc(kit, n, unit) {
+    const total = Math.round(unit * n * 100) / 100, ls = kit.lines.map(l => { const p = prodByName(l.product); return { product: l.product, qty: l.qty * n, w: ((p ? p.sell : 0) || 0) * l.qty * n }; });
+    let W = ls.reduce((a, l) => a + l.w, 0); if (W <= 0) { ls.forEach(l => { l.w = l.qty; }); W = ls.reduce((a, l) => a + l.w, 0); }
+    ls.forEach(l => { l.price = Math.round(total * (l.w / W) / l.qty); });
+    let ab = 0; ls.forEach((l, i) => { if (l.qty < ls[ab].qty) ab = i; });
+    const others = ls.reduce((a, l, i) => a + (i === ab ? 0 : l.price * l.qty), 0); ls[ab].price = Math.max(0, Math.round((total - others) / ls[ab].qty * 100) / 100);
+    return { total, lines: ls };
+  }
+  window.inv3KitPick = async function () {
+    mkModal('inv3-kp', '🎁 কিট যোগ করুন', 600); $('inv3-kp-body').innerHTML = '<div class="inv3-load">⏳ লোড হচ্ছে…</div>';
+    $('inv3-kp-foot').innerHTML = '<button class="btn" onclick="closeModal(\'inv3-kp\')">বাতিল</button><button class="btn primary" onclick="inv3KitUse()">✅ অর্ডারে যোগ করুন</button>'; openModal('inv3-kp');
+    if (!(ST.rows || []).length) { try { await loadLiveInventory(); } catch (e) {} }
+    const ks = await loadKits(true);
+    if (!ks) { $('inv3-kp-body').innerHTML = '<div class="inv3-note warn">কিট লোড হয়নি (GS নতুন ভার্সনে ডিপ্লয় করেছেন?)</div>'; return; }
+    if (!ks.length) { $('inv3-kp-body').innerHTML = '<div class="inv3-note">এখনো কোনো কিট নেই। Inventory → 🎁 কিট থেকে বানান।</div>'; return; }
+    $('inv3-kp-body').innerHTML = `<label class="form-label">কিট</label><select id="i3p-k" class="form-select" onchange="inv3KitPrev(true)">${ks.map(k => `<option value="${esc(k.id)}">${esc(k.name)} — ৳${nf(k.price)} (দেওয়া যাবে ${k.avail}টি)</option>`).join('')}</select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"><div><label class="form-label">কয়টি কিট</label><input id="i3p-n" type="number" min="1" value="1" class="form-input" oninput="inv3KitPrev()"></div><div><label class="form-label">প্রতি কিটের দাম (৳)</label><input id="i3p-u" type="number" min="0" class="form-input" oninput="inv3KitPrev()"></div></div><div id="i3p-prev" style="margin-top:12px"></div>`; inv3KitPrev(true);
+  };
+  window.inv3KitPrev = function (reset) {
+    const k = (K.list || []).find(x => x.id === $('i3p-k').value); if (!k) return; if (reset) $('i3p-u').value = k.price;
+    const n = Math.max(1, parseInt($('i3p-n').value) || 1), u = Number($('i3p-u').value) || 0, a = alloc(k, n, u);
+    $('i3p-prev').innerHTML = (k.avail < n ? `<div class="inv3-note warn">⚠ স্টকে মাত্র ${k.avail}টি কিটের উপাদান আছে — ${n}টি দিচ্ছেন (সতর্কতা মাত্র)।</div>` : '') + `<table class="inv3-t"><thead><tr><th>অর্ডারে যে লাইনগুলো বসবে</th><th>পরিমাণ</th><th>একক দাম</th><th>মোট</th></tr></thead><tbody>${a.lines.map(l => `<tr><td>${esc(l.product)}</td><td>${l.qty}</td><td>৳${nf(l.price)}</td><td>৳${nf(Math.round(l.price * l.qty * 100) / 100)}</td></tr>`).join('')}</tbody></table><div style="margin-top:6px;font-size:13px">মোট: <b>৳${nf(a.total)}</b></div>`;
+  };
+  window.inv3KitUse = function () {
+    const k = (K.list || []).find(x => x.id === $('i3p-k').value); if (!k) return; const n = Math.max(1, parseInt($('i3p-n').value) || 1), u = Number($('i3p-u').value) || 0, a = alloc(k, n, u);
+    let items = Array.isArray(window._orderItems) ? window._orderItems.slice() : []; items = items.filter(it => it.product || Number(it.price) > 0);
+    a.lines.forEach(l => items.push({ product: l.product, qty: l.qty, price: l.price })); window._orderItems = items;
+    try { _renderOrderItems(); } catch (e) {}
+    const d = $('order-description'); if (d) { const t = `🎁 কিট: ${k.name} ×${n} (৳${a.total})`; if (d.value.indexOf(t) < 0) d.value = (d.value ? d.value + '\n' : '') + t; }
+    closeModal('inv3-kp'); toast('🎁 ' + k.name + ' — ' + a.lines.length + 'টি লাইন যোগ হয়েছে');
+  };
+  window.__inv3kitAlloc = alloc;
 })();
 </script>
 </body>
