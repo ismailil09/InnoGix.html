@@ -1794,11 +1794,12 @@ tbody td.muted{color:var(--text3);}
           <select id="iw-mode" onchange="IGXW.ui()" class="form-select" style="padding:3px 8px;font-size:12px;width:auto;"><option value="">সময়: প্রোডাক্ট অনুযায়ী</option><option value="months">সময়: মাসে (১২ মাস)</option><option value="years">সময়: বছরে (১ বছর)</option></select>
         </span>
         <span id="iw-dd" style="display:inline-flex;gap:6px 10px;flex-wrap:wrap;align-items:center;">
-          <label title="এই ইনভয়েসের সব প্রোডাক্টের ওয়ারেন্টি মেয়াদ বদলান — মেয়াদ শেষের তারিখ নিজে থেকে হিসাব হবে (শিটে সেভ হয় না)">⏱ মেয়াদ:
+          <label title="এই ইনভয়েসের সব প্রোডাক্টের ওয়ারেন্টি মেয়াদ একসাথে বদলান (আলাদা করতে নিচের 'প্রতি প্রোডাক্টের ওয়ারেন্টি' ব্যবহার করুন) — মেয়াদ শেষের তারিখ নিজে থেকে হিসাব হবে (শিটে সেভ হয় না)">⏱ মেয়াদ:
             <select id="iw-dur" onchange="IGXW.durUi()" class="form-select" style="padding:3px 8px;font-size:12px;width:auto;"><option value="">প্রোডাক্ট অনুযায়ী</option><option value="6">৬ মাস</option><option value="12">১ বছর</option><option value="24">২ বছর</option><option value="36">৩ বছর</option><option value="custom">কাস্টম…</option></select></label>
           <span id="iw-cust" style="display:none;gap:4px;align-items:center;"><input type="number" id="iw-cust-n" min="1" step="1" value="18" oninput="IGXW.durUi()" style="width:62px;padding:3px 6px;font-size:12px;border:1px solid var(--border,#262626);border-radius:6px;background:var(--bg,#000000);color:var(--text,#F2F2F2);"><select id="iw-cust-u" onchange="IGXW.durUi()" class="form-select" style="padding:3px 6px;font-size:12px;width:auto;"><option value="month">মাস</option><option value="year">বছর</option><option value="day">দিন</option></select></span>
           <label title="ইনভয়েসের তারিখ বদলালে মেয়াদ শেষের তারিখ নতুন করে হিসাব হবে">📅 ইনভয়েস তারিখ: <input type="date" id="iw-date" onchange="IGXW.dateUi()" style="padding:3px 6px;font-size:12px;border:1px solid var(--border,#262626);border-radius:6px;background:var(--bg,#000000);color:var(--text,#F2F2F2);color-scheme:dark;"></label>
         </span>
+        <span id="iw-pp" style="display:none;gap:6px 12px;flex-wrap:wrap;align-items:center;flex-basis:100%;" title="একই ইনভয়েসে একাধিক প্রোডাক্টের আলাদা ওয়ারেন্টি — শিটে সেভ হয় না"></span>
         <button class="btn" style="padding:4px 10px;font-size:12px;" onclick="IGXW.openSettings()">⚙️ ওয়ারেন্টি সেটিংস / টেমপ্লেট</button>
       </div>
       <div id="inv-sig-ctrl" style="padding:10px 16px;background:var(--bg3,#080808);border-bottom:1px solid var(--border,#262626);display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;font-size:12px;color:var(--text,#F2F2F2);">
@@ -10348,7 +10349,7 @@ const IGXW = (function(){
   try{ const x=JSON.parse(localStorage.getItem(LS)||'null'); if(x&&typeof x==='object') store={global:x.global||null,def:x.def||null,products:x.products||{}}; }catch(e){}
   const UIDEF={master:true,war:true,rep:true,exp:true,cov:true,not:true,claim:true,mode:''};
   /* এই ইনভয়েসের জন্য সাময়িক ওভাররাইড (শিটে/সেটিংসে সেভ হয় না): মেয়াদ ও ইনভয়েস-তারিখ */
-  let ovr = {dur:'', n:18, u:'month'}, ovrDate = null;
+  let ovr = {dur:'', n:18, u:'month'}, ovrDate = null, ovrP = {}, ppNames = [];
   let ui = Object.assign({},UIDEF);
   try{ const x=JSON.parse(localStorage.getItem(LSU)||'null'); if(x&&typeof x==='object') ui=Object.assign({},UIDEF,x); }catch(e){}
 
@@ -10360,8 +10361,9 @@ const IGXW = (function(){
   function prodKey(n){ n=String(n||'').trim().toLowerCase(); for(const k in store.products){ if(String(k).trim().toLowerCase()===n) return k; } return null; }
   function resolve(name){ const k=prodKey(name); return k? Object.assign(clone(DEF),store.products[k]) : defCfg(); }
   function ovrMonths(){ if(!ovr.dur) return 0; if(ovr.dur!=='custom') return Number(ovr.dur); const n=Math.floor(Number(ovr.n)||0); return n>0?n:0; }
-  function resolveO(name){ const c=resolve(name); if(!ovr.dur || !c.enabled) return c; const n = ovr.dur==='custom' ? Math.floor(Number(ovr.n)||0) : Number(ovr.dur); if(n<=0) return c; return Object.assign(c,{wVal:n,wUnit:(ovr.dur==='custom'?ovr.u:'month'),wMode:'months',wText:''}); }
-  function labOf(r){ if(!ovr.dur) return durLabel(r.cfg,ui.mode); const c=r.cfg, v=Number(c.wVal)||0; const mo=c.wUnit==='year'?v*12:(c.wUnit==='day'?0:v); return durLabel(c,(c.wUnit!=='day'&&mo>=12&&mo%12===0)?'years':'months'); }
+  function ovFor(name){ const o=ovrP[String(name||'').trim().toLowerCase()]; if(o&&o.dur) return o; return ovr.dur?ovr:null; }
+  function resolveO(name){ const c=resolve(name), o=ovFor(name); if(!o || !c.enabled) return c; if(o.dur==='none') return Object.assign(c,{enabled:false}); const n = o.dur==='custom' ? Math.floor(Number(o.n)||0) : Number(o.dur); if(n<=0) return c; return Object.assign(c,{wVal:n,wUnit:(o.dur==='custom'?o.u:'month'),wMode:'months',wText:''}); }
+  function labOf(r){ if(!r.ov) return durLabel(r.cfg,ui.mode); const c=r.cfg, v=Number(c.wVal)||0; const mo=c.wUnit==='year'?v*12:(c.wUnit==='day'?0:v); return durLabel(c,(c.wUnit!=='day'&&mo>=12&&mo%12===0)?'years':'months'); }
   function persist(){ try{ localStorage.setItem(LS,JSON.stringify(store)); }catch(e){} }
   function apply(d){ if(!d||d.status!=='ok') return false; store={global:d.global||null,def:d.def||null,products:d.products||{}}; persist(); return true; }
 
@@ -10430,7 +10432,7 @@ const IGXW = (function(){
     const ctx=window._invCtx||{items:[],date:''};
     const g=gl();
     if(!ui.master || !(ui.war||ui.rep)){ box.innerHTML=''; box.style.display='none'; return; }
-    const rows=(ctx.items||[]).map(it=>({name:String(it.product||'').trim(),cfg:resolveO(it.product)})).filter(x=>x.name&&x.cfg.enabled);
+    const rows=(ctx.items||[]).map(it=>({name:String(it.product||'').trim(),cfg:resolveO(it.product),ov:!!ovFor(it.product)})).filter(x=>x.name&&x.cfg.enabled);
     if(!rows.length){ box.innerHTML=''; box.style.display='none'; return; }
     box.style.display='';
     const start=ovrDate||parseDate(ctx.date);
@@ -10498,7 +10500,24 @@ const IGXW = (function(){
     const n=$('iw-cust-n'); if(n) n.value=ovr.n; const u=$('iw-cust-u'); if(u) u.value=ovr.u;
     const dt=$('iw-date'); if(dt){ const b=ovrDate||parseDate((ctx||window._invCtx||{}).date); dt.value=b?isoOf(b):''; }
   }
-  function show(ctx){ window._invCtx=ctx; ovr={dur:'',n:18,u:'month'}; ovrDate=null; syncUi(); syncOvrUi(ctx); render(); }
+  function ppUi(){
+    const box=$('iw-pp'); if(!box) return; const items=((window._invCtx||{}).items)||[]; const seen={}; ppNames=[];
+    items.forEach(it=>{ const n=String(it.product||'').trim(), k=n.toLowerCase(); if(n&&!seen[k]){ seen[k]=1; ppNames.push(n); } });
+    if(ppNames.length<2){ box.style.display='none'; box.innerHTML=''; return; }
+    const PRE=[['','প্রোডাক্ট অনুযায়ী'],['none','ওয়ারেন্টি নেই'],['3','৩ মাস'],['6','৬ মাস'],['12','১ বছর'],['24','২ বছর'],['36','৩ বছর'],['60','৫ বছর'],['custom','কাস্টম (মাস)…']];
+    box.style.display='inline-flex';
+    box.innerHTML='<b style="font-weight:600;">প্রতি প্রোডাক্টের ওয়ারেন্টি:</b>'+ppNames.map((n,i)=>{
+      const o=ovrP[n.toLowerCase()], v=o?o.dur:''; let opts=PRE.map(q=>`<option value="${q[0]}" ${q[0]===v?'selected':''}>${q[1]}</option>`).join('');
+      if(v && !PRE.some(q=>q[0]===v)) opts=opts.replace('<option value="custom"',`<option value="${esc(v)}" selected>${esc(v)} মাস</option><option value="custom"`);
+      return `<label style="display:inline-flex;gap:4px;align-items:center;">${esc(n)}: <select class="form-select" style="padding:3px 6px;font-size:12px;width:auto;" onchange="IGXW.ppSet(${i},this.value)">${opts}</select></label>`; }).join('');
+  }
+  function ppSet(i,v){
+    const n=ppNames[i]; if(!n) return; const k=n.toLowerCase();
+    if(v==='custom'){ const m=parseInt(prompt('কত মাসের ওয়ারেন্টি? (যেমন 18)'),10); if(!(m>0&&m<=600)){ ppUi(); return; } v=String(m); }
+    if(!v) delete ovrP[k]; else ovrP[k]={dur:v,n:18,u:'month'};
+    ppUi(); render(); if(typeof _invoiceEditMode!=='undefined' && _invoiceEditMode) _setInvoiceEditMode(true);
+  }
+  function show(ctx){ window._invCtx=ctx; ovr={dur:'',n:18,u:'month'}; ovrP={}; ovrDate=null; syncUi(); syncOvrUi(ctx); ppUi(); render(); }
   function durUi(){
     const d=$('iw-dur'); ovr.dur=d?d.value:''; ovr.n=Number(($('iw-cust-n')||{}).value)||0; ovr.u=($('iw-cust-u')||{}).value||'month';
     const c=$('iw-cust'); if(c) c.style.display=ovr.dur==='custom'?'inline-flex':'none';
@@ -10608,7 +10627,7 @@ const IGXW = (function(){
   }
   // স্টার্টআপে সার্ভার থেকে একবার লোড (নীরবে)
   setTimeout(async()=>{ try{ const d=await fetchFromAPI('warrantyGet'); if(d&&apply(d)) render(); }catch(e){} },3500);
-  return {ui:uiChange, show, render, durUi, dateUi, openSettings, selChange, edit, save, resetForm, copyText, delProd, applyMany, _t:{resolve,durLabel,parseDate,addPeriod,fmtDate,store:()=>store,ovr:()=>({ovr,ovrDate})}};
+  return {ui:uiChange, show, render, durUi, dateUi, ppSet, openSettings, selChange, edit, save, resetForm, copyText, delProd, applyMany, _t:{resolve,durLabel,parseDate,addPeriod,fmtDate,store:()=>store,ovr:()=>({ovr,ovrDate})}};
 })();
 window.IGXW=IGXW;
 
@@ -24434,9 +24453,13 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
     m.innerHTML = `<div class="modal-box" style="max-width:${width || 600}px;width:96vw;"><div class="modal-header"><span class="modal-title">${title}</span><button class="modal-close" onclick="closeModal('${id}')">✕</button></div><div class="modal-body" id="${id}-body" style="max-height:72vh;overflow:auto;"></div><div class="modal-footer" id="${id}-foot"></div></div>`;
     document.body.appendChild(m); return m;
   }
-  function warrantyOf(product, startStr) {   // order-date থেকে ওয়ারেন্টির শেষ তারিখ (বিদ্যমান Warranty কনফিগ অনুযায়ী)
+  const WOPTS = [['none', 'ওয়ারেন্টি নেই'], ['3', '৩ মাস'], ['6', '৬ মাস'], ['12', '১ বছর'], ['24', '২ বছর'], ['36', '৩ বছর'], ['60', '৫ বছর']];
+  const snX = t => { t = String(t == null ? '' : t); const m = [...t.matchAll(/SN:\s*([A-Za-z0-9][A-Za-z0-9._\/-]*)/gi)].map(x => x[1].toUpperCase()); return m.length ? m.join('\n') : t; };   // ফোন/স্ক্যানারে তথ্যসহ QR স্ক্যান করলে শুধু সিরিয়াল নাও
+  function warrantyOf(product, startStr, ov) {   // order-date থেকে ওয়ারেন্টির শেষ তারিখ (প্রোডাক্টের Warranty কনফিগ, বা এই অর্ডারে বাছাই করা মেয়াদ)
     try {
       const T = window.IGXW && IGXW._t; if (!T) return '';
+      if (ov === 'none') return '';
+      if (ov && Number(ov) > 0) { const st0 = T.parseDate(startStr) || parseD(startStr); if (!st0) return ''; const e0 = T.addPeriod(st0, { wVal: Number(ov), wUnit: 'month' }); return e0 ? iso(e0) : ''; }
       const cfg = T.resolve(product); if (!cfg || !cfg.enabled) return '';
       const st = T.parseDate(startStr) || parseD(startStr); if (!st) return '';
       const e = T.addPeriod(st, cfg); return e ? iso(e) : '';
@@ -24460,7 +24483,7 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
     openModal('inv3-sl'); if (q) { inp.value = q; inv3SerLookupGo(); } else setTimeout(() => inp.focus(), 60);
   };
   window.inv3SerLookupGo = async function () {
-    const q = ($('i3sl-q').value || '').trim(), box = $('i3sl-res'); if (!q) return;
+    const q = snX(($('i3sl-q').value || '').trim()).split('\n')[0].trim(), box = $('i3sl-res'); if (!q) return;
     box.innerHTML = '<div class="inv3-load">⏳ খোঁজা হচ্ছে…</div>';
     const d = await fetchFromAPI('serialLookup', { q });
     if (!d) { box.innerHTML = '<div class="inv3-note warn">খোঁজা যায়নি — GS নতুন ভার্সনে ডিপ্লয় করেছেন? (Deploy → Manage deployments → Edit → New version)</div>'; return; }
@@ -24509,13 +24532,19 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
         return `<div class="inv3-h">${esc(it.product)} × ${it.qty} <span style="color:var(--text3);font-weight:400">— বসানো ${ex.length}/${it.qty}</span></div>
         ${it.p ? '' : '<div class="inv3-note warn">⚠ ইনভেন্টরিতে এই নামে প্রোডাক্ট নেই — সিরিয়াল বসানো যাবে না</div>'}
         ${ex.length ? `<div style="font-size:12.5px;color:var(--green);margin-bottom:6px">✅ আগে বসানো: ${ex.map(esc).join(', ')}</div>` : ''}
+        ${it.p && need > 0 ? `<div style="display:flex;gap:8px;align-items:center;margin:4px 0 8px;flex-wrap:wrap"><label style="font-size:12.5px;color:var(--text2)">🛡️ এই প্রোডাক্টের ওয়ারেন্টি:</label><select id="i3sa-w${i}" class="form-select" style="width:auto;padding:4px 8px;font-size:12.5px" onchange="inv3SerW(${i},this)"><option value="">প্রোডাক্টের সেটিং অনুযায়ী (${esc(defWar(it.product))})</option>${WOPTS.map(o => `<option value="${o[0]}">${o[1]}</option>`).join('')}<option value="custom">কাস্টম (মাস)…</option></select></div>` : ''}
         ${it.p && need > 0 ? `<textarea id="i3sa-t${i}" class="form-input" rows="${Math.min(6, Math.max(2, need))}" style="width:100%;font-family:monospace" placeholder="P1-000001&#10;P1-000002"></textarea>
         <div style="display:flex;gap:8px;margin-top:6px;align-items:center;flex-wrap:wrap"><button class="btn" onclick="inv3SerAuto(${i},${need})">⚡ Auto (পুরোনো ব্যাচ আগে — FIFO)</button><span id="i3sa-n${i}" style="font-size:12.5px;color:var(--text3)">বাকি ${need}টি</span></div>` : ''}`;
       }).join('') +
       `<label style="display:flex;gap:8px;align-items:center;margin-top:14px;font-size:13px;color:var(--text2)"><input type="checkbox" id="i3sa-cust"> ব্যাচ-বহির্ভূত সিরিয়াল অনুমতি দিন (পুরোনো স্টক/সাপ্লায়ারের সিরিয়াল)</label>`;
     c.items.forEach((it, i) => { const t = $('i3sa-t' + i); if (t) t.addEventListener('input', () => { const n = parseList(t.value).length, e = $('i3sa-n' + i); if (e) e.textContent = n + 'টি লেখা হয়েছে'; }); });
   }
-  const parseList = s => { const seen = {}, out = []; String(s || '').split(/[\n,;]+/).forEach(x => { const v = x.trim().toUpperCase().replace(/\s+/g, ''); if (v && !seen[v]) { seen[v] = 1; out.push(v); } }); return out; };
+  function defWar(name) { try { const T = IGXW._t, c = T.resolve(name); return c.enabled && Number(c.wVal) > 0 ? (T.durLabel(c) || 'আছে') : 'নেই'; } catch (e) { return '—'; } }
+  window.inv3SerW = function (i, sel) {
+    if (sel.value !== 'custom') return; const m = parseInt(prompt('কত মাসের ওয়ারেন্টি? (যেমন 18)'), 10);
+    if (!(m > 0 && m <= 600)) { sel.value = ''; return; } const o = document.createElement('option'); o.value = String(m); o.textContent = m + ' মাস'; sel.insertBefore(o, sel.lastElementChild); sel.value = String(m);
+  };
+  const parseList = s => { const seen = {}, out = []; snX(s).split(/[\n,;]+/).forEach(x => { const v = x.trim().toUpperCase().replace(/\s+/g, ''); if (v && !seen[v]) { seen[v] = 1; out.push(v); } }); return out; };
   window.inv3SerAuto = async function (i, need) {
     const it = CUR.items[i], t = $('i3sa-t' + i); if (!it || !it.p) return;
     const taken = new Set(); CUR.items.forEach((_, j) => { const e = $('i3sa-t' + j); if (e && j !== i) parseList(e.value).forEach(s => taken.add(s)); });
@@ -24528,12 +24557,12 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   window.inv3SerAssignSubmit = async function () {
     const c = CUR; if (!c) return; const allow = $('i3sa-cust') && $('i3sa-cust').checked; let total = 0, short = [];
     const jobs = []; c.items.forEach((it, i) => { const t = $('i3sa-t' + i); if (!t || !it.p) return; const list = parseList(t.value); if (!list.length) return;
-      const need = Math.max(0, it.qty - (c.existing[key(it.product)] || []).length); if (list.length > need) short.push(it.product + ': ' + list.length + ' লিখেছেন, বাকি মাত্র ' + need); jobs.push({ it, list }); total += list.length; });
+      const need = Math.max(0, it.qty - (c.existing[key(it.product)] || []).length); if (list.length > need) short.push(it.product + ': ' + list.length + ' লিখেছেন, বাকি মাত্র ' + need); jobs.push({ it, list, i }); total += list.length; });
     if (!jobs.length) { toast('কোনো সিরিয়াল লেখা হয়নি', 'error'); return; }
     if (short.length && !confirm('⚠ অর্ডারের পরিমাণের চেয়ে বেশি সিরিয়াল:\n' + short.join('\n') + '\n\nতবুও সংরক্ষণ করবেন?')) return;
     let ok = 0, fail = false;
     for (const j of jobs) {
-      const res = await postToAPI({ action: 'serialAssign', product: j.it.p.id, orderId: c.orderId, customer: c.customer, phone: c.phone, soldDate: iso(parseD(c.date) || new Date()), warrantyUntil: warrantyOf(j.it.product, c.date), serials: j.list, allowCustom: !!allow, by: who(), reqId: rid('sa') });
+      const res = await postToAPI({ action: 'serialAssign', product: j.it.p.id, orderId: c.orderId, customer: c.customer, phone: c.phone, soldDate: iso(parseD(c.date) || new Date()), warrantyUntil: warrantyOf(j.it.product, c.date, ($('i3sa-w' + j.i) || {}).value || ''), serials: j.list, allowCustom: !!allow, by: who(), reqId: rid('sa') });
       if (!res) { fail = true; break; } ok += (res.assigned || 0);
     }
     if (fail) { toast('কিছু সিরিয়াল সংরক্ষণ হয়নি — উপরের ত্রুটি দেখুন; যেগুলো ঠিক ছিল সেগুলো আগে সেভ হয়ে থাকতে পারে', 'error'); try { inv3SerOpen(c.orderId); } catch (e) {} return; }
@@ -24542,6 +24571,7 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
 
   // ═════════ প্রোডাক্ট ড্রয়ার → সিরিয়াল ট্যাব (রেজিস্ট্রি অংশ) ═════════
   ST.serCache = ST.serCache || {};
+  const serTbl = (rows, lim) => rows.length ? `<table class="inv3-t"><thead><tr><th>সিরিয়াল</th><th>অবস্থা</th><th>অর্ডার / গ্রাহক</th><th>ওয়ারেন্টি</th></tr></thead><tbody>${rows.slice(0, lim).map(x => `<tr><td><a href="#" style="color:var(--gold)" onclick="inv3SerLookup('${jsq(x.serial)}');return false">${esc(x.serial)}</a></td><td>${stPill(x.status)}</td><td>${x.status === 'Sold' ? '#' + esc(x.orderId) + '<div style="color:var(--text3);font-size:12px">' + esc(x.customer) + (x.phone ? ' · ' + esc(x.phone) : '') + '</div>' : '—'}</td><td style="font-size:12px">${x.status === 'Sold' && x.warrantyUntil ? esc(x.warrantyUntil) : '—'}</td></tr>`).join('')}</tbody></table>${rows.length > lim ? '<div class="inv3-empty">…আরও আছে — উপরের সার্চ বক্সে অর্ডার নং/সিরিয়াল/ফোন/নাম দিয়ে খুঁজুন</div>' : ''}` : '';
   window.inv3SerBox = async function (p) {
     const box = $('inv3-serbox'); if (!box || !p) return;
     let d = ST.serCache[p.id]; if (!d || Date.now() - d.at > 45000) { box.innerHTML = '<div class="inv3-load">⏳ সিরিয়াল রেজিস্ট্রি লোড হচ্ছে…</div>'; const r = await fetchFromAPI('serialList', { product: p.id }); d = r ? { at: Date.now(), r } : null; if (d) ST.serCache[p.id] = d; }
@@ -24549,8 +24579,24 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
     if (!d) { box.innerHTML = '<div class="inv3-note warn">সিরিয়াল রেজিস্ট্রি লোড হয়নি (GS নতুন ভার্সনে ডিপ্লয় করেছেন?)</div>'; return; }
     const r = d.r;
     box.innerHTML = `<div class="inv3-h">🔢 সিরিয়াল রেজিস্ট্রি</div><div class="inv3-g"><div class="inv3-c"><span>তৈরি (মোট সিরিয়াল)</span><b>${r.produced}</b></div><div class="inv3-c"><span>বিক্রি (Sold)</span><b class="inv3-pos">${r.sold}</b></div><div class="inv3-c"><span>স্টকে থাকার কথা</span><b>${r.inStockSerials}</b></div><div class="inv3-c"><span>নষ্ট (Defective)</span><b class="${r.defective ? 'inv3-neg' : ''}">${r.defective}</b></div><div class="inv3-c"><span>ছাড়া/ফেরত</span><b>${r.released}</b></div></div>` +
-      (r.data && r.data.length ? `<table class="inv3-t"><thead><tr><th>সিরিয়াল</th><th>অবস্থা</th><th>অর্ডার / গ্রাহক</th><th>ওয়ারেন্টি</th></tr></thead><tbody>${r.data.slice(0, 80).map(x => `<tr><td><a href="#" style="color:var(--gold)" onclick="inv3SerLookup('${jsq(x.serial)}');return false">${esc(x.serial)}</a></td><td>${stPill(x.status)}</td><td>${x.status === 'Sold' ? '#' + esc(x.orderId) + '<div style="color:var(--text3);font-size:12px">' + esc(x.customer) + '</div>' : '—'}</td><td style="font-size:12px">${x.status === 'Sold' && x.warrantyUntil ? esc(x.warrantyUntil) : '—'}</td></tr>`).join('')}</tbody></table>${r.data.length > 80 ? '<div class="inv3-empty">…আরও আছে — সিরিয়াল/অর্ডার দিয়ে খুঁজুন</div>' : ''}` : '<div class="inv3-empty">এখনো কোনো সিরিয়াল বিক্রিতে বসানো হয়নি — Sales → অর্ডারের 🔢 বাটন থেকে বসান</div>') +
-      '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="inv3SerLookup()">🔎 সিরিয়াল / ওয়ারেন্টি খুঁজুন</button><button class="btn" onclick="inv3Label(\''+jsq(p.id)+'\')">🏷️ লেবেল প্রিন্ট</button></div>';
+      `<input id="i3sr-q" class="form-input" style="width:100%;margin-bottom:10px" placeholder="🔍 অর্ডার নং / সিরিয়াল / ফোন / গ্রাহকের নাম দিয়ে খুঁজুন" oninput="inv3SerSearch()" autocomplete="off"><div id="i3sr-res" style="display:none"></div>` +
+      `<div id="i3sr-all">${r.data && r.data.length ? serTbl(r.data, 80) : '<div class="inv3-empty">এখনো কোনো সিরিয়াল বিক্রিতে বসানো হয়নি — Sales → অর্ডারের 🔢 বাটন থেকে বসান</div>'}</div>` +
+      '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="inv3SerLookup()">🔎 সিরিয়াল / ওয়ারেন্টি খুঁজুন</button><button class="btn" onclick="inv3Label(\'' + jsq(p.id) + '\')">🏷️ লেবেল প্রিন্ট</button></div>';
+  };
+  let srT = null;
+  window.inv3SerSearch = function () {
+    clearTimeout(srT); srT = setTimeout(async () => {
+      const inp = $('i3sr-q'), res = $('i3sr-res'), all = $('i3sr-all'); if (!inp || !res) return; const q = snX(inp.value).split('\n')[0].trim();
+      if (!q) { res.style.display = 'none'; res.innerHTML = ''; all.style.display = ''; return; }
+      const p = ST.rows[ST.cur]; if (!p) return; all.style.display = 'none'; res.style.display = ''; res.innerHTML = '<div class="inv3-load">⏳ খোঁজা হচ্ছে…</div>';
+      const d = await fetchFromAPI('serialLookup', { q }); if (!$('i3sr-q') || snX($('i3sr-q').value).split('\n')[0].trim() !== q) return;
+      if (!d) { res.innerHTML = '<div class="inv3-note warn">খোঁজা যায়নি — GS নতুন ভার্সনে ডিপ্লয় করেছেন?</div>'; return; }
+      const mine = (d.data || []).filter(x => key(x.product) === key(p.name)), other = (d.data || []).filter(x => key(x.product) !== key(p.name));
+      let h = mine.length ? serTbl(mine, 100) : `<div class="inv3-note warn" style="margin-top:0">"${esc(q)}" — এই প্রোডাক্টে বিক্রির রেকর্ড পাওয়া যায়নি।</div>`;
+      if (d.unsold && key(d.unsold.product) === key(p.name)) h = `<div class="inv3-note ok" style="margin-top:0"><b>${esc(d.unsold.serial)}</b> এই প্রোডাক্টেরই (ব্যাচ ${esc(d.unsold.batch)}), কিন্তু <b>বিক্রির রেকর্ড নেই</b> — স্টকে আছে বা বিক্রির সময় সিরিয়াল বসানো হয়নি।</div>`;
+      if (other.length) h += `<div class="inv3-note" style="margin-top:10px">অন্য প্রোডাক্টে পাওয়া গেছে: ${other.slice(0, 6).map(x => `<a href="#" style="color:var(--gold)" onclick="inv3SerLookup('${jsq(x.serial)}');return false">${esc(x.serial)} (${esc(x.product)})</a>`).join(', ')}</div>`;
+      res.innerHTML = h;
+    }, 300);
   };
 
   // ═════════ ফেরত-যাচাইয়ে সিরিয়াল ═════════
@@ -24648,78 +24694,136 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   }
   window.__igxBC = { qrSvg, c128Svg, c128Mods, QR };
 
-  // ═════════ 🏷️ লেবেল প্রিন্ট ═════════
-  const SIZES = { '50x30': [50, 30], '40x25': [40, 25], '70x40': [70, 40] };
+  // ═════════ 🏷️ লেবেল প্রিন্ট (সাইজ/দাম কাস্টম · A4 স্টিকার-শিট · তথ্যসহ QR) ═════════
+  const SIZES = { '30x20': [30, 20], '40x25': [40, 25], '50x30': [50, 30], '70x40': [70, 40] };
+  const HELP_NO = '+8801560016179';
+  const WOPTS = [['', 'প্রোডাক্টের সেটিং অনুযায়ী'], ['none', 'ওয়ারেন্টি লাইন নেই'], ['3', '৩ মাস'], ['6', '৬ মাস'], ['12', '১ বছর'], ['24', '২ বছর'], ['36', '৩ বছর'], ['60', '৫ বছর']];
   function parseSerial(sv) { const m = String(sv || '').match(/^(.+)-(\d+)$/); return m ? { p: m[1], n: parseInt(m[2], 10), pad: m[2].length } : null; }
   function serialRange(a, b) {
     const x = parseSerial(a), y = parseSerial(b); if (!x || !y || x.p !== y.p || y.n < x.n) return [];
     const out = []; for (let n = x.n; n <= y.n && out.length < 500; n++) out.push(x.p + '-' + String(n).padStart(x.pad, '0')); return out;
   }
-  const L = { items: [], prod: null };
+  const L = { prod: null };
+  const bytesOf = s => new TextEncoder().encode(String(s)).length;
+  const cutB = (s, max) => { s = String(s); while (s && bytesOf(s) > max) s = s.slice(0, -1); return s; };
+  function warInfo(p, ov) {   // ওয়ারেন্টি: প্রোডাক্টের সেটিং বা এই লেবেলের জন্য বাছাই
+    try {
+      if (ov === 'none') return null;
+      if (ov && Number(ov) > 0) { const m = Number(ov); return { en: m + ' Months', bn: (window.IGXW ? IGXW._t.durLabel({ wVal: m, wUnit: 'month', wMode: m % 12 === 0 && m >= 12 ? 'years' : 'months' }) : m + ' মাস') }; }
+      const T = window.IGXW && IGXW._t; if (!T) return null; const c = T.resolve(p.name); if (!c || !c.enabled || !(Number(c.wVal) > 0)) return null;
+      const v = Number(c.wVal), en = c.wUnit === 'day' ? v + ' Days' : (c.wUnit === 'year' ? v * 12 : v) + ' Months'; return { en, bn: T.durLabel(c) || en };
+    } catch (e) { return null; }
+  }
   window.inv3Label = async function (pid) {
-    mkModal('inv3-lb', '🏷️ বারকোড / QR লেবেল প্রিন্ট', 760);
+    mkModal('inv3-lb', '🏷️ বারকোড / QR লেবেল প্রিন্ট', 820);
     const rows = ST.rows || []; if (!rows.length) { toast('Inventory লোড হয়নি', 'error'); return; }
     const sel = pid && rows.find(p => String(p.id) === String(pid)) || rows[0]; L.prod = sel;
-    $('inv3-lb-body').innerHTML = `<div class="inv3-note" style="margin-top:0">প্রতিটি ইউনিটের সিরিয়ালের লেবেল প্রিন্ট করে বক্সে লাগান। QR-এ/বারকোডে সিরিয়ালই থাকে — স্ক্যান করলে সিরিয়াল সরাসরি বসানোর ঘরে চলে আসবে (USB স্ক্যানার কিবোর্ডের মতো টাইপ করে)।</div>
+    $('inv3-lb-body').innerHTML = `<div class="inv3-note" style="margin-top:0">স্টিকারে ছোট করে প্রিন্ট করতে: <b>লেআউট = A4 শিট</b> রাখুন, <b>লেবেলের মাপ</b> বেছে নিন (বা কাস্টম মাপ দিন) — এক A4 পাতায় যতগুলো ধরে ততগুলো সিরিয়াল একসাথে বসবে। QR স্ক্যান করলে ফোনে প্রোডাক্ট, সিরিয়াল, ওয়ারেন্টি ও হেল্পলাইন দেখাবে।</div>
       <div class="inv3-g" style="grid-template-columns:repeat(2,minmax(0,1fr))">
-        <div><label class="form-label">প্রোডাক্ট</label><select id="i3l-p" class="form-select" onchange="inv3LabelProd()">${rows.map(p => `<option value="${esc(p.id)}" ${p.id === sel.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></div>
+        <div><label class="form-label">প্রোডাক্ট</label><select id="i3l-p" class="form-select" onchange="inv3LabelProd(true)">${rows.map(p => `<option value="${esc(p.id)}" ${p.id === sel.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></div>
         <div><label class="form-label">কী প্রিন্ট করবেন</label><select id="i3l-src" class="form-select" onchange="inv3LabelSrc()"><option value="batch">ব্যাচের সিরিয়াল</option><option value="range">সিরিয়াল রেঞ্জ (হাতে)</option><option value="prod">প্রোডাক্ট লেবেল (ID)</option></select></div>
         <div id="i3l-srcbox" style="grid-column:1/-1"></div>
         <div><label class="form-label">কোড</label><select id="i3l-type" class="form-select" onchange="inv3LabelDraw()"><option value="qr">QR কোড</option><option value="c128">বারকোড (Code128)</option><option value="both">দুটোই</option></select></div>
-        <div><label class="form-label">লেবেলের মাপ (মিমি)</label><select id="i3l-size" class="form-select" onchange="inv3LabelDraw()"><option value="50x30">৫০ × ৩০</option><option value="40x25">৪০ × ২৫</option><option value="70x40">৭০ × ৪০</option></select></div>
-        <div><label class="form-label">লেআউট</label><select id="i3l-lay" class="form-select"><option value="single">লেবেল প্রিন্টার (১টি লেবেল = ১ পাতা)</option><option value="sheet">A4 শিট (গ্রিড)</option></select></div>
-        <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap"><label style="font-size:13px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="i3l-price" onchange="inv3LabelDraw()"> দাম দেখান</label><label style="font-size:13px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="i3l-brand" checked onchange="inv3LabelDraw()"> InnoGix নাম</label></div>
-      </div><div class="inv3-h">প্রিভিউ <span id="i3l-cnt" style="color:var(--text3);font-weight:400"></span></div><div id="i3l-prev" style="display:flex;flex-wrap:wrap;gap:10px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px;max-height:300px;overflow:auto"></div>`;
-    $('inv3-lb-foot').innerHTML = '<button class="btn" onclick="closeModal(\'inv3-lb\')">বন্ধ</button><button class="btn primary" onclick="inv3LabelPrint()">🖨️ প্রিন্ট</button>';
-    openModal('inv3-lb'); inv3LabelProd();
+        <div><label class="form-label">QR-এ কী থাকবে</label><select id="i3l-qrm" class="form-select" onchange="inv3LabelDraw()"><option value="info">তথ্যসহ — নাম, সিরিয়াল, ওয়ারেন্টি, হেল্পলাইন (ফোনে দেখাবে)</option><option value="raw">শুধু সিরিয়াল (স্ক্যানারের জন্য)</option></select></div>
+        <div><label class="form-label">লেবেলের মাপ (মিমি)</label><select id="i3l-size" class="form-select" onchange="inv3LabelDraw()"><option value="30x20">৩০ × ২০</option><option value="40x25">৪০ × ২৫</option><option value="50x30" selected>৫০ × ৩০</option><option value="70x40">৭০ × ৪০</option><option value="custom">কাস্টম মাপ…</option></select>
+          <div id="i3l-cs" style="display:none;gap:6px;align-items:center;margin-top:6px"><input id="i3l-w" type="number" min="15" max="190" value="45" class="form-input" style="width:80px" oninput="inv3LabelDraw()"> × <input id="i3l-h" type="number" min="10" max="190" value="25" class="form-input" style="width:80px" oninput="inv3LabelDraw()"> <span style="color:var(--text3);font-size:12px">চওড়া × উচ্চতা (মিমি)</span></div></div>
+        <div><label class="form-label">লেআউট</label><select id="i3l-lay" class="form-select" onchange="inv3LabelDraw()"><option value="sheet">A4 শিট — একাধিক লেবেল একসাথে (স্টিকার)</option><option value="single">লেবেল প্রিন্টার — ১টি লেবেল = ১ পাতা</option></select></div>
+        <div id="i3l-sheetopt" style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px">
+          <div><label class="form-label">পাতার মার্জিন (মিমি)</label><input id="i3l-mg" type="number" min="0" max="30" value="8" class="form-input" oninput="inv3LabelDraw()"></div>
+          <div><label class="form-label">লেবেলের মাঝের ফাঁক (মিমি)</label><input id="i3l-gp" type="number" min="0" max="20" step="0.5" value="2" class="form-input" oninput="inv3LabelDraw()"></div>
+          <div><label class="form-label">শুরুর কত ঘর বাদ দেবেন</label><input id="i3l-skip" type="number" min="0" max="500" value="0" class="form-input" oninput="inv3LabelDraw()" title="শিটের আগে ব্যবহার করা ঘর ফাঁকা রাখতে"></div>
+          <div><label class="form-label">প্রতি সিরিয়ালে কয়টি লেবেল</label><input id="i3l-cp" type="number" min="1" max="20" value="1" class="form-input" oninput="inv3LabelDraw()"></div></div>
+        <div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 14px;align-items:end">
+          <div><label class="form-label" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="i3l-price" onchange="inv3LabelDraw()"> লেবেলে দাম দেখান</label><input id="i3l-pv" type="number" min="0" class="form-input" placeholder="দাম (৳) — নিজের মতো বদলান" oninput="document.getElementById('i3l-price').checked=true;inv3LabelDraw()"></div>
+          <div><label class="form-label" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="i3l-war" onchange="inv3LabelDraw()"> ওয়ারেন্টি লাইন</label><select id="i3l-wsel" class="form-select" onchange="document.getElementById('i3l-war').checked=true;inv3LabelDraw()">${WOPTS.map(o => `<option value="${o[0]}">${o[1]}</option>`).join('')}</select></div>
+          <div><label class="form-label">নিজের লেখা (ঐচ্ছিক, ছোট)</label><input id="i3l-note" class="form-input" maxlength="40" placeholder="যেমন: Made in Bangladesh" oninput="inv3LabelDraw()"></div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap"><label style="font-size:13px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="i3l-help" checked onchange="inv3LabelDraw()"> হেল্পলাইন নম্বর</label><label style="font-size:13px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="i3l-brand" checked onchange="inv3LabelDraw()"> InnoGix নাম</label></div></div>
+      </div>
+      <div class="inv3-h">প্রিভিউ (আসল মাপে) <span id="i3l-cnt" style="color:var(--text3);font-weight:400"></span></div><div id="i3l-sum" style="font-size:13px;color:var(--text2);margin-bottom:6px"></div>
+      <div id="i3l-prev" style="display:flex;flex-wrap:wrap;gap:10px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px;max-height:260px;overflow:auto"></div>
+      <div class="inv3-note" style="margin-top:10px"><b>🖨️ প্রিন্ট ডায়ালগে ঠিক করুন:</b> Paper size = <b>A4</b> (লেবেল প্রিন্টারে = লেবেলের মাপ) · Scale = <b>100%</b> (“Fit to page” নয়) · Margins = <b>Default</b> · “Headers and footers” <b>বন্ধ</b> · “Background graphics” চালু। স্টিকার-শিটে প্রিন্টের আগে একটা সাদা কাগজে টেস্ট প্রিন্ট করে শিটের সামনে ধরে ঘর মিলিয়ে নিন; না মিললে মার্জিন/ফাঁক/কাস্টম মাপ বদলান।</div>`;
+    $('inv3-lb-foot').innerHTML = '<button class="btn" onclick="closeModal(\'inv3-lb\')">বন্ধ</button><button class="btn" onclick="inv3LabelOpen()">📄 নতুন ট্যাবে খুলুন / PDF</button><button class="btn primary" onclick="inv3LabelPrint()">🖨️ প্রিন্ট</button>';
+    openModal('inv3-lb'); inv3LabelProd(true);
   };
-  window.inv3LabelProd = async function () {
+  window.inv3LabelProd = async function (fresh) {
     const p = (ST.rows || []).find(x => String(x.id) === ($('i3l-p') ? $('i3l-p').value : '')); if (!p) return; L.prod = p;
-    if (!ST.prod) { try { const d = await fetchFromAPI('prodData', {}); if (d) ST.prod = d; } catch (e) {} }
+    if (fresh && $('i3l-pv')) $('i3l-pv').value = p.sell || '';
+    if (!ST.prod) { try { const d = await fetchFromAPI('prodData', {}); if (d && d.rm) ST.prod = d; } catch (e) {} }
     inv3LabelSrc();
   };
   window.inv3LabelSrc = function () {
     const src = $('i3l-src').value, box = $('i3l-srcbox'), p = L.prod;
     if (src === 'batch') {
       const bs = ((ST.prod && ST.prod.batches) || []).filter(b => key(b.product) === key(p.name) && b.serialFrom && b.status === 'Completed');
-      box.innerHTML = bs.length ? `<label class="form-label">ব্যাচ</label><select id="i3l-batch" class="form-select" onchange="inv3LabelDraw()">${bs.map(b => `<option value="${esc(b.id)}" data-f="${esc(b.serialFrom)}" data-t="${esc(b.serialTo)}">${esc(b.id)} · ${esc(b.lot || '')} · ${esc(b.serialFrom)} → ${esc(b.serialTo)} (${b.units}টি)</option>`).join('')}</select>` : '<div class="inv3-note warn" style="margin:0">এই প্রোডাক্টের সিরিয়ালসহ কোনো সম্পন্ন প্রোডাকশন ব্যাচ পাওয়া যায়নি। "সিরিয়াল রেঞ্জ" বেছে নিন।</div>';
+      box.innerHTML = bs.length ? `<label class="form-label">ব্যাচ</label><select id="i3l-batch" class="form-select" onchange="inv3LabelDraw()">${bs.map(b => `<option value="${esc(b.id)}" data-f="${esc(b.serialFrom)}" data-t="${esc(b.serialTo)}" data-m="${esc(String(b.time || '').slice(0, 11))}">${esc(b.id)} · ${esc(b.lot || '')} · ${esc(b.serialFrom)} → ${esc(b.serialTo)} (${b.units}টি)</option>`).join('')}</select>` : '<div class="inv3-note warn" style="margin:0">এই প্রোডাক্টের সিরিয়ালসহ কোনো সম্পন্ন প্রোডাকশন ব্যাচ পাওয়া যায়নি। "সিরিয়াল রেঞ্জ" বেছে নিন।</div>';
     } else if (src === 'range') {
-      box.innerHTML = `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><input id="i3l-f" class="form-input" style="flex:1;min-width:150px" placeholder="শুরু: ${esc(p.id)}-000001" oninput="inv3LabelDraw()"><span>→</span><input id="i3l-t" class="form-input" style="flex:1;min-width:150px" placeholder="শেষ: ${esc(p.id)}-000020" oninput="inv3LabelDraw()"></div><div style="font-size:12px;color:var(--text3);margin-top:4px">একবারে সর্বোচ্চ ৫০০টি</div>`;
-    } else box.innerHTML = `<label class="form-label">কপি সংখ্যা</label><input id="i3l-copies" type="number" min="1" max="500" value="10" class="form-input" style="max-width:140px" oninput="inv3LabelDraw()">`;
+      box.innerHTML = `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><input id="i3l-f" class="form-input" style="flex:1;min-width:150px" placeholder="শুরু: ${esc(p.id)}-000001" oninput="inv3LabelDraw()"><span>→</span><input id="i3l-t" class="form-input" style="flex:1;min-width:150px" placeholder="শেষ: ${esc(p.id)}-000020" oninput="inv3LabelDraw()"></div><div style="font-size:12px;color:var(--text3);margin-top:4px">একবারে সর্বোচ্চ ৫০০টি সিরিয়াল</div>`;
+    } else box.innerHTML = `<label class="form-label">কয়টি লেবেল</label><input id="i3l-copies" type="number" min="1" max="500" value="10" class="form-input" style="max-width:140px" oninput="inv3LabelDraw()">`;
     inv3LabelDraw();
   };
+  function sizeOf() { const v = $('i3l-size').value; $('i3l-cs').style.display = v === 'custom' ? 'flex' : 'none'; if (v === 'custom') return [Math.max(15, Math.min(190, Number($('i3l-w').value) || 45)), Math.max(10, Math.min(190, Number($('i3l-h').value) || 25))]; return SIZES[v]; }
   function labelCfg() {
-    const p = L.prod, src = $('i3l-src').value; let codes = [];
-    if (src === 'batch') { const o = $('i3l-batch') && $('i3l-batch').selectedOptions[0]; if (o) codes = serialRange(o.dataset.f, o.dataset.t); }
+    const p = L.prod, src = $('i3l-src').value; let codes = [], mfg = '';
+    if (src === 'batch') { const o = $('i3l-batch') && $('i3l-batch').selectedOptions[0]; if (o) { codes = serialRange(o.dataset.f, o.dataset.t); mfg = o.dataset.m || ''; } }
     else if (src === 'range') codes = serialRange(($('i3l-f').value || '').trim().toUpperCase(), ($('i3l-t').value || '').trim().toUpperCase());
     else { const n = Math.max(1, Math.min(500, parseInt($('i3l-copies').value) || 1)); codes = new Array(n).fill(String(p.id)); }
-    return { p, codes, type: $('i3l-type').value, size: $('i3l-size').value, price: $('i3l-price').checked, brand: $('i3l-brand').checked, src };
+    const cp = src === 'prod' ? 1 : Math.max(1, Math.min(20, parseInt($('i3l-cp').value) || 1)); let all = []; codes.forEach(x => { for (let i = 0; i < cp; i++) all.push(x); }); all = all.slice(0, 2000);
+    const wv = $('i3l-wsel').value, war = warInfo(p, wv);
+    return { p, src, codes: all, n: codes.length, cp, type: $('i3l-type').value, qrmode: $('i3l-qrm').value, dim: sizeOf(), layout: $('i3l-lay').value,
+      mg: Math.max(0, Math.min(30, Number($('i3l-mg').value) || 0)), gp: Math.max(0, Math.min(20, Number($('i3l-gp').value) || 0)), skip: Math.max(0, Math.min(500, parseInt($('i3l-skip').value) || 0)),
+      price: $('i3l-price').checked && Number($('i3l-pv').value) > 0, pv: Number($('i3l-pv').value) || 0, brand: $('i3l-brand').checked, war: $('i3l-war').checked ? war : null, warQr: war, help: $('i3l-help').checked, note: ($('i3l-note').value || '').trim().slice(0, 40), mfg };
+  }
+  function qrText(c, code) {   // ফোনে স্ক্যান করলে যে লেখা দেখাবে (≤ ১০৬ বাইট; দরকারি লাইন আগে)
+    if (c.qrmode === 'raw') return code;
+    const isProd = c.src === 'prod';
+    const items = { brand: 'InnoGix', name: cutB(String(c.p.name || ''), 40), id: (isProd ? 'ID: ' : 'SN: ') + code, price: c.price ? 'Price: ' + Math.round(c.pv) + ' BDT' : '', war: c.warQr ? 'Warranty: ' + c.warQr.en : '', mfg: (!isProd && c.mfg) ? 'Mfg: ' + c.mfg : '', help: 'Help: ' + HELP_NO };
+    const order = ['brand', 'name', 'id', 'price', 'war', 'mfg', 'help'], prio = ['id', 'name', 'help', 'war', 'price', 'mfg', 'brand'], used = {};
+    const build = () => order.filter(k => used[k] && items[k]).map(k => items[k]).join('\n');
+    prio.forEach(k => { if (!items[k]) return; used[k] = 1; if (bytesOf(build()) > 106) used[k] = 0; }); return build();
   }
   function labelHtml(c, code) {
-    const [W, H] = SIZES[c.size], both = c.type === 'both', qrMm = both ? Math.min(H - 6, 14) : (c.type === 'qr' ? Math.min(H - 5, 20) : 0);
-    const name = String(c.p.name || '').slice(0, 34), bcW = both ? W - 4 : (W - 4), bcH = c.type === 'c128' ? Math.max(8, H - 14) : (both ? 6.5 : 0);
-    let h = `<div class="lb" style="width:${W}mm;height:${H}mm">`;
-    h += `<div class="lt">${c.brand ? '<b>InnoGix</b> ' : ''}<span>${esc(name)}</span>${c.price && c.p.sell ? ` <em>৳${nf(c.p.sell)}</em>` : ''}</div>`;
-    h += '<div class="lm">';
-    if (c.type !== 'c128') h += `<div class="lq">${qrSvg(code, qrMm)}</div>`;
-    if (c.type === 'qr') h += `<div class="ls"><div class="sn">${esc(code)}</div>${c.src === 'prod' ? '' : '<div class="sm">Serial No.</div>'}</div>`;
-    if (c.type === 'c128') h += `<div class="lc">${c128Svg(code, bcW, bcH, false)}<div class="sn" style="text-align:center">${esc(code)}</div></div>`;
-    if (both) h += `<div class="ls"><div class="sn">${esc(code)}</div>${c128Svg(code, W - qrMm - 6, bcH, false)}</div>`;
-    return h + '</div></div>';
+    const [W, H] = c.dim, both = c.type === 'both', small = W <= 35, tiny = W < 35 || H < 22, name = String(c.p.name || '').slice(0, tiny ? 22 : 40), bot = [];
+    if (H >= 24) { if (c.war) bot.push('ওয়ারেন্টি ' + c.war.bn); if (c.help) bot.push(HELP_NO); if (c.note) bot.push(c.note); }   // খুব ছোট লেবেলে ঠাসাঠাসি এড়াতে এই লাইন বাদ — QR-এ সব আছে
+    const botH = bot.length ? 2.8 : 0, mid = Math.max(6, H - 7.6 - botH), qrMm = c.type === 'c128' ? 0 : Math.max(7, Math.min(mid, both ? W * 0.36 : W * 0.5, 26)), txtH = W < 30 ? 2.1 : 2.6, prH = (tiny && c.price) ? 2.6 : 0, bcH = c.type === 'c128' ? Math.max(3.5, mid - txtH - prH - 0.8) : Math.min(7, Math.max(3, mid - txtH - prH - 0.8));
+    let h = `<div class="lb${small ? ' s' : ''}${W < 30 ? ' xs' : ''}" style="width:${W}mm;height:${H}mm">`;
+    const priceTxt = c.price ? `<div class="sp">৳${nf(c.pv)}</div>` : '';
+    h += `<div class="lt">${c.brand && W >= 30 ? '<b>InnoGix</b> ' : ''}<span>${esc(name)}</span>${c.price && !tiny ? ` <em>৳${nf(c.pv)}</em>` : ''}</div><div class="lm">`;
+    if (c.type !== 'c128') h += `<div class="lq">${qrSvg(qrText(c, code), qrMm)}</div>`;
+    if (c.type === 'qr') h += `<div class="ls"><div class="sn">${esc(code)}</div>${c.src === 'prod' || tiny ? '' : '<div class="sm">Serial No.</div>'}${tiny ? priceTxt : ''}</div>`;
+    if (c.type === 'c128') h += `<div class="lc">${c128Svg(code, W - 4, bcH)}<div class="sn" style="text-align:center">${esc(code)}</div>${tiny ? priceTxt : ''}</div>`;
+    if (both) h += `<div class="ls"><div class="sn">${esc(code)}</div>${c128Svg(code, Math.max(10, W - qrMm - 6), bcH)}${tiny ? priceTxt : ''}</div>`;
+    h += '</div>'; if (bot.length) h += `<div class="lf">${bot.map(esc).join(' · ')}</div>`; return h + '</div>';
   }
-  const LB_CSS = '.lb{box-sizing:border-box;overflow:hidden;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;padding:1.4mm 1.8mm;display:flex;flex-direction:column;gap:.8mm;page-break-inside:avoid}.lb .lt{font-size:7pt;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lb .lt b{font-weight:800}.lb .lt em{font-style:normal;font-weight:700;float:right}.lb .lm{display:flex;align-items:center;gap:1.8mm;flex:1;min-height:0}.lb .lq svg,.lb .lc svg,.lb .ls svg{display:block}.lb .ls{flex:1;min-width:0}.lb .lc{flex:1;text-align:center}.lb .sn{font-family:"Courier New",monospace;font-weight:700;font-size:9pt;word-break:break-all;line-height:1.15}.lb .sm{font-size:6pt;color:#444}';
+  const LB_CSS = '.lb{box-sizing:border-box;overflow:hidden;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;padding:1.4mm 1.8mm;display:flex;flex-direction:column;gap:.8mm}.lb .lt{font-size:7pt;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lb .lt b{font-weight:800}.lb .lt em{font-style:normal;font-weight:700;float:right}.lb .lm{display:flex;align-items:center;gap:1.8mm;flex:1;min-height:0}.lb .lq svg,.lb .lc svg,.lb .ls svg{display:block}.lb .ls{flex:1;min-width:0}.lb .lc{flex:1;text-align:center}.lb .sn{font-family:"Courier New",monospace;font-weight:700;font-size:9pt;word-break:break-all;line-height:1.15}.lb.s .sn{font-size:7pt}.lb.xs .sn{font-size:5.6pt}.lb .sp{font-weight:800;font-size:7pt;margin-top:.4mm}.lb.xs .sp{font-size:6pt}.lb .sm{font-size:6pt;color:#444}.lb .lf{font-size:5.6pt;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#222}';
+  function sheetInfo(c) { const [W, H] = c.dim, cols = Math.max(1, Math.floor((210 - 2 * c.mg + c.gp) / (W + c.gp))), rows = Math.max(1, Math.floor((297 - 2 * c.mg + c.gp) / (H + c.gp))); return { cols, rows, per: cols * rows }; }
   window.inv3LabelDraw = function () {
-    const c = labelCfg(), prev = $('i3l-prev'); $('i3l-cnt').textContent = c.codes.length ? `— মোট ${c.codes.length}টি লেবেল` + (c.codes.length > 12 ? ' (প্রথম ১২টি দেখাচ্ছে)' : '') : '';
-    prev.innerHTML = c.codes.length ? `<style>${LB_CSS}#i3l-prev .lb{border:1px dashed #999}</style>` + c.codes.slice(0, 12).map(x => labelHtml(c, x)).join('') : '<div class="inv3-empty">লেবেল বানানোর মতো সিরিয়াল নেই — ব্যাচ/রেঞ্জ ঠিক করুন</div>';
+    const c = labelCfg(), prev = $('i3l-prev'), so = $('i3l-sheetopt'); so.style.display = c.layout === 'sheet' ? 'grid' : 'none';
+    let sum = ''; if (c.codes.length) { sum = `মোট <b>${c.codes.length}</b>টি লেবেল`; if (c.layout === 'sheet') { const s = sheetInfo(c), pages = Math.ceil((c.codes.length + c.skip) / s.per); sum += ` · A4-এ ${s.cols} কলাম × ${s.rows} সারি = <b>${s.per}</b>টি/পাতা → <b>${pages}</b> পাতা`; if (c.dim[0] > 210 - 2 * c.mg) sum += ' <span style="color:var(--red)">⚠ লেবেল A4-এর চেয়ে চওড়া</span>'; } else sum += ' · প্রতিটি আলাদা পাতায় (লেবেল প্রিন্টার)'; if (c.type === 'both' && c.dim[0] < 45) sum += ' <span style="color:var(--red)">· ⚠ এই মাপে দুটো কোড একসাথে ছোট হয়ে স্ক্যান নাও হতে পারে — QR অথবা বারকোড একটা বেছে নিন</span>'; if (c.dim[1] < 24 && (c.war || c.help || c.note)) sum += ' <span style="color:var(--orange)">· ছোট মাপে ওয়ারেন্টি/হেল্পলাইন লেখা বাদ — QR-এ আছে</span>'; }
+    $('i3l-cnt').textContent = ''; $('i3l-sum').innerHTML = sum;
+    prev.innerHTML = c.codes.length ? `<style>${LB_CSS}#i3l-prev .lb{border:1px dashed #999}</style>` + c.codes.slice(0, 8).map(x => labelHtml(c, x)).join('') + (c.codes.length > 8 ? `<div class="inv3-empty" style="align-self:center">…আরও ${c.codes.length - 8}টি</div>` : '') : '<div class="inv3-empty">লেবেল বানানোর মতো সিরিয়াল নেই — ব্যাচ/রেঞ্জ ঠিক করুন</div>';
   };
+  function buildDoc(c) {
+    const [W, H] = c.dim; let css, body;
+    if (c.layout === 'single') { css = `@page{size:${W}mm ${H}mm;margin:0}body{margin:0}.lb{page-break-after:always;break-after:page}.lb:last-child{page-break-after:auto;break-after:auto}`; body = c.codes.map(x => labelHtml(c, x)).join(''); }
+    else {
+      const s = sheetInfo(c), cells = new Array(c.skip).fill(null).concat(c.codes), pages = [];
+      for (let i = 0; i < cells.length; i += s.per) pages.push(cells.slice(i, i + s.per));
+      css = `@page{size:A4;margin:${c.mg}mm}body{margin:0}.pg{display:grid;grid-template-columns:repeat(${s.cols},${W}mm);grid-auto-rows:${H}mm;gap:${c.gp}mm;page-break-after:always;break-after:page}.pg:last-child{page-break-after:auto;break-after:auto}.lb{outline:.15mm dashed #ccc}`;
+      body = pages.map(pg => `<div class="pg">${pg.map(x => x == null ? '<div></div>' : labelHtml(c, x)).join('')}</div>`).join('');
+    }
+    return `<!doctype html><html><head><meta charset="utf-8"><title>Labels — ${esc(c.p.name)}</title><style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact}${LB_CSS}${css}</style></head><body>${body}</body></html>`;
+  }
   window.inv3LabelPrint = function () {
     const c = labelCfg(); if (!c.codes.length) { toast('প্রিন্ট করার মতো লেবেল নেই', 'error'); return; }
-    const [W, H] = SIZES[c.size], single = $('i3l-lay').value === 'single';
-    const css = single ? `@page{size:${W}mm ${H}mm;margin:0}body{margin:0}.lb{page-break-after:always;break-after:page}` : `@page{size:A4;margin:8mm}body{margin:0;display:flex;flex-wrap:wrap;gap:2mm;align-content:flex-start}.lb{outline:.2mm dashed #bbb}`;
-    const doc = `<!doctype html><html><head><meta charset="utf-8"><title>Labels</title><style>${LB_CSS}${css}</style></head><body>${c.codes.map(x => labelHtml(c, x)).join('')}</body></html>`;
+    const doc = buildDoc(c); window.__lastLabelDoc = doc;
     const f = document.createElement('iframe'); f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;'; document.body.appendChild(f);
-    f.contentDocument.open(); f.contentDocument.write(doc); f.contentDocument.close(); window.__lastLabelDoc = doc;
-    setTimeout(() => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { toast('প্রিন্ট শুরু করা যায়নি', 'error'); } setTimeout(() => f.remove(), 60000); }, 400);
+    f.contentDocument.open(); f.contentDocument.write(doc); f.contentDocument.close();
+    setTimeout(() => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { toast('প্রিন্ট শুরু করা যায়নি — "নতুন ট্যাবে খুলুন" ব্যবহার করুন', 'error'); } setTimeout(() => f.remove(), 60000); }, 400);
+  };
+  window.inv3LabelOpen = function () {
+    const c = labelCfg(); if (!c.codes.length) { toast('খোলার মতো লেবেল নেই', 'error'); return; }
+    const doc = buildDoc(c); window.__lastLabelDoc = doc; const url = URL.createObjectURL(new Blob([doc], { type: 'text/html;charset=utf-8' })); const w = window.open(url, '_blank');
+    if (!w) toast('পপ-আপ আটকে গেছে — ব্রাউজারে পপ-আপ অনুমতি দিন', 'error'); setTimeout(() => URL.revokeObjectURL(url), 120000);
   };
 
   // ═════════ 📈 ফোরকাস্ট ═════════
