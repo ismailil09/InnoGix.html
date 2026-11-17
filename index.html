@@ -2641,6 +2641,7 @@ tbody td.muted{color:var(--text3);}
           <div class="table-actions">
             <button class="btn primary" onclick="openModal('add-order')">+ New Order</button>
             <button class="btn" onclick="inv3SerLookup()">🔎 সিরিয়াল খুঁজুন</button>
+            <button class="btn" onclick="s1Integrity()" title="সব অর্ডারের ডেটা যাচাই — শুধু পড়ে, কিছু বদলায় না">🔍 ইন্টিগ্রিটি চেক</button>
             <button class="btn" style="background:rgba(88,166,255,0.15);border-color:rgba(88,166,255,0.4);color:#BBBBBB;" onclick="openModal('import-csv')">📥 Import CSV</button>
             <button class="btn export-excel" onclick="exportSalesDataToCSV()">📥 Export Excel</button>
             <button class="btn export-pdf" onclick="exportTableToPDF('sales-table','InnoGix Sales Report')">📄 Download PDF</button>
@@ -7343,7 +7344,7 @@ body.light #page-expense{--x-cyan:#52525B;--x-blue:#52525B}
 // ═══════════════════════════════════════════════════════════════
 
 // ⚠️ এখানে আপনার Google Apps Script Web App URL বসান (Deploy > New Deployment > Web App)
-      const API_URL = "https://script.google.com/macros/s/AKfycbywD3IJ62xrIU7FlB4Vb3JkD4zkENpjKcFqQfxpqSnFIwJbqkgFGI1sihSc5X9ehM7qMA/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
+      const API_URL = "https://script.google.com/macros/s/AKfycbyWNnab35ZrA7LHHMmILsxP_esCIf_6lgqzymn2q_mowbMatlntup_YsKcmT9I-_rOk/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
 
 // ─── CONNECTION STATE ────────────────────────────────────────
 let apiConnected = false;
@@ -11051,6 +11052,7 @@ function _renderSalesPage() {
       <td style="display:flex;gap:4px;">
         <button class="btn" style="padding:4px 8px;font-size:11px;background:var(--gold);color:#000;border-color:var(--gold);font-weight:700;" onclick='openInvoice(${JSON.stringify(r)})' title="Invoice/ক্যাশ মেমো প্রিন্ট">🖨️</button>
         <button class="btn" style="padding:4px 8px;font-size:11px;" onclick="inv3SerOpen('${String(r.id).replace(/[^\w.-]/g,'')}')" title="সিরিয়াল নম্বর বসান / দেখুন (ওয়ারেন্টি ট্র্যাক)">🔢</button>
+        <button class="btn" style="padding:4px 8px;font-size:11px;" onclick="s1Hist('${String(r.id).replace(/[^\w.-]/g,'')}')" title="অর্ডারের পরিবর্তনের ইতিহাস">🕘</button>
         <button class="btn" style="padding:4px 10px;font-size:11px;" onclick='openEditOrder(${JSON.stringify(r)})'>✏️ Edit</button>
         <button class="btn" style="padding:4px 10px;font-size:11px;background:var(--red);color:#fff;border-color:var(--red);" onclick='deleteOrder(${JSON.stringify({id:r.id,customer:r.customer})})'>🗑️</button>
       </td>
@@ -13329,6 +13331,9 @@ async function submitOrder(){
         showToast(`🔄 Return Delivery Charge ৳${ok.returnExpenseAmount} — Expense-এ স্বয়ংক্রিয় যোগ হয়েছে`,'info');
       }, 1500);
     }
+    if(ok.returnExpenseError){
+      setTimeout(()=>{ showToast('⚠️ Return Delivery Charge খরচ যোগ হয়নি: '+ok.returnExpenseError+' — Expense পেজে হাতে যোগ করুন','error'); }, 1500);
+    }
     logAction(currentEditOrderId ? `Order #${currentEditOrderId} আপডেট করেছেন` : `নতুন Order এন্ট্রি করেছেন — ${payload.customer} (${payload.product})`);
     // এই অর্ডারের প্রফিট কীভাবে ভাগ হলো তার তথ্যমূলক নোটিফিকেশন
     if (!currentEditOrderId) {
@@ -14983,7 +14988,7 @@ function _filterSalesNow(){
     const salesF=(document.getElementById('sales-salesman-filter')?.value)||'';
     const rSm=String(r.salesman||'').trim();
     const salesmanMatch=!salesF||(salesF==='__none__'?!rSm:rSm.toLowerCase()===salesF.toLowerCase());
-    const searchMatch=!searchF||rCust.includes(searchF)||rPhone.includes(searchF)||rProd.toLowerCase().includes(searchF);
+    const searchMatch=!searchF||rCust.includes(searchF)||rPhone.includes(searchF)||rProd.toLowerCase().includes(searchF)||String(r.id||'').toLowerCase()===searchF||('#'+String(r.id||'')).toLowerCase()===searchF;
     let dateMatch=true;
     if(dateF){
       // Build short month string from yyyy-mm-dd input
@@ -24784,14 +24789,16 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   function labelHtml(c, code) {
     const [W, H] = c.dim, both = c.type === 'both', small = W <= 35, tiny = W < 35 || H < 22, name = String(c.p.name || '').slice(0, tiny ? 22 : 40), bot = [];
     if (H >= 24) { if (c.war) bot.push('ওয়ারেন্টি ' + c.war.bn); if (c.help) bot.push(HELP_NO); if (c.note) bot.push(c.note); }   // খুব ছোট লেবেলে ঠাসাঠাসি এড়াতে এই লাইন বাদ — QR-এ সব আছে
-    const botH = bot.length ? 2.8 : 0, mid = Math.max(6, H - 7.6 - botH), qrMm = c.type === 'c128' ? 0 : Math.max(7, Math.min(mid, both ? W * 0.36 : W * 0.5, 26)), txtH = W < 30 ? 2.1 : 2.6, prH = (tiny && c.price) ? 2.6 : 0, bcH = c.type === 'c128' ? Math.max(3.5, mid - txtH - prH - 0.8) : Math.min(7, Math.max(3, mid - txtH - prH - 0.8));
+    const botH = bot.length ? 2.8 : 0, mid = Math.max(6, H - 7.6 - botH), qrMm = c.type === 'c128' ? 0 : Math.max(7, Math.min(mid, both ? W * 0.36 : W * 0.5, 26)), txtH = W < 30 ? 2.1 : 2.6, prH = (tiny && c.price) ? 2.6 : 0, bcH = c.type === 'c128' ? Math.max(H < 18 ? 2.4 : 3.5, mid - txtH - prH - 0.8) : Math.min(7, Math.max(3, mid - txtH - prH - 0.8));
+    const snFit = (avail, base) => { const pt = Math.max(4, Math.min(base, (avail / Math.max(1, String(code).length * 0.6)) / 0.3528)); return `font-size:${pt.toFixed(2)}pt;white-space:nowrap;word-break:normal`; };   // সিরিয়াল যেন ভেঙে দু'লাইন না হয় — জায়গা অনুযায়ী ফন্ট ছোট
+    const snBase = W < 30 ? 5.6 : (W <= 35 ? 7 : 9), snQ = snFit(W - 3.6 - qrMm - 1.8, snBase), snC = snFit(W - 3.6, snBase);
     let h = `<div class="lb${small ? ' s' : ''}${W < 30 ? ' xs' : ''}" style="width:${W}mm;height:${H}mm">`;
     const priceTxt = c.price ? `<div class="sp">৳${nf(c.pv)}</div>` : '';
     h += `<div class="lt">${c.brand && W >= 30 ? '<b>InnoGix</b> ' : ''}<span>${esc(name)}</span>${c.price && !tiny ? ` <em>৳${nf(c.pv)}</em>` : ''}</div><div class="lm">`;
     if (c.type !== 'c128') h += `<div class="lq">${qrSvg(qrText(c, code), qrMm)}</div>`;
-    if (c.type === 'qr') h += `<div class="ls"><div class="sn">${esc(code)}</div>${c.src === 'prod' || tiny ? '' : '<div class="sm">Serial No.</div>'}${tiny ? priceTxt : ''}</div>`;
-    if (c.type === 'c128') h += `<div class="lc">${c128Svg(code, W - 4, bcH)}<div class="sn" style="text-align:center">${esc(code)}</div>${tiny ? priceTxt : ''}</div>`;
-    if (both) h += `<div class="ls"><div class="sn">${esc(code)}</div>${c128Svg(code, Math.max(10, W - qrMm - 6), bcH)}${tiny ? priceTxt : ''}</div>`;
+    if (c.type === 'qr') h += `<div class="ls"><div class="sn" style="${snQ}">${esc(code)}</div>${c.src === 'prod' || tiny ? '' : '<div class="sm">Serial No.</div>'}${tiny ? priceTxt : ''}</div>`;
+    if (c.type === 'c128') h += `<div class="lc">${c128Svg(code, W - 4, bcH)}<div class="sn" style="text-align:center;${snC}">${esc(code)}</div>${tiny ? priceTxt : ''}</div>`;
+    if (both) h += `<div class="ls"><div class="sn" style="${snQ}">${esc(code)}</div>${c128Svg(code, Math.max(10, W - qrMm - 6), bcH)}${tiny ? priceTxt : ''}</div>`;
     h += '</div>'; if (bot.length) h += `<div class="lf">${bot.map(esc).join(' · ')}</div>`; return h + '</div>';
   }
   const LB_CSS = '.lb{box-sizing:border-box;overflow:hidden;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;padding:1.4mm 1.8mm;display:flex;flex-direction:column;gap:.8mm}.lb .lt{font-size:7pt;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lb .lt b{font-weight:800}.lb .lt em{font-style:normal;font-weight:700;float:right}.lb .lm{display:flex;align-items:center;gap:1.8mm;flex:1;min-height:0}.lb .lq svg,.lb .lc svg,.lb .ls svg{display:block}.lb .ls{flex:1;min-width:0}.lb .lc{flex:1;text-align:center}.lb .sn{font-family:"Courier New",monospace;font-weight:700;font-size:9pt;word-break:break-all;line-height:1.15}.lb.s .sn{font-size:7pt}.lb.xs .sn{font-size:5.6pt}.lb .sp{font-weight:800;font-size:7pt;margin-top:.4mm}.lb.xs .sp{font-size:6pt}.lb .sm{font-size:6pt;color:#444}.lb .lf{font-size:5.6pt;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#222}';
@@ -24955,6 +24962,618 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   };
   window.__inv3kitAlloc = alloc;
 })();
+</script>
+<script id="sales1-js">
+/* ═══ SALES v1 · ধাপ ১ — নির্ভুলতার ভিত
+   ① ডুপ্লিকেট-অর্ডার প্রতিরোধ (cid)  ② সেভের আগে সতর্কতা (ডুপ্লিকেট / খরচের নিচে দাম / অস্বাভাবিক স্ট্যাটাস / বাকি)
+   ③ PIN: ডিলিট · Delivered পিছনে নেওয়া · পাঠানো অর্ডারের দাম/পরিমাণ বদল (সার্ভারও আলাদা করে যাচাই করে)
+   ④ 🕘 অর্ডারের ইতিহাস (অডিট লগ)   ⑤ 🔍 ইন্টিগ্রিটি চেক (শুধু পড়ে, কিছু বদলায় না) */
+(function () {
+  'use strict';
+  const A = window.__inv3api || {};
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const key = s => String(s || '').trim().toLowerCase();
+  const $ = id => document.getElementById(id);
+  const num = v => Number(v) || 0;
+  const who = () => (typeof currentPartner !== 'undefined' && currentPartner) ? currentPartner : '';
+  const toast = (m, t) => { try { showToast(m, t || 'success'); } catch (e) {} };
+  const rid = () => 'o' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  const jsq = s => String(s == null ? '' : s).replace(/[^\w.\-]/g, '');
+  const COLLECTED = ['cod', 'cash', 'bkash', 'nagad'];
+
+  function mkModal(id, title, width) {
+    if ($('modal-' + id)) return $('modal-' + id);
+    const m = document.createElement('div'); m.className = 'modal-overlay'; m.id = 'modal-' + id; m.onclick = e => { if (e.target === m) closeModal(id); };
+    m.innerHTML = `<div class="modal-box" style="max-width:${width || 640}px;width:96vw;"><div class="modal-header"><span class="modal-title">${title}</span><button class="modal-close" onclick="closeModal('${id}')">✕</button></div><div class="modal-body" id="${id}-body" style="max-height:72vh;overflow:auto;"></div><div class="modal-footer" id="${id}-foot"></div></div>`;
+    document.body.appendChild(m); return m;
+  }
+
+  // ── নিজস্ব কনফার্ম বক্স (সতর্কতার তালিকা দেখায়; ব্লক করে না) ──
+  function s1Confirm(title, lines, okLabel) {
+    return new Promise(resolve => {
+      const ov = document.createElement('div');
+      ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99990;display:flex;align-items:center;justify-content:center;padding:16px;';
+      ov.innerHTML = `<div style="background:var(--bg2,#080808);border:1px solid var(--border,#262626);border-top:3px solid var(--orange,#F0A030);border-radius:14px;padding:20px;width:100%;max-width:460px;max-height:86vh;overflow:auto">
+        <div style="font-size:15px;font-weight:700;margin-bottom:10px;color:var(--text,#F2F2F2)">${esc(title)}</div>
+        <div style="font-size:13px;line-height:1.65;color:var(--text2,#BBB)">${lines.map(l => '<div style="margin:6px 0;padding:7px 10px;background:var(--bg3,#111);border-radius:8px;border:1px solid var(--border,#262626)">' + esc(l) + '</div>').join('')}</div>
+        <div style="display:flex;gap:10px;margin-top:16px"><button class="btn" style="flex:1" data-x="0">↩️ ফিরে যান</button><button class="btn btn-gold" style="flex:1" data-x="1">${esc(okLabel || '✅ তবুও সেভ করুন')}</button></div></div>`;
+      document.body.appendChild(ov);
+      const done = v => { ov.remove(); resolve(v); };
+      ov.querySelector('[data-x="0"]').onclick = () => done(false);
+      ov.querySelector('[data-x="1"]').onclick = () => done(true);
+    });
+  }
+
+  // ── PIN নিয়ে সার্ভারে যাচাই (ফর্ম বন্ধ হওয়ার আগেই — ভুল PIN-এ ডেটা হারাবে না) ──
+  async function askPinVerified(label) {
+    const by = who();
+    if (!by) { toast('🔐 কোন পার্টনার লগইন আছে বোঝা যাচ্ছে না — পেজ রিফ্রেশ করে লগইন করুন', 'error'); return null; }
+    for (let i = 0; i < 3; i++) {
+      const pin = await _askPartnerPin(label);
+      if (!pin) return null;
+      const r = await postToAPI({ action: 'ordPinCheck', by, pin });
+      if (r && r.status === 'success') return pin;
+      toast('❌ PIN ভুল' + (i < 2 ? ' — আবার দিন' : ''), 'error');
+    }
+    return null;
+  }
+
+  // ── স্ট্যাটাস নিয়ম (নরম: সতর্কতা + নিশ্চিতকরণ) ──
+  const RISK = { 'Delivered': ['Pending', 'Processing', 'In Transit', 'Cancelled'], 'Returned': ['Delivered', 'In Transit', 'Processing'], 'Cancelled': ['Delivered', 'In Transit', 'Returned', 'Processing'], 'Pending': ['Returned'] };
+  const ACTIVE = s => !['cancelled', 'returned'].includes(key(s));
+  const ik = items => items.map(it => key(it.product) + '|' + (num(it.qty) || 1) + '|' + num(it.price)).sort().join(';');   // সার্ভারের ordPinNeed_ এর সাথে হুবহু এক নিয়ম
+  function pinNeed(orig, status, items) {
+    const os = orig.status;
+    if (os === 'Delivered' && ['Pending', 'Processing', 'In Transit', 'Cancelled'].includes(status)) return 'Delivered অর্ডারকে পিছনের ধাপে নেওয়া';
+    if (['In Transit', 'Delivered', 'Returned'].includes(os) && ik(items) !== orig.ik) return 'পাঠানো/ডেলিভারি হওয়া অর্ডারের প্রোডাক্ট, পরিমাণ বা দাম বদল';
+    return '';
+  }
+
+  const origOpen = window.openEditOrder;
+  if (typeof origOpen === 'function') window.openEditOrder = function (r) {
+    try {
+      const its = (Array.isArray(r.items) && r.items.length) ? r.items : [{ product: r.product, qty: r.qty, price: r.price }];
+      window.__s1Orig = { id: String(r.id), status: String(r.status || 'Pending').trim(), ik: ik(its) };
+    } catch (e) { window.__s1Orig = null; }
+    return origOpen.apply(this, arguments);
+  };
+
+  async function preflight() {
+    const items = (Array.isArray(window._orderItems) ? window._orderItems : []).filter(it => it && it.product);
+    const cust = ($('order-customer') || {}).value || '';
+    const phone = (typeof _fixPhone === 'function') ? _fixPhone(($('order-phone') || {}).value) : (($('order-phone') || {}).value || '');
+    const ph = String(phone).replace(/\D/g, '');
+    if (!cust.trim() || !items.length || ph.length < 11) return { ok: true, ctx: {} };   // মূল ভ্যালিডেশন নিজেই বার্তা দেখাবে
+    const status = String(($('order-status') || {}).value || 'Pending').trim();
+    const payment = ($('order-payment') || {}).value || '';
+    const edit = (typeof currentEditOrderId !== 'undefined' && currentEditOrderId) ? String(currentEditOrderId) : '';
+    const orig = (edit && window.__s1Orig && window.__s1Orig.id === edit) ? window.__s1Orig : null;
+    const warns = [], ctx = {};
+    if (!edit) ctx.cid = rid();
+
+    // ১) সম্ভাব্য ডুপ্লিকেট (শুধু নতুন অর্ডারে; একই ফোন + একই প্রোডাক্ট, গত ৩ দিনে)
+    if (!edit) {
+      const now = Date.now(), seen = {}, ph10 = ph.slice(-10);
+      (window.liveSalesData || []).forEach(r => {
+        if (String(r.phone || '').replace(/\D/g, '').slice(-10) !== ph10 || key(r.status) === 'cancelled') return;
+        const d = A.parseD ? A.parseD(r.date) : null; if (!d || now - d.getTime() > 3 * 864e5) return;
+        if (!items.some(it => key(it.product) === key(r.product))) return;
+        (seen[r.id] = seen[r.id] || { date: r.date, st: r.status, p: [] }).p.push(r.product);
+      });
+      Object.keys(seen).slice(0, 3).forEach(id => warns.push(`🔁 এই ফোনে (${phone}) একই প্রোডাক্টের অর্ডার #${id} আছে — ${seen[id].date}, স্ট্যাটাস ${seen[id].st} (${seen[id].p.join(', ')}). ডুপ্লিকেট নয় তো?`));
+    }
+    // ২) খরচের নিচে দাম
+    (window.liveInventoryData || []).length && items.forEach(it => {
+      const p = (window.liveInventoryData || []).find(x => key(x.name) === key(it.product)); const c = num(p && p.cost);
+      if (c > 0 && num(it.price) > 0 && num(it.price) < c) warns.push(`💸 "${it.product}": বিক্রয়মূল্য ৳${num(it.price)}, কেনা খরচ ৳${c} — প্রতি ইউনিটে ৳${c - num(it.price)} লোকসান।`);
+    });
+    // ৩) অস্বাভাবিক স্ট্যাটাস বদল (এডিটে)
+    if (orig && orig.status !== status && (RISK[orig.status] || []).includes(status)) {
+      let eff = '';
+      if (!ACTIVE(orig.status) && ACTIVE(status)) eff = ' — এতে স্টক আবার কমবে (Sold বাড়বে)।';
+      else if (ACTIVE(orig.status) && !ACTIVE(status)) eff = ' — এতে স্টকে ফেরত আসবে (Sold কমবে)।';
+      warns.push(`🔄 স্ট্যাটাস ${orig.status} → ${status} অস্বাভাবিক ধাপ${eff}`);
+    }
+    // ৪) Delivered কিন্তু বাকি
+    const due = num(($('due-amount') || {}).value);
+    if (status === 'Delivered' && due > 0 && !COLLECTED.includes(key(payment))) warns.push(`💰 Delivered করছেন, কিন্তু ৳${Math.round(due)} বাকি থাকছে (পেমেন্ট: ${payment || '—'})।`);
+
+    if (window.__s1Strict && warns.length) { window.__s1Why = 'সতর্কতা: ' + warns[0].replace(/^\S+\s*/, '').slice(0, 90); return { ok: false, skip: true }; }
+    if (warns.length && !(await s1Confirm('⚠️ সেভের আগে একবার দেখে নিন', warns, edit ? '✅ তবুও আপডেট করুন' : '✅ তবুও সেভ করুন'))) return { ok: false };
+
+    // ৫) PIN
+    if (orig) {
+      const need = pinNeed(orig, status, items);
+      if (need && window.__s1Strict) { window.__s1Why = 'PIN লাগে: ' + need; return { ok: false, skip: true }; }
+      if (need) {
+        const pin = await askPinVerified(`${who() || 'পার্টনার'} — ${need}: PIN দিন`);
+        if (!pin) { toast('আপডেট বাতিল — PIN দেওয়া হয়নি', 'info'); return { ok: false }; }
+        ctx.pin = pin;
+      }
+    }
+    return { ok: true, ctx };
+  }
+
+  const so = window.submitOrder;
+  if (typeof so === 'function') window.submitOrder = async function () {
+    if (window.__s1Busy) return;
+    window.__s1Busy = true; window.__s1Last = null; window.__s1PostOk = null; window.__s1Why = window.__s1Strict ? '' : window.__s1Why;
+    let pf;
+    try { pf = await preflight(); } catch (e) { console.error('s1 preflight', e); pf = { ok: true, ctx: {} }; }
+    if (!pf.ok) { window.__s1Last = pf.skip ? 'skipped' : 'cancelled'; window.__s1Busy = false; return; }
+    window.__s1Ctx = pf.ctx;
+    try { return await so.apply(this, arguments); } finally { window.__s1Last = 'ran'; window.__s1Ctx = null; window.__s1Busy = false; }
+  };
+
+  // সব অর্ডার-লেখায় "কে করল" যোগ; নতুন অর্ডারে cid; PIN লাগলে PIN
+  const wrapPost = po => function (payload) {
+    try {
+      if (payload && typeof payload === 'object') {
+        const a = payload.action;
+        if (a === 'addOrder' || a === 'updateOrder' || a === 'deleteOrder' || a === 'updateStatus') { if (!payload.by) payload.by = who(); }
+        const c = window.__s1Ctx;
+        if (c && (a === 'addOrder' || a === 'updateOrder')) {
+          if (a === 'addOrder' && c.cid && !payload.cid) payload.cid = c.cid;
+          if (a === 'updateOrder' && c.pin && !payload.pin) payload.pin = c.pin;
+          window.__s1Ctx = null;
+        }
+      }
+    } catch (e) {}
+    const res = po.apply(this, arguments);
+    if (payload && payload.action === 'updateOrder') return Promise.resolve(res).then(x => { window.__s1PostOk = !!x && x.status !== 'error'; return x; });
+    return res;
+  };
+  window.__s1WrapPost = wrapPost;
+  window.__s1api = { RISK };
+  if (typeof window.postToAPI === 'function') window.postToAPI = wrapPost(window.postToAPI);
+
+  // ── ডিলিট: নিশ্চিতকরণ + PIN (আগের মতোই Recycle Bin-এ যায়) ──
+  window.deleteOrder = async function (info) {
+    const row = (window.liveSalesData || []).filter(r => String(r.id) === String(info.id));
+    const lines = [`অর্ডার #${info.id} — ${info.customer || ''}`].concat(row.slice(0, 4).map(r => `• ${r.product} ×${r.qty} — ${r.status}`));
+    lines.push('🗑️ অর্ডারটি Recycle Bin-এ যাবে (৩০ দিনের মধ্যে Restore করা যায়)। স্টক হিসাব ও CRM আবার মিলবে।');
+    if (!(await s1Confirm('🗑️ অর্ডার ডিলিট করবেন?', lines, '🗑️ হ্যাঁ, ডিলিট'))) return;
+    const pin = await askPinVerified(`${who() || 'পার্টনার'} — অর্ডার #${info.id} ডিলিটের PIN দিন`);
+    if (!pin) { toast('ডিলিট বাতিল — PIN দেওয়া হয়নি', 'info'); return; }
+    const ok = await postToAPI({ action: 'deleteOrder', orderId: String(info.id), pin });
+    if (ok) {
+      showToast('🗑️ Order #' + info.id + ' Recycle Bin-এ গেছে', 'info');
+      try { logAction(`Order #${info.id} (${info.customer}) Recycle Bin-এ পাঠিয়েছেন`); } catch (e) {}
+      refreshAfterOrder(); updateBinBadge();
+    } else showToast('❌ ডিলিট হয়নি — আবার চেষ্টা করুন', 'error');
+  };
+
+  // ── 🕘 অর্ডারের ইতিহাস ──
+  const ACT = { CREATE: ['🆕 তৈরি', 'g'], UPDATE: ['✏️ এডিট', 'o'], STATUS: ['🔄 স্ট্যাটাস', 'o'], COURIER: ['🚚 কুরিয়ার সিঙ্ক', ''], DELETE: ['🗑️ ডিলিট', 'r'] };
+  const FLD = { status: 'স্ট্যাটাস', customer: 'কাস্টমার', phone: 'ফোন', division: 'বিভাগ', district: 'জেলা', thana: 'থানা', address: 'ঠিকানা', payment: 'পেমেন্ট', courier: 'কুরিয়ার', tracking: 'ট্র্যাকিং', notes: 'নোট', salesman: 'সেলসম্যান', description: 'বর্ণনা', items: 'আইটেম', total: 'মোট', paid: 'Paid', due: 'Due', delivery: 'ডেলিভারি', order: 'অর্ডার' };
+  window.s1Hist = async function (id) {
+    mkModal('s1-hist', '🕘 অর্ডারের ইতিহাস', 680); $('s1-hist-foot').innerHTML = '<button class="btn" onclick="closeModal(\'s1-hist\')">বন্ধ</button>';
+    $('s1-hist-body').innerHTML = '<div style="padding:18px;color:var(--text3)">লোড হচ্ছে…</div>'; openModal('s1-hist');
+    const d = await fetchFromAPI('orderAudit', { orderId: id, limit: 300 });
+    if (!d) { $('s1-hist-body').innerHTML = '<div class="inv3-note">ইতিহাস আনা যায়নি (Google Sheet সংযোগ/ডিপ্লয় দেখুন)।</div>'; return; }
+    const rows = d.rows || [];
+    if (!rows.length) { $('s1-hist-body').innerHTML = `<div class="inv3-note">অর্ডার #${esc(id)}-এর কোনো ইতিহাস নেই। এই সুবিধা চালুর আগের পরিবর্তন রেকর্ড হয়নি — এখন থেকে যা বদলাবে সব এখানে থাকবে।</div>`; return; }
+    let h = `<div style="font-size:12px;color:var(--text3);margin-bottom:8px">অর্ডার #${esc(id)} · ${rows.length}টি পরিবর্তন (নতুন আগে)</div>`;
+    rows.forEach(x => {
+      const a = ACT[x.action] || [x.action, '']; const f = FLD[x.field] || x.field;
+      const clip = (t) => esc(String(t).length > 120 ? String(t).slice(0, 118) + '…' : t);
+      h += `<div style="border:1px solid var(--border);border-radius:9px;padding:8px 11px;margin-bottom:6px;background:var(--bg2)"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--text3)"><span class="inv3-pill ${a[1]}">${a[0]}</span><span>${esc(x.time)}</span><span>· ${esc(x.by)}</span>${/PIN/.test(x.source) ? '<span class="inv3-pill o">🔐 PIN</span>' : ''}</div><div style="font-size:13px;margin-top:5px;color:var(--text)"><b>${esc(f)}</b>: ${x.oldV !== '' ? '<span style="color:var(--text3)">' + clip(x.oldV) + '</span> → ' : ''}<span>${clip(x.newV)}</span></div></div>`;
+    });
+    $('s1-hist-body').innerHTML = h;
+  };
+
+  // ── 🔍 ইন্টিগ্রিটি চেক ──
+  const CODE = { PROD_MISSING: 'প্রোডাক্ট ইনভেন্টরিতে নেই', TOTAL_MISMATCH: 'মোট ≠ পরিমাণ×দাম', BAD_STATUS: 'অজানা স্ট্যাটাস', DOUBLE_COUNT: 'হিসাব ডাবল হওয়ার ঝুঁকি', NO_PRODUCT: 'প্রোডাক্ট খালি', NEG_STOCK: 'স্টক ঋণাত্মক', SERIAL_ORPHAN: 'অর্ডারছাড়া সিরিয়াল', SERIAL_OVER: 'সিরিয়াল পরিমাণের বেশি', SERIAL_STILL_SOLD: 'ফেরত/বাতিল অর্ডারে সিরিয়াল Sold', NO_ID: 'অর্ডার আইডি নেই', STATUS_DIFF: 'লাইনে ভিন্ন স্ট্যাটাস', CUST_DIFF: 'লাইনে ভিন্ন কাস্টমার', DELIVERED_DUE: 'Delivered কিন্তু বাকি', OVERPAID: 'বেশি Paid', PHONE: 'ফোন নম্বর', BELOW_COST: 'খরচের নিচে দাম', QTY_PRICE: 'পরিমাণ/দাম শূন্য', POSSIBLE_DUP: 'সম্ভাব্য ডুপ্লিকেট', RET_NO_EXPENSE: 'Returned — Return-খরচ', DELIVERED_NO_SERIAL: 'সিরিয়াল ছাড়া Delivered', SER_CHECK: 'সিরিয়াল যাচাই' };
+  let IG = null, igF = 'all';
+  function igRender() {
+    const d = IG; if (!d) return;
+    const list = (d.issues || []).filter(i => igF === 'all' || i.sev === igF);
+    const chip = (k, lab, n, c) => `<button class="btn" style="padding:4px 12px;font-size:12px;${igF === k ? 'border-color:var(--gold);color:var(--gold)' : ''}" onclick="s1IgFilter('${k}')">${lab} <b class="${c}">${n}</b></button>`;
+    let h = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">${chip('all', 'সব', (d.counts.error + d.counts.warn + d.counts.info), '')}${chip('error', '🔴 ত্রুটি', d.counts.error, '')}${chip('warn', '🟠 সতর্কতা', d.counts.warn, '')}${chip('info', 'ℹ️ তথ্য', d.counts.info, '')}</div>`;
+    h += `<div style="font-size:12px;color:var(--text3);margin-bottom:8px">${d.orders}টি অর্ডার (${d.rows}টি সারি) যাচাই · ${esc(d.at || '')}</div>`;
+    if (!list.length) h += '<div class="inv3-note" style="border-left-color:var(--green)">✅ এই ধরনে কোনো সমস্যা পাওয়া যায়নি।</div>';
+    list.forEach(i => {
+      const col = i.sev === 'error' ? 'var(--red)' : i.sev === 'warn' ? 'var(--orange)' : 'var(--text3)';
+      h += `<div style="border:1px solid var(--border);border-left:3px solid ${col};border-radius:9px;padding:8px 11px;margin-bottom:6px;background:var(--bg2);font-size:13px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="inv3-pill">${esc(CODE[i.code] || i.code)}</span>${i.orderId ? `<button class="btn" style="padding:1px 9px;font-size:11.5px" onclick="s1Goto('${jsq(i.orderId)}')">অর্ডার #${esc(i.orderId)} ➜</button><button class="btn" style="padding:1px 8px;font-size:11.5px" onclick="s1Hist('${jsq(i.orderId)}')">🕘</button>` : ''}</div><div style="margin-top:5px;color:var(--text2);line-height:1.55">${esc(i.msg)}</div></div>`;
+    });
+    if (d.truncated) h += '<div class="inv3-note">⚠️ তালিকা অনেক বড় — প্রথম ৪০০টি দেখানো হয়েছে (গুরুতর আগে)।</div>';
+    $('s1-ig-body').innerHTML = h;
+  }
+  window.s1IgFilter = k => { igF = k; igRender(); };
+  window.s1IgCsv = () => {
+    if (!IG) return;
+    const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const rows = [['ধরন', 'অর্ডার', 'কোড', 'বার্তা']].concat((IG.issues || []).map(i => [i.sev, i.orderId, CODE[i.code] || i.code, i.msg]));
+    const blob = new Blob(['﻿' + rows.map(r => r.map(q).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'integrity_check.csv'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  };
+  window.s1Integrity = async function () {
+    mkModal('s1-ig', '🔍 ইন্টিগ্রিটি চেক — অর্ডার ডেটা যাচাই', 760);
+    $('s1-ig-foot').innerHTML = '<button class="btn" onclick="s1Integrity()">🔄 আবার চেক</button><button class="btn" onclick="s1IgCsv()">📥 CSV</button><button class="btn" onclick="closeModal(\'s1-ig\')">বন্ধ</button>';
+    $('s1-ig-body').innerHTML = '<div style="padding:18px;color:var(--text3)">সব অর্ডার যাচাই হচ্ছে… (শুধু পড়া হচ্ছে, কিছু বদলাচ্ছে না)</div>'; openModal('s1-ig');
+    const d = await fetchFromAPI('orderIntegrity', {});
+    if (!d) { $('s1-ig-body').innerHTML = '<div class="inv3-note">চেক চালানো যায়নি — Google Sheet সংযোগ আছে কি না এবং GS-এর নতুন ভার্সন ডিপ্লয় হয়েছে কি না দেখুন।</div>'; return; }
+    IG = d; igF = 'all'; igRender();
+  };
+  window.s1Goto = function (id) {
+    closeModal('s1-ig'); closeModal('s1-hist');
+    const inp = $('sales-search-input'); const f = $('sales-status-filter'); if (f) f.value = '';
+    if (inp) { inp.value = '#' + id; try { _filterSalesNow(); } catch (e) { try { filterSales(); } catch (x) {} } }
+    toast('অর্ডার #' + id + ' ফিল্টার করা হয়েছে (সার্চ বক্সে #' + id + ')', 'info');
+  };
+})();
+</script>
+<script id="sales2-js">
+/* ═══ SALES v2 · ধাপ ২ — অর্ডার কন্ট্রোল UI
+   KPI স্ট্রিপ · স্ট্যাটাস ট্যাব · ⚠️ মনোযোগ দরকার · এক-ক্লিকে স্ট্যাটাস বদল · অর্ডার ড্রয়ার · কলাম বাছাই/কম্প্যাক্ট · বাল্ক অ্যাকশন
+   মূল টেবিল-টেমপ্লেট বদলায়নি — প্রতিবার রেন্ডারের পর এই মডিউল উপরে সাজায়। স্ট্যাটাস বদল আগের এডিট-ফর্মের একই পথে (তাই PIN/সতর্কতা/অডিট সব একই)। */
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const key = s => String(s || '').trim().toLowerCase();
+  const num = v => Number(v) || 0;
+  const taka = n => '৳' + Math.round(num(n)).toLocaleString('en-US');
+  const toast = (m, t) => { try { showToast(m, t || 'success'); } catch (e) {} };
+  const jid = s => String(s == null ? '' : s).replace(/[^\w.\-]/g, '');
+  const STS = ['Pending', 'Processing', 'In Transit', 'Delivered', 'Returned', 'Cancelled'];
+  const STBN = { 'Pending': 'Pending', 'Processing': 'Processing', 'In Transit': 'In Transit', 'Delivered': 'Delivered', 'Returned': 'Returned', 'Cancelled': 'Cancelled' };
+  const STCOL = { 'Pending': 'var(--orange,#F0A030)', 'Processing': '#6AA9FF', 'In Transit': '#B58CFF', 'Delivered': 'var(--green,#3FB97F)', 'Returned': 'var(--red,#E5534B)', 'Cancelled': 'var(--text3,#777)' };
+  const T = { pendingH: 24, processingH: 48, transitD: 5 };            // মনোযোগের সীমা
+  const COLS = ['#', 'Date & Time', 'Customer', 'Phone', 'Division', 'District', 'Product', 'Qty', 'Unit Price', 'Total', 'Paid', 'Due', 'Delivery', 'Status', 'Payment', 'Courier', 'Tracking', 'Delivery Status', 'Notes', 'Action'];
+  const LOCKED = [1, 3, 14, 20];                                       // এই কলাম লুকানো যায় না
+  const COMPACT = [5, 6, 9, 13, 15, 16, 17, 18];
+  const PERIODS = { '1': 'আজ', '7': '৭ দিন', '30': '৩০ দিন', 'all': 'সব' };
+  const S2 = { period: '30', attn: null, sel: new Set(), groups: [], raw: null };
+  try { const p = localStorage.getItem('ig_s2_period'); if (p && PERIODS[p]) S2.period = p; } catch (e) {}
+  const loadHidden = () => { try { const a = JSON.parse(localStorage.getItem('ig_s2_hidden') || '[]'); return Array.isArray(a) ? a.filter(n => n >= 1 && n <= 20 && !LOCKED.includes(n)) : []; } catch (e) { return []; } };
+  const saveHidden = a => { try { localStorage.setItem('ig_s2_hidden', JSON.stringify(a)); } catch (e) {} };
+
+  // ───────── সময় (Asia/Dhaka = UTC+6, DST নেই) ─────────
+  const MON = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+  function tsOf(r) {
+    const d = String(r.date || r.rawDate || '').trim(); let y, m, dd, mm;
+    if ((mm = /^(\d{1,2})[-\/ ]([A-Za-z]{3})[a-z]*[-\/ ,]*(\d{4})/.exec(d))) { dd = +mm[1]; m = MON[mm[2].toLowerCase()]; y = +mm[3]; }
+    else if ((mm = /^(\d{4})-(\d{2})-(\d{2})/.exec(d))) { y = +mm[1]; m = +mm[2] - 1; dd = +mm[3]; }
+    else { const t = Date.parse(d); if (isNaN(t)) return 0; return t; }
+    let h = 0, mi = 0; const tm = /(\d{1,2}):(\d{2})\s*(AM|PM)?/i.exec(String(r.time || ''));
+    if (tm) { h = +tm[1]; mi = +tm[2]; if (tm[3]) { const pm = /pm/i.test(tm[3]); h = h % 12 + (pm ? 12 : 0); } }
+    return Date.UTC(y, m, dd, h, mi) - 6 * 3600e3;
+  }
+  const dayOf = ts => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dhaka' }).format(new Date(ts));
+  const ageTxt = ms => { const h = ms / 36e5; return h < 1 ? Math.max(1, Math.round(ms / 6e4)) + ' মিনিট' : h < 48 ? Math.round(h) + ' ঘণ্টা' : Math.round(h / 24) + ' দিন'; };
+  const waNum = p => { const d = String(p || '').replace(/\D/g, ''); return d.length === 11 && d.startsWith('01') ? '88' + d : d; };
+
+  // ───────── অর্ডার-গ্রুপ + খরচ ─────────
+  function build() {
+    const raw = Array.isArray(window.liveSalesData) ? window.liveSalesData : [];
+    let base = []; try { base = typeof _groupSalesRows === 'function' ? _groupSalesRows(raw) : []; } catch (e) { base = []; }
+    const byId = {}; raw.forEach(r => { (byId[String(r.id)] = byId[String(r.id)] || []).push(r); });
+    const inv = {}; (window.liveInventoryData || []).forEach(p => { inv[key(p.name)] = num(p.cost); });
+    base.forEach(g => {
+      const rs = byId[String(g.id)] || []; g._ts = tsOf(g); g.profit = 0; g.unknown = 0; g.cost = 0;
+      g.items = (g.items || []).map((it, i) => { const r = rs[i] || {}; const uc = num(r.unitCost) || inv[key(it.product)] || 0, known = uc > 0; const q = num(it.qty), rev = num(it.total) || q * num(it.price); const profit = known ? rev - uc * q : 0; if (known) { g.profit += profit; g.cost += uc * q; } else g.unknown++; return { ...it, cost: uc, known, profit, rev }; });
+      g._due = num(g.due); g._st = String(g.status || '').trim();
+      g._net = num(g.netPayable) > 0 ? num(g.netPayable) : Math.max(0, num(g.total) + num(g.delivery) - num(g.paid));
+    });
+    S2.groups = base; S2.raw = raw; return base;
+  }
+
+  // ───────── KPI ─────────
+  function inPeriod(o, now) { if (S2.period === 'all') return true; if (S2.period === '1') return o._ts > 0 && dayOf(o._ts) === dayOf(now); return o._ts > now - num(S2.period) * 864e5; }
+  function kpis() {
+    const G = S2.groups, now = Date.now(), act = o => !['Cancelled', 'Returned'].includes(o._st);
+    const per = G.filter(o => inPeriod(o, now));
+    const cnt = s => G.filter(o => o._st === s).length;
+    const pend = G.filter(o => o._st === 'Pending'), stale = pend.filter(o => o._ts && now - o._ts > T.pendingH * 36e5).length;
+    const transit = G.filter(o => o._st === 'In Transit'), cod = transit.reduce((s, o) => s + o._net, 0);
+    const dl = per.filter(o => o._st === 'Delivered'), rt = per.filter(o => o._st === 'Returned');
+    const rev = dl.reduce((s, o) => s + num(o.total), 0), prf = dl.reduce((s, o) => s + o.profit, 0), cst = dl.reduce((s, o) => s + o.cost, 0), unk = dl.filter(o => o.unknown).length;
+    const dueO = G.filter(o => o._st === 'Delivered' && o._due > 0.5);   // বাকি-পেজের ডিফল্টের মতো: ডেলিভারি হয়ে গেছে, টাকা আসেনি
+    return {
+      ord: per.filter(o => o._st !== 'Cancelled').length, ordSum: per.filter(o => o._st !== 'Cancelled').reduce((s, o) => s + num(o.total), 0),
+      pend: pend.length, stale, proc: cnt('Processing'), transit: transit.length, cod, dl: dl.length, rev, rt: rt.length, rate: (dl.length + rt.length) ? Math.round(rt.length / (dl.length + rt.length) * 100) : 0,
+      prf, margin: (rev && cst) ? Math.round(prf / rev * 100) : null, unk, due: dueO.reduce((s, o) => s + o._due, 0), dueN: dueO.length
+    };
+  }
+
+  // ───────── মনোযোগ দরকার ─────────
+  const ATTN = [
+    ['pend', '🕐', 'Pending ' + T.pendingH + ' ঘণ্টার বেশি'], ['proc', '📦', 'Processing ' + T.processingH + ' ঘণ্টার বেশি'], ['transit', '🚚', 'In Transit ' + T.transitD + '+ দিন'],
+    ['due', '💰', 'Delivered কিন্তু বাকি'], ['notrk', '🏷️', 'ট্র্যাকিং ছাড়া In Transit'], ['phone', '📞', 'ফোন নম্বর ঠিক নয়'], ['dup', '🔁', 'সম্ভাব্য ডুপ্লিকেট']
+  ];
+  function attnSets() {
+    const G = S2.groups, now = Date.now(), S = {}; ATTN.forEach(a => S[a[0]] = new Map());
+    const seen = {};
+    G.slice().sort((a, b) => (a._ts - b._ts) || (num(a.id) - num(b.id))).forEach(o => {
+      const id = String(o.id), age = now - o._ts, ph = String(o.phone || '').replace(/\D/g, '');
+      if (o._st === 'Pending' && o._ts && age > T.pendingH * 36e5) S.pend.set(id, 'Pending ' + ageTxt(age) + ' ধরে');
+      if (o._st === 'Processing' && o._ts && age > T.processingH * 36e5) S.proc.set(id, 'Processing ' + ageTxt(age) + ' ধরে');
+      if (o._st === 'In Transit' && o._ts && age > T.transitD * 864e5) S.transit.set(id, 'In Transit ' + ageTxt(age) + ' ধরে');
+      if (o._st === 'Delivered' && o._due > 0.5) S.due.set(id, 'বাকি ' + taka(o._due));
+      if (o._st === 'In Transit' && String(o.courier || '').trim() && !String(o.tracking || '').trim()) S.notrk.set(id, 'কুরিয়ার আছে, ট্র্যাকিং কোড নেই');
+      if (!(ph.length === 11 || (ph.length === 13 && ph.startsWith('880')))) S.phone.set(id, 'ফোন: ' + (o.phone || '—'));
+      if (o._st !== 'Cancelled' && ph) { const k = ph.slice(-10) + '|' + dayOf(o._ts || 0) + '|' + o.items.map(i => key(i.product)).sort().join(','); if (seen[k]) S.dup.set(id, 'অর্ডার #' + seen[k] + '-এর মতো (একই ফোন/দিন/প্রোডাক্ট)'); else seen[k] = id; }
+    });
+    return S;
+  }
+
+  // ───────── CSS ─────────
+  const css = document.createElement('style'); css.id = 's2-style';
+  css.textContent = `
+  #s2-top{margin:0 0 12px}
+  .s2-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0}
+  .s2-bar .s2-sp{flex:1}
+  .s2-sel,.s2-btn{background:var(--bg3,#111);color:var(--text,#eee);border:1px solid var(--border,#262626);border-radius:8px;padding:6px 11px;font-size:12.5px;cursor:pointer;font-family:inherit}
+  .s2-btn:hover,.s2-btn.on{border-color:var(--gold,#CDA935);color:var(--gold,#CDA935)}
+  .s2-kg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}@media(max-width:900px){.s2-kg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .s2-k{background:var(--bg2,#080808);border:1px solid var(--border,#262626);border-radius:11px;padding:10px 12px;min-width:0}
+  .s2-k.ck{cursor:pointer}.s2-k.ck:hover{border-color:var(--gold,#CDA935)}
+  .s2-kl{font-size:11.5px;color:var(--text3,#888);letter-spacing:.2px}
+  .s2-kv{font-size:21px;font-weight:700;margin-top:2px;color:var(--text,#eee);font-variant-numeric:tabular-nums}
+  .s2-ks{font-size:11.5px;color:var(--text2,#bbb);margin-top:2px}
+  .s2-ks.w{color:var(--orange,#F0A030)}.s2-ks.r{color:var(--red,#E5534B)}
+  .s2-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 6px}
+  .s2-tab{background:var(--bg3,#111);border:1px solid var(--border,#262626);border-radius:999px;padding:5px 13px;font-size:12.5px;cursor:pointer;color:var(--text2,#bbb);display:inline-flex;gap:6px;align-items:center}
+  .s2-tab b{font-weight:700;color:var(--text,#eee)}
+  .s2-tab.on{border-color:var(--gold,#CDA935);color:var(--gold,#CDA935)}.s2-tab.on b{color:var(--gold,#CDA935)}
+  .s2-tab i{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .s2-at{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+  .s2-at .t{font-size:12.5px;color:var(--text3,#888);margin-right:2px}
+  .s2-ch{background:rgba(240,160,48,.08);border:1px solid rgba(240,160,48,.35);color:var(--orange,#F0A030);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer}
+  .s2-ch.r{background:rgba(229,83,75,.08);border-color:rgba(229,83,75,.4);color:var(--red,#E5534B)}
+  .s2-ch.on{background:var(--orange,#F0A030);color:#000;border-color:var(--orange,#F0A030)}.s2-ch.r.on{background:var(--red,#E5534B);color:#fff}
+  .s2-ok{font-size:12.5px;color:var(--green,#3FB97F)}
+  #sales-body td:first-child{white-space:nowrap}
+  #sales-body tr[data-oid] td:first-child{box-shadow:inset 3px 0 0 transparent}
+  #sales-body tr.s2-w td:first-child{box-shadow:inset 3px 0 0 var(--orange,#F0A030)}
+  #sales-body tr.s2-r td:first-child{box-shadow:inset 3px 0 0 var(--red,#E5534B)}
+  #sales-body .s2-id{cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+  #sales-body .s2-id:hover{color:var(--gold,#CDA935)}
+  #sales-body .s2-st{cursor:pointer}#sales-body .s2-st::after{content:' ▾';opacity:.6;font-size:10px}
+  #sales-body .s2-fl{margin-left:4px;cursor:help}
+  .s2-ck{margin-right:6px;vertical-align:middle;accent-color:var(--gold,#CDA935);cursor:pointer}
+  .s2-bulk{display:none;gap:8px;align-items:center;flex-wrap:wrap;background:rgba(205,169,53,.08);border:1px solid var(--gold,#CDA935);border-radius:10px;padding:8px 12px;margin:8px 0;font-size:13px}
+  .s2-bulk.on{display:flex}
+  body.s2-quiet #modal-add-order{opacity:0!important;pointer-events:none!important}
+  @media print{.s2-ck,#s2-top{display:none!important}}
+  #s2-menu{position:fixed;z-index:9500;background:var(--bg2,#080808);border:1px solid var(--border,#262626);border-radius:10px;padding:6px;min-width:190px;box-shadow:0 8px 28px rgba(0,0,0,.6)}
+  #s2-menu .h{font-size:11.5px;color:var(--text3,#888);padding:4px 8px}
+  #s2-menu button{display:flex;width:100%;gap:8px;align-items:center;background:none;border:0;color:var(--text,#eee);padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;text-align:left;font-family:inherit}
+  #s2-menu button:hover{background:var(--bg3,#111)}#s2-menu button[disabled]{opacity:.45;cursor:default}
+  #s2-menu i{width:9px;height:9px;border-radius:50%;display:inline-block}
+  #s2-dr{position:fixed;top:0;right:0;height:100%;width:min(540px,100vw);z-index:9400;background:var(--bg,#000);border-left:1px solid var(--border,#262626);box-shadow:-10px 0 30px rgba(0,0,0,.6);transform:translateX(105%);transition:transform .22s;display:flex;flex-direction:column}
+  #s2-dr.open{transform:none}
+  #s2-dr .dh{padding:14px 16px;border-bottom:1px solid var(--border,#262626);display:flex;gap:10px;align-items:flex-start}
+  #s2-dr .db{padding:12px 16px;overflow:auto;flex:1}
+  #s2-dr .sec{margin:0 0 14px}#s2-dr .st{font-size:11.5px;letter-spacing:.4px;color:var(--text3,#888);margin-bottom:6px;font-weight:700}
+  #s2-dr table{width:100%;border-collapse:collapse;font-size:12.5px}#s2-dr th,#s2-dr td{padding:5px 6px;border-bottom:1px solid var(--border,#262626);text-align:left}#s2-dr td.n,#s2-dr th.n{text-align:right;font-variant-numeric:tabular-nums}
+  #s2-dr .g2{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:13px}
+  #s2-dr .g2 span{color:var(--text3,#888)}
+  #s2-dr .tl{border-left:2px solid var(--border,#262626);margin-left:5px;padding-left:12px}
+  #s2-dr .tl div{margin:0 0 8px;font-size:12.5px;position:relative}#s2-dr .tl div::before{content:'';position:absolute;left:-17px;top:5px;width:8px;height:8px;border-radius:50%;background:var(--gold,#CDA935)}
+  #s2-dr .acts{display:flex;gap:6px;flex-wrap:wrap}
+  #s2-ov{position:fixed;inset:0;z-index:9390;background:rgba(0,0,0,.45);display:none}#s2-ov.open{display:block}
+  @media(max-width:700px){.s2-kv{font-size:18px}}
+  `;
+  document.head.appendChild(css);
+  const hideCss = document.createElement('style'); hideCss.id = 's2-hide'; document.head.appendChild(hideCss);
+  function applyCols() {
+    const h = loadHidden(); hideCss.textContent = h.map(n => `#sales-table thead th:nth-child(${n}),#sales-table tbody td:nth-child(${n}){display:none!important}`).join('\n');
+    const b = $('s2-cmp'); if (b) b.classList.toggle('on', h.length > 0 && COMPACT.every(n => h.includes(n)));
+  }
+
+  // ───────── উপরের প্যানেল ─────────
+  function ensureTop() {
+    if ($('s2-top')) return true;
+    const fb = document.querySelector('#page-sales .filter-bar'); if (!fb) return false;
+    const d = document.createElement('div'); d.id = 's2-top';
+    d.innerHTML = `<div class="s2-bar"><b style="font-size:13px;color:var(--text2)">📊 অর্ডার কন্ট্রোল</b><select id="s2-per" class="s2-sel" title="KPI-র সময়কাল (Pending/Processing/In Transit সবসময় বর্তমান অবস্থা)">${Object.keys(PERIODS).map(k => `<option value="${k}">${PERIODS[k]}</option>`).join('')}</select><span class="s2-sp"></span><button class="s2-btn" id="s2-cmp" title="কম্প্যাক্ট ভিউ — কম দরকারি কলাম লুকায়">📏 কম্প্যাক্ট</button><button class="s2-btn" id="s2-colb">⚙️ কলাম</button></div>
+      <div id="s2-kg" class="s2-kg"></div><div id="s2-tabs" class="s2-tabs"></div><div id="s2-at" class="s2-at"></div>
+      <div id="s2-bulk" class="s2-bulk"></div>`;
+    fb.insertAdjacentElement('beforebegin', d);
+    $('s2-per').value = S2.period; $('s2-per').onchange = e => { S2.period = e.target.value; try { localStorage.setItem('ig_s2_period', S2.period); } catch (x) {} paintTop(); };
+    $('s2-cmp').onclick = () => { const h = loadHidden(), on = COMPACT.every(n => h.includes(n)); saveHidden(on ? [] : COMPACT); applyCols(); };
+    $('s2-colb').onclick = openCols;
+    $('s2-kg').onclick = e => { const c = e.target.closest('[data-st]'); if (c) setStatus(c.dataset.st); };
+    $('s2-tabs').onclick = e => { const c = e.target.closest('[data-st]'); if (c) setStatus(c.dataset.st); };
+    $('s2-at').onclick = e => { const c = e.target.closest('[data-at]'); if (!c) return; S2.attn = (S2.attn === c.dataset.at) ? null : c.dataset.at; try { filterSales(); } catch (x) {} paintTop(); };
+    return true;
+  }
+  function setStatus(st) { const sel = $('sales-status-filter'); if (!sel) return; sel.value = st === sel.value ? '' : st; try { filterSales(); } catch (e) {} paintTop(); }
+  function paintTop() {
+    if (!ensureTop()) return;
+    const k = kpis(), G = S2.groups, per = PERIODS[S2.period];
+    const card = (lab, val, sub, o = {}) => `<div class="s2-k${o.st ? ' ck' : ''}" ${o.st ? `data-st="${o.st}"` : ''}><div class="s2-kl">${lab}</div><div class="s2-kv">${val}</div><div class="s2-ks ${o.cls || ''}">${sub || '&nbsp;'}</div></div>`;
+    $('s2-kg').innerHTML =
+      card(`অর্ডার · ${per}`, k.ord, taka(k.ordSum)) +
+      card('Pending', k.pend, k.stale ? `⚠️ ${k.stale}টি ${T.pendingH}ঘ+ পুরোনো` : '✓ কোনো দেরি নেই', { st: 'Pending', cls: k.stale ? 'w' : '' }) +
+      card('Processing', k.proc, 'প্রস্তুত হচ্ছে', { st: 'Processing' }) +
+      card('In Transit', k.transit, 'COD নেট পাওনা ' + taka(k.cod), { st: 'In Transit' }) +
+      card(`Delivered · ${per}`, k.dl, taka(k.rev), { st: 'Delivered' }) +
+      card(`Returned · ${per}`, k.rt, 'রিটার্ন রেট ' + k.rate + '%', { st: 'Returned', cls: k.rate >= 15 ? 'r' : '' }) +
+      card(`মুনাফা · ${per}`, taka(k.prf), (k.margin != null ? 'মার্জিন ' + k.margin + '%' : '—') + (k.unk ? ` · ${k.unk}টিতে খরচ অজানা` : ''), { cls: k.unk ? 'w' : '' }) +
+      card('আদায় বাকি (Delivered)', taka(k.due), k.dueN + 'টি অর্ডার', { cls: k.dueN ? 'w' : '' });
+    const cur = ($('sales-status-filter') || {}).value || '';
+    const tab = (st, lab, n, col) => `<span class="s2-tab${cur === st ? ' on' : ''}" data-st="${st}">${col ? `<i style="background:${col}"></i>` : ''}${lab} <b>${n}</b></span>`;
+    $('s2-tabs').innerHTML = tab('', 'সব', G.length) + STS.map(s => tab(s, STBN[s], G.filter(o => o._st === s).length, STCOL[s])).join('');
+    $('s2-tabs').firstChild.dataset.st = '';
+    const AS = attnSets(); S2.AS = AS; let h = '<span class="t">⚠️ মনোযোগ দরকার:</span>', any = 0;
+    ATTN.forEach(a => { const n = AS[a[0]].size; if (!n) return; any += n; h += `<span class="s2-ch${['due', 'phone', 'dup', 'notrk'].includes(a[0]) || a[0] === 'transit' ? ' r' : ''}${S2.attn === a[0] ? ' on' : ''}" data-at="${a[0]}">${a[1]} ${a[2]} <b>${n}</b></span>`; });
+    if (!any) h += '<span class="s2-ok">✅ এই মুহূর্তে কিছুই আটকে নেই</span>';
+    if (S2.attn) h += '<span class="s2-ch on" data-at="' + S2.attn + '">✕ ফিল্টার বন্ধ</span>';
+    $('s2-at').innerHTML = h; bulkPaint();
+  }
+
+  // ───────── টেবিল রেন্ডারের পর সাজানো ─────────
+  function decorate() {
+    const body = $('sales-body'); if (!body) return;
+    let list = []; try { const st = (_salesPage - 1) * SALES_PAGE_SIZE; list = _salesFilteredRows.slice(st, st + SALES_PAGE_SIZE); } catch (e) { return; }
+    const AS = S2.AS || attnSets(); const byId = {}; S2.groups.forEach(o => byId[String(o.id)] = o);
+    [...body.rows].forEach((tr, i) => {
+      const r = list[i]; if (!r) return; const id = String(r.id); tr.dataset.oid = id; const o = byId[id] || r;
+      const c0 = tr.cells[0]; if (c0 && !c0.querySelector('.s2-ck')) { const txt = c0.textContent; c0.innerHTML = `<input type="checkbox" class="s2-ck" data-id="${esc(id)}"><span class="s2-id" title="অর্ডারের বিস্তারিত দেখুন">${esc(txt)}</span>`; }
+      const ck = tr.querySelector('.s2-ck'); if (ck) ck.checked = S2.sel.has(id);
+      const stc = tr.cells[13]; if (stc) { const sp = stc.querySelector('.status'); if (sp) { sp.classList.add('s2-st'); sp.title = 'ক্লিক করে স্ট্যাটাস বদলান'; } }
+      const flags = ATTN.filter(a => AS[a[0]] && AS[a[0]].has(id)); tr.classList.remove('s2-w', 's2-r');
+      if (flags.length) { tr.classList.add(flags.some(f => ['due', 'transit', 'notrk', 'phone'].includes(f[0])) ? 's2-r' : 's2-w'); if (stc && !stc.querySelector('.s2-fl')) { const f = document.createElement('span'); f.className = 's2-fl'; f.textContent = '⚠️'; f.title = flags.map(a => a[2] + ' — ' + AS[a[0]].get(id)).join('\n'); stc.appendChild(f); } }
+    });
+    const all = $('s2-all'); if (all) { const ids = [...body.rows].map(t => t.dataset.oid).filter(Boolean); all.checked = !!ids.length && ids.every(x => S2.sel.has(x)); }
+  }
+  function ensureHead() {
+    const th = document.querySelector('#sales-table thead tr'); if (!th) return;
+    if (th.children.length === 19) { const x = document.createElement('th'); x.textContent = 'Delivery Status'; th.insertBefore(x, th.children[17]); }   // আগে ১৯টা হেডার/২০টা কলাম ছিল — হেডার সরে থাকত
+    const f = th.children[0]; if (f && !$('s2-all')) { const c = document.createElement('input'); c.type = 'checkbox'; c.id = 's2-all'; c.className = 's2-ck'; c.title = 'এই পাতার সব নির্বাচন'; c.onclick = e => { e.stopPropagation(); const on = c.checked; [...$('sales-body').rows].forEach(t => { const id = t.dataset.oid; if (!id) return; on ? S2.sel.add(id) : S2.sel.delete(id); const k = t.querySelector('.s2-ck'); if (k) k.checked = on; }); bulkPaint(); }; f.insertBefore(c, f.firstChild); }
+  }
+  const origRender = window._renderSalesPage;
+  if (typeof origRender === 'function') window._renderSalesPage = function () {
+    const r = origRender.apply(this, arguments);
+    try { build(); ensureHead(); paintTop(); decorate(); applyCols(); } catch (e) { console.error('sales2', e); }
+    return r;
+  };
+  const origRSR = window.renderSalesRows;
+  if (typeof origRSR === 'function') window.renderSalesRows = function (rows) {
+    if (S2.attn) { try { build(); const ids = attnSets()[S2.attn]; if (ids) rows = (rows || []).filter(r => ids.has(String(r.id))); } catch (e) {} }
+    return origRSR.call(this, rows);
+  };
+  const origFS = window.filterSales;
+  if (typeof origFS === 'function') window.filterSales = function () {
+    const r = origFS.apply(this, arguments);
+    try { const c = $('sales-count'); if (c && S2.attn) c.textContent = (_salesFilteredRows || []).length + ' অর্ডার (মনোযোগ ফিল্টার)'; paintTop(); } catch (e) {}
+    return r;
+  };
+
+  // ───────── এক-ক্লিকে স্ট্যাটাস বদল (আগের এডিট-ফর্মের একই পথে) ─────────
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  async function waitFor(fn, ms) { const t0 = Date.now(); while (Date.now() - t0 < ms) { try { if (fn()) return true; } catch (e) {} await sleep(40); } return false; }
+  async function quick(id, ns, opt) {
+    opt = opt || {};
+    const o = S2.groups.find(x => String(x.id) === String(id)) || S2.groups.find(x => String(x.id) === String(id));
+    if (!o) { toast('অর্ডার পাওয়া যায়নি — পেজ রিফ্রেশ করুন', 'error'); return { ok: false, why: 'পাওয়া যায়নি' }; }
+    if (o._st === ns) return { ok: false, why: 'আগে থেকেই ' + ns };
+    document.body.classList.add('s2-quiet'); window.__s1Strict = !!opt.strict; window.__s1Last = null;
+    let res = { ok: false, why: '' };
+    try {
+      openEditOrder(JSON.parse(JSON.stringify(o)));
+      const ready = await waitFor(() => $('order-customer') && $('order-customer').value && Array.isArray(window._orderItems) && window._orderItems.length, 2500);
+      if (!ready) { res.why = 'ফর্ম লোড হয়নি'; }
+      else {
+        const sel = $('order-status'); sel.value = ns; try { sel.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+        if (sel.value !== ns) res.why = 'স্ট্যাটাস সেট হয়নি';
+        else {
+          await submitOrder();
+          const last = window.__s1Last;
+          if (last === 'ran') { const still = $('modal-add-order') && $('modal-add-order').classList.contains('open'); res = still ? { ok: false, why: 'ফর্মে ত্রুটি (ফোন/ডেটা) — হাতে এডিট করুন', open: true } : (window.__s1PostOk === true ? { ok: true } : { ok: false, why: 'সার্ভারে সেভ হয়নি' }); }
+          else res = { ok: false, why: last === 'skipped' ? (window.__s1Why || 'সতর্কতা/PIN লাগে') : 'বাতিল', cancelled: last !== 'skipped' };
+        }
+      }
+    } catch (e) { console.error('s2 quick', e); res = { ok: false, why: String(e && e.message || e) }; }
+    window.__s1Strict = false; document.body.classList.remove('s2-quiet');
+    const m = $('modal-add-order'), open = m && m.classList.contains('open');
+    if (open && !res.open) { try { closeModal('add-order'); resetOrderModal(); } catch (e) {} }
+    return res;
+  }
+
+  // ── মেনু ──
+  function closeMenu() { const m = $('s2-menu'); if (m) m.remove(); }
+  function statusMenu(id, anchor) {
+    closeMenu(); const o = S2.groups.find(x => String(x.id) === String(id)); if (!o) return;
+    const api = window.__s1api || { RISK: {} }; const risky = ns => (api.RISK[o._st] || []).includes(ns);
+    const m = document.createElement('div'); m.id = 's2-menu';
+    m.innerHTML = `<div class="h">অর্ডার #${esc(id)} — এখন: <b>${esc(o._st)}</b></div>` + STS.map(s => `<button data-s="${s}" ${s === o._st ? 'disabled' : ''}><i style="background:${STCOL[s]}"></i>${s}${s === o._st ? ' ✓' : (risky(s) ? ' <span title="অস্বাভাবিক ধাপ — নিশ্চিতকরণ/PIN লাগতে পারে">⚠️</span>' : '')}</button>`).join('');
+    document.body.appendChild(m);
+    const b = anchor.getBoundingClientRect(), w = m.offsetWidth, h = m.offsetHeight;
+    m.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, b.left)) + 'px'; m.style.top = (b.bottom + h + 12 > window.innerHeight ? Math.max(8, b.top - h - 4) : b.bottom + 4) + 'px';
+    m.onclick = async e => { const bt = e.target.closest('button[data-s]'); if (!bt || bt.disabled) return; closeMenu(); const r = await quick(id, bt.dataset.s); if (!r.ok && r.why && !r.cancelled) toast('স্ট্যাটাস বদলায়নি: ' + r.why, 'error'); };
+  }
+  document.addEventListener('click', e => {
+    const m = $('s2-menu'); if (m && !m.contains(e.target) && !e.target.closest('.s2-st')) closeMenu();
+    const st = e.target.closest && e.target.closest('#sales-body .s2-st'); if (st) { e.stopPropagation(); const tr = st.closest('tr'); statusMenu(tr.dataset.oid, st); return; }
+    const ck = e.target.closest && e.target.closest('#sales-body .s2-ck'); if (ck) { ck.checked ? S2.sel.add(ck.dataset.id) : S2.sel.delete(ck.dataset.id); bulkPaint(); const all = $('s2-all'); if (all) { const ids = [...$('sales-body').rows].map(t => t.dataset.oid).filter(Boolean); all.checked = ids.every(x => S2.sel.has(x)); } return; }
+    const idc = e.target.closest && e.target.closest('#sales-body .s2-id'); if (idc) { openDrawer(idc.closest('tr').dataset.oid); return; }
+  }, true);
+
+  // ───────── বাল্ক ─────────
+  function bulkPaint() {
+    const b = $('s2-bulk'); if (!b) return; const n = S2.sel.size; b.classList.toggle('on', n > 0);
+    if (!n) { b.innerHTML = ''; return; }
+    b.innerHTML = `<b>${n}টি অর্ডার নির্বাচিত</b><select id="s2-bs" class="s2-sel"><option value="">স্ট্যাটাস বদলান…</option>${['Processing', 'In Transit', 'Delivered', 'Cancelled'].map(s => `<option>${s}</option>`).join('')}</select><button class="s2-btn" id="s2-bgo">▶ প্রয়োগ</button><button class="s2-btn" id="s2-bcsv">📥 CSV</button><button class="s2-btn" id="s2-bclr">✕ নির্বাচন মুছুন</button><span style="font-size:12px;color:var(--text3)">নিরাপত্তা: যেসব বদলে সতর্কতা/PIN লাগে সেগুলো বাল্কে বাদ যায় — আলাদাভাবে করুন। একবারে সর্বোচ্চ ৩০টি।</span>`;
+    $('s2-bclr').onclick = () => { S2.sel.clear(); document.querySelectorAll('#sales-body .s2-ck').forEach(c => c.checked = false); const a = $('s2-all'); if (a) a.checked = false; bulkPaint(); };
+    $('s2-bcsv').onclick = bulkCsv; $('s2-bgo').onclick = bulkApply;
+  }
+  function bulkCsv() {
+    const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; const rows = [['Order', 'Date', 'Customer', 'Phone', 'District', 'Products', 'Total', 'Paid', 'Due', 'Delivery', 'Status', 'Courier', 'Tracking']];
+    S2.groups.filter(o => S2.sel.has(String(o.id))).forEach(o => rows.push([o.id, o.date, o.customer, o.phone, o.dist, o.items.map(i => `${i.product} x${i.qty}`).join('; '), o.total, o.paid, o.due, o.delivery, o._st, o.courier, o.tracking]));
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + rows.map(r => r.map(q).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' })); a.download = 'selected_orders.csv'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  async function bulkApply() {
+    const ns = $('s2-bs').value; if (!ns) { toast('আগে স্ট্যাটাস বাছুন', 'error'); return; }
+    const ids = [...S2.sel].slice(0, 30); if (S2.sel.size > 30) toast('একবারে ৩০টির বেশি নয় — প্রথম ৩০টি করা হচ্ছে', 'info');
+    if (!confirm(`${ids.length}টি অর্ডারের স্ট্যাটাস "${ns}" করবেন?`)) return;
+    let ok = 0; const skipped = [];
+    const btn = $('s2-bgo'); btn.disabled = true;
+    for (let i = 0; i < ids.length; i++) {
+      btn.textContent = `⏳ ${i + 1}/${ids.length}`; build();
+      const r = await quick(ids[i], ns, { strict: true });
+      if (r.ok) { ok++; S2.sel.delete(ids[i]); } else skipped.push(`#${ids[i]}: ${r.why || '—'}`);
+      await sleep(250);
+    }
+    btn.disabled = false; btn.textContent = '▶ প্রয়োগ';
+    toast(`✅ ${ok}টি বদলেছে` + (skipped.length ? ` · ⏭️ ${skipped.length}টি বাদ` : ''), skipped.length ? 'info' : 'success');
+    if (skipped.length) alert('বাদ পড়া অর্ডার (আলাদাভাবে দেখুন):\n\n' + skipped.join('\n'));
+    try { filterSales(); } catch (e) {} bulkPaint();
+  }
+
+  // ───────── কলাম বাছাই ─────────
+  function openCols() {
+    let m = $('modal-s2-cols'); if (!m) { m = document.createElement('div'); m.className = 'modal-overlay'; m.id = 'modal-s2-cols'; m.onclick = e => { if (e.target === m) closeModal('s2-cols'); }; m.innerHTML = `<div class="modal-box" style="max-width:520px;width:96vw"><div class="modal-header"><span class="modal-title">⚙️ কোন কলাম দেখাবেন</span><button class="modal-close" onclick="closeModal('s2-cols')">✕</button></div><div class="modal-body" id="s2-cols-body"></div><div class="modal-footer"><button class="btn" id="s2-c-all">সব দেখান</button><button class="btn" id="s2-c-cmp">📏 কম্প্যাক্ট</button><button class="btn" onclick="closeModal('s2-cols')">বন্ধ</button></div></div>`; document.body.appendChild(m); }
+    const paint = () => { const h = loadHidden(); $('s2-cols-body').innerHTML = '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px 14px;font-size:13px">' + COLS.map((c, i) => { const n = i + 1, lk = LOCKED.includes(n); return `<label style="display:flex;gap:7px;align-items:center;${lk ? 'opacity:.6' : 'cursor:pointer'}"><input type="checkbox" data-n="${n}" ${h.includes(n) ? '' : 'checked'} ${lk ? 'disabled' : ''} style="accent-color:var(--gold)"> ${esc(c)}${lk ? ' 🔒' : ''}</label>`; }).join('') + '</div><div style="font-size:12px;color:var(--text3);margin-top:10px">শুধু দেখানো বদলায় — ডেটা, Export ও PDF অপরিবর্তিত। পছন্দ এই ব্রাউজারে মনে থাকবে।</div>'; };
+    paint();
+    $('s2-cols-body').onchange = e => { const c = e.target.closest('input[data-n]'); if (!c) return; const n = +c.dataset.n; let h = loadHidden(); h = c.checked ? h.filter(x => x !== n) : h.concat(n); saveHidden(h); applyCols(); };
+    $('s2-c-all').onclick = () => { saveHidden([]); applyCols(); paint(); }; $('s2-c-cmp').onclick = () => { saveHidden(COMPACT); applyCols(); paint(); };
+    openModal('s2-cols');
+  }
+
+  // ───────── অর্ডার ড্রয়ার ─────────
+  function ensureDrawer() { if ($('s2-dr')) return; const ov = document.createElement('div'); ov.id = 's2-ov'; ov.onclick = closeDrawer; document.body.appendChild(ov); const d = document.createElement('div'); d.id = 's2-dr'; document.body.appendChild(d); document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('s2-dr').classList.contains('open')) closeDrawer(); }); }
+  function closeDrawer() { $('s2-dr') && $('s2-dr').classList.remove('open'); $('s2-ov') && $('s2-ov').classList.remove('open'); }
+  window.s2Drawer = id => openDrawer(id);
+  async function openDrawer(id) {
+    ensureDrawer(); build(); const o = S2.groups.find(x => String(x.id) === String(id)); if (!o) { toast('অর্ডার পাওয়া যায়নি', 'error'); return; }
+    const ph10 = String(o.phone || '').replace(/\D/g, '').slice(-10); const others = S2.groups.filter(x => String(x.id) !== String(id) && String(x.phone || '').replace(/\D/g, '').slice(-10) === ph10 && ph10);
+    const spent = others.filter(x => x._st === 'Delivered').reduce((s, x) => s + num(x.total), 0);
+    const now = Date.now(), age = o._ts ? ageTxt(now - o._ts) : '—', final = ['Delivered', 'Returned', 'Cancelled'].includes(o._st);
+    const prof = o.items.map(i => `<tr><td>${esc(i.product)}</td><td class="n">${i.qty}</td><td class="n">${taka(i.price)}</td><td class="n">${i.known ? taka(i.cost) : '<span style="color:var(--orange)">অজানা</span>'}</td><td class="n" style="color:${i.known ? (i.profit < 0 ? 'var(--red)' : 'var(--green)') : 'var(--text3)'}">${i.known ? taka(i.profit) : '—'}</td></tr>`).join('');
+    const wa = waNum(o.phone);
+    $('s2-dr').innerHTML = `<div class="dh"><div style="flex:1;min-width:0"><div style="font-size:17px;font-weight:700">অর্ডার #${esc(o.id)} <span class="status ${key(o._st).replace(/ /g, '')}" style="margin-left:6px">${esc(o._st)}</span></div><div style="font-size:12.5px;color:var(--text3);margin-top:3px">${esc(o.date)} ${esc(o.time || '')} · ${final ? '' : 'বয়স ' + age + ' · '}${o.salesman ? '👔 ' + esc(o.salesman) : ''}</div></div><button class="modal-close" id="s2-dx">✕</button></div>
+    <div class="db">
+      <div class="sec"><div class="st">কাস্টমার</div><div style="font-size:15px;font-weight:600">${esc(o.customer)}</div><div style="font-size:13px;margin-top:3px"><a href="tel:${esc(String(o.phone || '').replace(/\s/g, ''))}" style="color:var(--gold)">📞 ${esc(o.phone)}</a> ${wa ? `· <a href="https://wa.me/${esc(wa)}" target="_blank" rel="noopener" style="color:var(--green)">💬 WhatsApp</a>` : ''}</div><div style="font-size:12.5px;color:var(--text2);margin-top:3px">${esc([o.address, o.thana, o.dist, o.div].filter(Boolean).join(', '))}</div></div>
+      <div class="sec"><div class="st">আইটেম ও মুনাফা</div><table><thead><tr><th>প্রোডাক্ট</th><th class="n">পরিমাণ</th><th class="n">দাম</th><th class="n">খরচ</th><th class="n">মুনাফা</th></tr></thead><tbody>${prof}</tbody></table><div style="font-size:12px;color:var(--text3);margin-top:5px">পণ্য-মুনাফা = বিক্রয় − বিক্রির সময়ের ইউনিট খরচ। ডেলিভারি/COD চার্জ ধরা নেই।${o.unknown ? ` <span style="color:var(--orange)">${o.unknown}টি আইটেমের খরচ অজানা — মুনাফায় ধরা হয়নি।</span>` : ''}</div></div>
+      <div class="sec"><div class="st">হিসাব</div><div class="g2"><div><span>মোট</span><br><b>${taka(o.total)}</b></div><div><span>ডেলিভারি</span><br><b>${taka(o.delivery)}</b></div><div><span>Paid</span><br><b style="color:var(--green)">${taka(o.paid)}</b></div><div><span>Due</span><br><b style="color:${o._due > 0 ? 'var(--red)' : 'inherit'}">${taka(o._due)}</b></div><div><span>পেমেন্ট</span><br>${esc(o.payment || '—')}</div><div><span>COD নেট পাওনা</span><br>${num(o.netPayable) ? taka(o.netPayable) : '—'}</div><div><span>পণ্য-মুনাফা</span><br><b style="color:${o.profit < 0 ? 'var(--red)' : 'var(--green)'}">${taka(o.profit)}</b></div><div><span>মার্জিন</span><br>${o.cost && num(o.total) ? Math.round(o.profit / num(o.total) * 100) + '%' : '—'}</div></div></div>
+      <div class="sec"><div class="st">কুরিয়ার</div><div class="g2"><div><span>কুরিয়ার</span><br>${esc(o.courier || '—')}</div><div><span>ট্র্যাকিং</span><br>${esc(o.tracking || '—')}</div><div><span>ডেলিভারি স্ট্যাটাস</span><br>${esc(o.delStatus || 'Not Sent')}</div><div><span>ট্র্যাকিং লিংক</span><br>${o.trackingLink ? `<a href="${esc(o.trackingLink)}" target="_blank" rel="noopener" style="color:var(--gold)">খুলুন ↗</a>` : '—'}</div></div></div>
+      ${(o.notes || o.description) ? `<div class="sec"><div class="st">নোট</div>${o.notes ? `<div style="font-size:13px;white-space:pre-wrap">📦 ${esc(o.notes)}</div>` : ''}${o.description ? `<div style="font-size:13px;white-space:pre-wrap;color:var(--text2);margin-top:4px">📝 ${esc(o.description)}</div>` : ''}</div>` : ''}
+      <div class="sec" id="s2-srl"></div>
+      <div class="sec"><div class="st">এই কাস্টমারের অন্য অর্ডার</div>${others.length ? `<div style="font-size:12.5px;color:var(--text2);margin-bottom:5px">${others.length}টি · Delivered মোট ${taka(spent)}</div>` + others.slice().sort((a, b) => b._ts - a._ts).slice(0, 5).map(x => `<div style="font-size:12.5px;padding:3px 0"><a href="#" data-o="${esc(x.id)}" style="color:var(--gold)">#${esc(x.id)}</a> · ${esc(x.date)} · ${esc(x.items.map(i => i.product).join(', '))} · ${esc(x._st)} · ${taka(x.total)}</div>`).join('') : '<div style="font-size:12.5px;color:var(--text3)">নতুন কাস্টমার — আগের অর্ডার নেই</div>'}</div>
+      <div class="sec"><div class="st">ইতিহাস (কে কী বদলাল)</div><div id="s2-tl" class="tl"><div style="color:var(--text3)">লোড হচ্ছে…</div></div></div>
+    </div>
+    <div class="dh" style="border-top:1px solid var(--border);border-bottom:0"><div class="acts" style="width:100%"><button class="btn" style="background:var(--gold);color:#000;border-color:var(--gold);font-weight:700" id="s2-a-inv">🖨️ Invoice</button><button class="btn" id="s2-a-edit">✏️ Edit</button><button class="btn" id="s2-a-ser">🔢 সিরিয়াল</button><button class="btn" id="s2-a-his">🕘 পুরো ইতিহাস</button></div></div>`;
+    $('s2-dx').onclick = closeDrawer;
+    $('s2-a-inv').onclick = () => { closeDrawer(); openInvoice(JSON.parse(JSON.stringify(o))); };
+    $('s2-a-edit').onclick = () => { closeDrawer(); openEditOrder(JSON.parse(JSON.stringify(o))); };
+    $('s2-a-ser').onclick = () => { try { inv3SerOpen(jid(o.id)); } catch (e) {} };
+    $('s2-a-his').onclick = () => { try { s1Hist(jid(o.id)); } catch (e) {} };
+    $('s2-dr').querySelectorAll('a[data-o]').forEach(a => a.onclick = e => { e.preventDefault(); openDrawer(a.dataset.o); });
+    $('s2-ov').classList.add('open'); $('s2-dr').classList.add('open');
+    if (typeof window.s2DrawerExtra === 'function') { try { window.s2DrawerExtra(o, $('s2-srl')); } catch (e) {} }
+    const d = await fetchFromAPI('orderAudit', { orderId: String(o.id), limit: 40 }); const tl = $('s2-tl'); if (!tl || !$('s2-dr').classList.contains('open')) return;
+    const rows = d && d.rows || [];
+    if (!d) tl.innerHTML = '<div style="color:var(--text3)">ইতিহাস আনা যায়নি</div>';
+    else if (!rows.length) tl.innerHTML = '<div style="color:var(--text3)">এই সুবিধা চালুর আগের অর্ডার — কোনো রেকর্ড নেই। এখন থেকে সব পরিবর্তন এখানে জমবে।</div>';
+    else tl.innerHTML = rows.slice(0, 25).map(x => `<div><b>${esc(x.time)}</b> · ${esc(x.by)}<br>${x.action === 'CREATE' ? '🆕 অর্ডার তৈরি' : esc(x.field) + ': ' + (x.oldV !== '' ? '<span style="color:var(--text3)">' + esc(String(x.oldV).slice(0, 60)) + '</span> → ' : '') + esc(String(x.newV).slice(0, 80))}${/PIN/.test(x.source) ? ' 🔐' : ''}</div>`).join('') + (rows.length > 25 ? '<div style="color:var(--text3)">… আরও আছে (🕘 পুরো ইতিহাস)</div>' : '');
+  }
+  window.__s2 = { S2, build, kpis, attnSets, quick, tsOf };
+})();
+
 </script>
 </body>
 </html>
