@@ -7344,7 +7344,7 @@ body.light #page-expense{--x-cyan:#52525B;--x-blue:#52525B}
 // ═══════════════════════════════════════════════════════════════
 
 // ⚠️ এখানে আপনার Google Apps Script Web App URL বসান (Deploy > New Deployment > Web App)
-      const API_URL = "https://script.google.com/macros/s/AKfycbyWNnab35ZrA7LHHMmILsxP_esCIf_6lgqzymn2q_mowbMatlntup_YsKcmT9I-_rOk/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
+      const API_URL = "https://script.google.com/macros/s/AKfycbyCGcA7Cj7gPoIXdY6VekZLDzjfmTPx8YAkL6QEm5VFkIOUrbX_9l6LnC-U4n0jLQYy/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
 
 // ─── CONNECTION STATE ────────────────────────────────────────
 let apiConnected = false;
@@ -25078,6 +25078,10 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
     const due = num(($('due-amount') || {}).value);
     if (status === 'Delivered' && due > 0 && !COLLECTED.includes(key(payment))) warns.push(`💰 Delivered করছেন, কিন্তু ৳${Math.round(due)} বাকি থাকছে (পেমেন্ট: ${payment || '—'})।`);
 
+    // ৪ক) সিরিয়াল (ধাপ ৩): In Transit/Delivered-এ নতুন করে নিলে, সিরিয়াল বসানো না থাকলে
+    if (edit && orig && orig.status !== status && ['Delivered', 'In Transit'].includes(status) && typeof window.__s3Warn === 'function') {
+      try { const w = await window.__s3Warn(edit, items, status); if (w) warns.push(w); } catch (e) { console.error('s3 warn', e); }
+    }
     if (window.__s1Strict && warns.length) { window.__s1Why = 'সতর্কতা: ' + warns[0].replace(/^\S+\s*/, '').slice(0, 90); return { ok: false, skip: true }; }
     if (warns.length && !(await s1Confirm('⚠️ সেভের আগে একবার দেখে নিন', warns, edit ? '✅ তবুও আপডেট করুন' : '✅ তবুও সেভ করুন'))) return { ok: false };
 
@@ -25125,6 +25129,7 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   };
   window.__s1WrapPost = wrapPost;
   window.__s1api = { RISK };
+  window.__s1Confirm = s1Confirm;
   if (typeof window.postToAPI === 'function') window.postToAPI = wrapPost(window.postToAPI);
 
   // ── ডিলিট: নিশ্চিতকরণ + PIN (আগের মতোই Recycle Bin-এ যায়) ──
@@ -25278,7 +25283,7 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   }
 
   // ───────── মনোযোগ দরকার ─────────
-  const ATTN = [
+  const ATTN = window.__s2ATTN = [
     ['pend', '🕐', 'Pending ' + T.pendingH + ' ঘণ্টার বেশি'], ['proc', '📦', 'Processing ' + T.processingH + ' ঘণ্টার বেশি'], ['transit', '🚚', 'In Transit ' + T.transitD + '+ দিন'],
     ['due', '💰', 'Delivered কিন্তু বাকি'], ['notrk', '🏷️', 'ট্র্যাকিং ছাড়া In Transit'], ['phone', '📞', 'ফোন নম্বর ঠিক নয়'], ['dup', '🔁', 'সম্ভাব্য ডুপ্লিকেট']
   ];
@@ -25295,6 +25300,7 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
       if (!(ph.length === 11 || (ph.length === 13 && ph.startsWith('880')))) S.phone.set(id, 'ফোন: ' + (o.phone || '—'));
       if (o._st !== 'Cancelled' && ph) { const k = ph.slice(-10) + '|' + dayOf(o._ts || 0) + '|' + o.items.map(i => key(i.product)).sort().join(','); if (seen[k]) S.dup.set(id, 'অর্ডার #' + seen[k] + '-এর মতো (একই ফোন/দিন/প্রোডাক্ট)'); else seen[k] = id; }
     });
+    (window.__s2Hooks || []).forEach(h => { try { S[h.k] = h.fn(G) || new Map(); } catch (e) { console.error('s2 hook', e); } });
     return S;
   }
 
@@ -25399,7 +25405,7 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
     $('s2-tabs').innerHTML = tab('', 'সব', G.length) + STS.map(s => tab(s, STBN[s], G.filter(o => o._st === s).length, STCOL[s])).join('');
     $('s2-tabs').firstChild.dataset.st = '';
     const AS = attnSets(); S2.AS = AS; let h = '<span class="t">⚠️ মনোযোগ দরকার:</span>', any = 0;
-    ATTN.forEach(a => { const n = AS[a[0]].size; if (!n) return; any += n; h += `<span class="s2-ch${['due', 'phone', 'dup', 'notrk'].includes(a[0]) || a[0] === 'transit' ? ' r' : ''}${S2.attn === a[0] ? ' on' : ''}" data-at="${a[0]}">${a[1]} ${a[2]} <b>${n}</b></span>`; });
+    ATTN.forEach(a => { const n = AS[a[0]].size; if (!n) return; any += n; h += `<span class="s2-ch${['due', 'phone', 'dup', 'notrk', 'nosn'].includes(a[0]) || a[0] === 'transit' ? ' r' : ''}${S2.attn === a[0] ? ' on' : ''}" data-at="${a[0]}">${a[1]} ${a[2]} <b>${n}</b></span>`; });
     if (!any) h += '<span class="s2-ok">✅ এই মুহূর্তে কিছুই আটকে নেই</span>';
     if (S2.attn) h += '<span class="s2-ch on" data-at="' + S2.attn + '">✕ ফিল্টার বন্ধ</span>';
     $('s2-at').innerHTML = h; bulkPaint();
@@ -25416,7 +25422,7 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
       const ck = tr.querySelector('.s2-ck'); if (ck) ck.checked = S2.sel.has(id);
       const stc = tr.cells[13]; if (stc) { const sp = stc.querySelector('.status'); if (sp) { sp.classList.add('s2-st'); sp.title = 'ক্লিক করে স্ট্যাটাস বদলান'; } }
       const flags = ATTN.filter(a => AS[a[0]] && AS[a[0]].has(id)); tr.classList.remove('s2-w', 's2-r');
-      if (flags.length) { tr.classList.add(flags.some(f => ['due', 'transit', 'notrk', 'phone'].includes(f[0])) ? 's2-r' : 's2-w'); if (stc && !stc.querySelector('.s2-fl')) { const f = document.createElement('span'); f.className = 's2-fl'; f.textContent = '⚠️'; f.title = flags.map(a => a[2] + ' — ' + AS[a[0]].get(id)).join('\n'); stc.appendChild(f); } }
+      if (flags.length) { tr.classList.add(flags.some(f => ['due', 'transit', 'notrk', 'phone', 'nosn'].includes(f[0])) ? 's2-r' : 's2-w'); if (stc && !stc.querySelector('.s2-fl')) { const f = document.createElement('span'); f.className = 's2-fl'; f.textContent = '⚠️'; f.title = flags.map(a => a[2] + ' — ' + AS[a[0]].get(id)).join('\n'); stc.appendChild(f); } }
     });
     const all = $('s2-all'); if (all) { const ids = [...body.rows].map(t => t.dataset.oid).filter(Boolean); all.checked = !!ids.length && ids.every(x => S2.sel.has(x)); }
   }
@@ -25571,7 +25577,367 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
     else if (!rows.length) tl.innerHTML = '<div style="color:var(--text3)">এই সুবিধা চালুর আগের অর্ডার — কোনো রেকর্ড নেই। এখন থেকে সব পরিবর্তন এখানে জমবে।</div>';
     else tl.innerHTML = rows.slice(0, 25).map(x => `<div><b>${esc(x.time)}</b> · ${esc(x.by)}<br>${x.action === 'CREATE' ? '🆕 অর্ডার তৈরি' : esc(x.field) + ': ' + (x.oldV !== '' ? '<span style="color:var(--text3)">' + esc(String(x.oldV).slice(0, 60)) + '</span> → ' : '') + esc(String(x.newV).slice(0, 80))}${/PIN/.test(x.source) ? ' 🔐' : ''}</div>`).join('') + (rows.length > 25 ? '<div style="color:var(--text3)">… আরও আছে (🕘 পুরো ইতিহাস)</div>' : '');
   }
-  window.__s2 = { S2, build, kpis, attnSets, quick, tsOf };
+  window.__s2 = { S2, build, kpis, attnSets, quick, tsOf, paint: () => { try { build(); paintTop(); decorate(); } catch (e) { console.error('s2 paint', e); } } };
+})();
+
+</script>
+<script id="sales3-js">
+/* ═══ SALES v3 · ধাপ ৩ — সিরিয়াল / লট Sales-এ ও ইনভয়েসে
+   • Sales টেবিলে 🔢 ব্যাজ (২/২ + লট) • Delivered/In Transit-এ সিরিয়াল না থাকলে সতর্কতা + ⚠️ কিউ
+   • 🔁 লট-রিকল (কোন কাস্টমার কোন লটের ইউনিট পেয়েছে + CSV + WhatsApp) • অর্ডার ড্রয়ারে সিরিয়াল
+   • ইনভয়েসে S/N + Lot + ওয়ারেন্টি-শেষ (চেকবক্স, ডিফল্ট চালু) + প্রিন্টের আগে সতর্কতা
+   শুধু পড়ে — সিরিয়াল বসানো/ছাড়ার কাজ আগের 🔢 মডালেই (PIN ও রেজিস্ট্রি নিয়ম অপরিবর্তিত)। */
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const key = s => String(s || '').trim().toLowerCase();
+  const num = v => Number(v) || 0;
+  const toast = (m, t) => { try { showToast(m, t || 'success'); } catch (e) {} };
+  const ACTIVE_ST = s => !/^(cancelled|returned)$/i.test(String(s || '').trim());
+  const S3 = { at: 0, data: null, by: {}, tracked: new Set(), loading: null, inv: null };
+
+  // ───────── ডেটা (৩০ সেকেন্ড ক্যাশ; ব্যর্থ হলে আগেরটা থাকে — কখনো ভুল সতর্কতা দেখায় না) ─────────
+  function index(d) {
+    S3.by = {}; S3.tracked = new Set((d.tracked || []).map(key));
+    (d.data || []).forEach(r => { const o = String(r.orderId), k = key(r.product); const m = S3.by[o] || (S3.by[o] = {}); (m[k] || (m[k] = [])).push(r); });
+  }
+  async function load(force) {
+    if (!force && S3.data && Date.now() - S3.at < 30000) return S3.data;
+    if (S3.loading) return S3.loading;
+    S3.loading = (async () => { try { const d = await fetchFromAPI('serialSold', {}); if (d && Array.isArray(d.data)) { S3.data = d; S3.at = Date.now(); index(d); } } catch (e) { console.error('sales3 load', e); } S3.loading = null; return S3.data; })();
+    return S3.loading;
+  }
+  window.__s3Refresh = () => { S3.at = 0; return load(true).then(() => { try { window.__s2 && window.__s2.paint && window.__s2.paint(); } catch (e) {} }); };
+
+  // অর্ডারের (গ্রুপ) প্রয়োজন বনাম বসানো — শুধু সিরিয়াল-ট্র্যাকড প্রোডাক্ট ধরে
+  function status(o) {
+    const id = String(o.id), agg = {};
+    (o.items || []).forEach(it => { const k = key(it.product); if (!S3.tracked.has(k)) return; (agg[k] || (agg[k] = { product: it.product, need: 0, rows: [] })).need += Math.max(1, Math.round(num(it.qty) || 1)); });
+    const ks = Object.keys(agg); let need = 0, have = 0; const lots = new Set(), prods = [];
+    ks.forEach(k => { const rows = (S3.by[id] || {})[k] || []; agg[k].rows = rows; agg[k].have = Math.min(rows.length, agg[k].need); need += agg[k].need; have += agg[k].have; rows.forEach(r => { if (r.lot) lots.add(r.lot); }); prods.push(agg[k]); });
+    return { need, have, lots: [...lots], prods, tracked: need > 0 };
+  }
+  const groupOf = id => { try { const G = window.__s2 && window.__s2.S2.groups; return (G || []).find(g => String(g.id) === String(id)); } catch (e) { return null; } };
+
+  // ───────── CSS ─────────
+  const css = document.createElement('style'); css.id = 's3-style';
+  css.textContent = `
+  .s3-b{display:inline-block;margin:3px 0 0;padding:1px 7px;border-radius:999px;font-size:11.5px;border:1px solid var(--border,#262626);cursor:pointer;white-space:nowrap;line-height:1.5}
+  .s3-b.ok{color:var(--green,#3FB97F);border-color:rgba(63,185,127,.45);background:rgba(63,185,127,.08)}
+  .s3-b.w{color:var(--orange,#F0A030);border-color:rgba(240,160,48,.5);background:rgba(240,160,48,.09)}
+  .s3-b.bad{color:var(--red,#E5534B);border-color:rgba(229,83,75,.55);background:rgba(229,83,75,.09)}
+  .s3-b.mut{color:var(--text3,#888)}
+  .s3-b:hover{filter:brightness(1.25)}
+  #s3-rc table{width:100%;border-collapse:collapse;font-size:12.5px}#s3-rc th,#s3-rc td{padding:5px 7px;border-bottom:1px solid var(--border,#262626);text-align:left;vertical-align:top}
+  #s3-rc th{position:sticky;top:0;background:var(--bg2,#080808);color:var(--text3,#888);font-weight:600}
+  #inv-sn-ctrl{padding:9px 16px;background:var(--bg3,#080808);border-bottom:1px solid var(--border,#262626);display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:12px;color:var(--text,#F2F2F2)}
+  @media print{#inv-sn-ctrl{display:none!important}}
+  `;
+  document.head.appendChild(css);
+
+  // ───────── Sales টেবিলের ব্যাজ ─────────
+  function badges() {
+    const body = $('sales-body'); if (!body || !S3.data) return;
+    [...body.rows].forEach(tr => {
+      const id = tr.dataset.oid; const td = tr.cells[6]; if (!id || !td) return;
+      td.querySelectorAll('.s3-b').forEach(x => x.remove());
+      const o = groupOf(id); if (!o || !ACTIVE_ST(o._st)) return;
+      const st = status(o); if (!st.tracked) return;
+      const late = ['Delivered', 'In Transit'].includes(o._st), done = st.have >= st.need;
+      const b = document.createElement('span'); b.className = 's3-b ' + (done ? 'ok' : (late ? 'bad' : (st.have ? 'w' : 'mut')));
+      b.textContent = '🔢 ' + st.have + '/' + st.need + (done ? '' : (late ? ' ⚠️' : '')) + (st.lots.length ? ' · লট ' + st.lots.slice(0, 2).join(', ') + (st.lots.length > 2 ? '…' : '') : '');
+      b.title = (done ? 'সব সিরিয়াল বসানো আছে' : late ? 'ডেলিভারির পথে/ডেলিভারি হয়ে গেছে কিন্তু সিরিয়াল বসানো হয়নি — ক্লিক করে বসান' : 'ডেলিভারির আগে সিরিয়াল বসিয়ে নিন') + '\n' + st.prods.map(p => p.product + ': ' + (p.rows.length ? p.rows.map(r => r.serial).join(', ') : 'নেই') + ' (' + p.have + '/' + p.need + ')').join('\n') + '\nক্লিক = 🔢 সিরিয়াল বসান/দেখুন';
+      b.dataset.oid = id; td.appendChild(document.createElement('br')); td.appendChild(b);
+    });
+  }
+  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('.s3-b'); if (!b) return; e.stopPropagation(); try { inv3SerOpen(b.dataset.oid); } catch (x) { toast('সিরিয়াল মডাল খোলা যায়নি', 'error'); } }, true);
+
+  const origRender = window._renderSalesPage;
+  if (typeof origRender === 'function') window._renderSalesPage = function () {
+    const r = origRender.apply(this, arguments);
+    try { if (S3.data) badges(); if (!S3.data || Date.now() - S3.at > 30000) load().then(d => { if (d) { try { window.__s2 && window.__s2.paint && window.__s2.paint(); } catch (e) {} badges(); } }); } catch (e) { console.error('sales3', e); }
+    return r;
+  };
+
+  // ───────── ⚠️ মনোযোগ কিউ-তে "সিরিয়াল বাকি" (sales2-এর হুক) ─────────
+  if (window.__s2ATTN && !window.__s2ATTN.some(a => a[0] === 'nosn')) window.__s2ATTN.push(['nosn', '🔢', 'সিরিয়াল বসানো হয়নি (In Transit/Delivered)']);
+  (window.__s2Hooks = window.__s2Hooks || []).push({
+    k: 'nosn', fn: G => { const m = new Map(); if (!S3.data) return m; G.forEach(o => { if (!['Delivered', 'In Transit'].includes(o._st)) return; const st = status(o); if (st.tracked && st.have < st.need) m.set(String(o.id), 'সিরিয়াল ' + st.have + '/' + st.need + ' বসানো'); }); return m; }
+  });
+
+  // ───────── সেভের আগে সতর্কতা (sales1 preflight থেকে ডাকা হয়) ─────────
+  window.__s3Warn = async function (orderId, items, newStatus) {
+    const d = await load(true); if (!d) return '';                      // ডেটা না এলে কিছু বলে না (ভুল সতর্কতা নয়)
+    const o = { id: orderId, items: items.map(it => ({ product: it.product, qty: it.qty })) }; const st = status(o);
+    if (!st.tracked || st.have >= st.need) return '';
+    const miss = st.prods.filter(p => p.have < p.need).map(p => `"${p.product}" ${p.have}/${p.need}`).join(', ');
+    return `🔢 ${newStatus}: সিরিয়াল বসানো হয়নি/অসম্পূর্ণ — ${miss}। ওয়ারেন্টি ও দাবির জন্য সেভের পর অর্ডারের 🔢 বোতামে সিরিয়াল বসিয়ে নিন।`;
+  };
+
+  // ───────── অর্ডার ড্রয়ারে সিরিয়াল ─────────
+  window.s2DrawerExtra = async function (o, box) {
+    if (!box) return; box.innerHTML = '<div class="st">সিরিয়াল ও লট</div><div style="font-size:12.5px;color:var(--text3)">⏳ লোড হচ্ছে…</div>';
+    const d = await load(true); if (!$('s2-dr') || !box.isConnected) return;
+    if (!d) { box.innerHTML = '<div class="st">সিরিয়াল ও লট</div><div style="font-size:12.5px;color:var(--text3)">সিরিয়াল ডেটা আনা যায়নি</div>'; return; }
+    const st = status(o);
+    if (!st.tracked) { box.innerHTML = '<div class="st">সিরিয়াল ও লট</div><div style="font-size:12.5px;color:var(--text3)">এই অর্ডারের প্রোডাক্টে সিরিয়াল-ট্র্যাকিং নেই</div>'; return; }
+    box.innerHTML = '<div class="st">সিরিয়াল ও লট — ' + st.have + '/' + st.need + (st.have >= st.need ? ' ✅' : ' ⚠️') + '</div>' + st.prods.map(p => `<div style="margin:0 0 6px"><b style="font-size:13px">${esc(p.product)}</b> <span style="font-size:12px;color:var(--text3)">${p.have}/${p.need}</span>` + (p.rows.length ? `<table style="margin-top:3px"><tbody>${p.rows.map(r => `<tr><td>${esc(r.serial)}</td><td>${r.lot ? 'লট ' + esc(r.lot) : ''}</td><td class="n" style="text-align:right">${r.warrantyUntil ? '🛡️ ' + esc(r.warrantyUntil) : ''}</td></tr>`).join('')}</tbody></table>` : '<div style="font-size:12px;color:var(--orange)">কোনো সিরিয়াল বসানো হয়নি</div>') + '</div>').join('');
+  };
+
+  // ───────── 🔁 লট-রিকল ─────────
+  function ensureRecallBtn() {
+    if ($('s3-rcb')) return; const bar = document.querySelector('#s2-top .s2-bar'); if (!bar) return;
+    const b = document.createElement('button'); b.className = 's2-btn'; b.id = 's3-rcb'; b.textContent = '🔁 লট-রিকল'; b.title = 'কোন লটের ইউনিট কোন কাস্টমার পেয়েছে — তালিকা/CSV/WhatsApp'; b.onclick = openRecall;
+    bar.insertBefore(b, $('s2-cmp'));
+  }
+  const _pt = window.__s2 && window.__s2.paint;
+  let rcState = { sel: null };
+  async function openRecall() {
+    let m = $('modal-s3-rc'); if (!m) { m = document.createElement('div'); m.className = 'modal-overlay'; m.id = 'modal-s3-rc'; m.onclick = e => { if (e.target === m) closeModal('s3-rc'); }; m.innerHTML = '<div class="modal-box" id="s3-rc" style="max-width:980px;width:96vw"><div class="modal-header"><span class="modal-title">🔁 লট-রিকল — কোন কাস্টমার কোন লটের ইউনিট পেয়েছে</span><button class="modal-close" onclick="closeModal(\'s3-rc\')">✕</button></div><div class="modal-body" id="s3-rc-body" style="max-height:72vh;overflow:auto"></div><div class="modal-footer" id="s3-rc-foot"></div></div>'; document.body.appendChild(m); }
+    $('s3-rc-body').innerHTML = '<div style="color:var(--text3)">⏳ লোড হচ্ছে…</div>'; $('s3-rc-foot').innerHTML = ''; openModal('s3-rc');
+    const d = await load(true); if (!d) { $('s3-rc-body').innerHTML = '<div style="color:var(--red)">সিরিয়াল ডেটা আনা যায়নি — আবার চেষ্টা করুন</div>'; return; }
+    const prods = [...new Set(d.data.map(r => r.product))].sort();
+    if (!prods.length) { $('s3-rc-body').innerHTML = '<div style="color:var(--text3)">এখনো কোনো সিরিয়াল বিক্রি/অর্ডারে বসানো হয়নি।</div>'; return; }
+    $('s3-rc-body').innerHTML = `<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px"><select id="s3-rp" class="s2-sel">${prods.map(p => `<option>${esc(p)}</option>`).join('')}</select><select id="s3-rl" class="s2-sel"></select><span id="s3-rs" style="font-size:12.5px;color:var(--text2)"></span></div>
+      <details style="margin-bottom:8px"><summary style="cursor:pointer;font-size:12.5px;color:var(--text3)">💬 WhatsApp বার্তার টেমপ্লেট</summary><textarea id="s3-rm" rows="3" style="width:100%;margin-top:6px;background:var(--bg3,#111);color:var(--text,#eee);border:1px solid var(--border,#262626);border-radius:8px;padding:8px;font-family:inherit;font-size:13px">আসসালামু আলাইকুম {name}, আপনার {product} (সিরিয়াল {serial}) সম্পর্কে একটি গুরুত্বপূর্ণ আপডেট আছে — অনুগ্রহ করে আমাদের সাথে যোগাযোগ করুন। — InnoGix, +8801560016179</textarea></details>
+      <div id="s3-rt"></div>`;
+    $('s3-rc-foot').innerHTML = '<button class="btn" id="s3-rcsv">📥 CSV</button><button class="btn" onclick="closeModal(\'s3-rc\')">বন্ধ</button>';
+    const fillLots = () => { const p = $('s3-rp').value; const mp = {}; d.data.filter(r => r.product === p).forEach(r => { const k = r.batch + '|' + r.lot; mp[k] = (mp[k] || { batch: r.batch, lot: r.lot, n: 0 }); mp[k].n++; }); const arr = Object.values(mp).sort((a, b) => String(a.batch).localeCompare(String(b.batch))); $('s3-rl').innerHTML = '<option value="*">সব লট/ব্যাচ</option>' + arr.map(x => `<option value="${esc(x.batch + '|' + x.lot)}">লট ${esc(x.lot || '—')} · ব্যাচ ${esc(x.batch)} (${x.n}টি বিক্রি)</option>`).join(''); draw(); };
+    const waNum = p => { const x = String(p || '').replace(/\D/g, ''); return x.length === 11 && x.startsWith('01') ? '88' + x : x; };
+    const stOf = {}; (window.liveSalesData || []).forEach(r => { if (!stOf[String(r.id)]) stOf[String(r.id)] = r.status; });
+    function draw() {
+      const p = $('s3-rp').value, l = $('s3-rl').value;
+      const rows = d.data.filter(r => r.product === p && (l === '*' || (r.batch + '|' + r.lot) === l)).sort((a, b) => String(a.serial).localeCompare(String(b.serial), undefined, { numeric: true }));
+      rcState.sel = rows; const cust = new Set(rows.map(r => String(r.phone || r.customer)));
+      $('s3-rs').textContent = rows.length + 'টি ইউনিট · ' + cust.size + 'জন কাস্টমার' + (d.truncated ? ' (⚠️ রেজিস্ট্রি বড় — সর্বশেষ ২০০০০টি)' : '');
+      const tpl = () => $('s3-rm').value;
+      $('s3-rt').innerHTML = `<table><thead><tr><th>অর্ডার</th><th>সিরিয়াল</th><th>লট/ব্যাচ</th><th>কাস্টমার</th><th>ফোন</th><th>বিক্রি</th><th>ওয়ারেন্টি</th><th>স্ট্যাটাস</th><th></th></tr></thead><tbody>${rows.map((r, i) => `<tr><td>#${esc(r.orderId)}</td><td>${esc(r.serial)}</td><td>${esc(r.lot || '—')} / ${esc(r.batch)}</td><td>${esc(r.customer)}</td><td>${esc(r.phone)}</td><td>${esc(r.soldDate || '')}</td><td>${esc(r.warrantyUntil || '—')}</td><td>${esc(stOf[String(r.orderId)] || '—')}</td><td>${waNum(r.phone) ? `<a href="#" data-i="${i}" class="s3-wa" style="color:var(--green)">💬</a>` : ''}</td></tr>`).join('') || '<tr><td colspan="9" style="color:var(--text3)">কিছু নেই</td></tr>'}</tbody></table>`;
+      $('s3-rt').querySelectorAll('.s3-wa').forEach(a => a.onclick = e => { e.preventDefault(); const r = rows[+a.dataset.i]; const msg = tpl().replace(/\{name\}/g, r.customer || '').replace(/\{product\}/g, r.product).replace(/\{serial\}/g, r.serial); window.open('https://wa.me/' + waNum(r.phone) + '?text=' + encodeURIComponent(msg), '_blank', 'noopener'); });
+    }
+    $('s3-rp').onchange = fillLots; $('s3-rl').onchange = draw;
+    $('s3-rcsv').onclick = () => { const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; const rows = [['Order', 'Serial', 'Product', 'Lot', 'Batch', 'Customer', 'Phone', 'Sold Date', 'Warranty Until', 'Order Status']].concat((rcState.sel || []).map(r => [r.orderId, r.serial, r.product, r.lot, r.batch, r.customer, r.phone, r.soldDate, r.warrantyUntil, stOf[String(r.orderId)] || ''])); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + rows.map(r => r.map(q).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' })); a.download = 'lot_recall.csv'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); };
+    fillLots();
+  }
+  window.s3Recall = openRecall;
+  // বোতামটি sales2 প্যানেল তৈরির পর বসে
+  const _t = setInterval(() => { if ($('s2-top')) { ensureRecallBtn(); if ($('s3-rcb')) clearInterval(_t); } }, 400);
+
+  // ───────── ইনভয়েসে S/N + Lot + ওয়ারেন্টি-শেষ ─────────
+  function ensureInvCtrl() {
+    if ($('inv-sn-ctrl')) return; const w = $('inv-war-ctrl'); if (!w) return;
+    const d = document.createElement('div'); d.id = 'inv-sn-ctrl';
+    d.innerHTML = '<b>🔢 সিরিয়াল ও লট:</b><label style="cursor:pointer"><input type="checkbox" id="isn-on" checked> ইনভয়েসে সিরিয়াল/লট/ওয়ারেন্টি-শেষ দেখাও</label><span id="isn-msg" style="opacity:.85"></span><button class="btn" id="isn-assign" style="padding:4px 10px;font-size:12px;display:none">🔢 সিরিয়াল বসান</button>';
+    w.parentNode.insertBefore(d, w);
+    $('isn-on').onchange = () => paintInvoice();
+    $('isn-assign').onclick = () => { try { closeModal('invoice'); inv3SerOpen(S3.inv.id); } catch (e) {} };
+  }
+  function uniq(a) { return [...new Set(a.filter(Boolean))]; }
+  function paintInvoice() {
+    const c = S3.inv; if (!c) return; const on = $('isn-on') && $('isn-on').checked; const msg = $('isn-msg'), btn = $('isn-assign');
+    const rows = [...document.querySelectorAll('#inv-items tr')]; rows.forEach(tr => tr.querySelectorAll('.iv-sn').forEach(x => x.remove()));
+    const st = status({ id: c.id, items: c.items }); c.missing = st.tracked ? st.prods.filter(p => p.have < p.need) : [];
+    if (!S3.data) { msg.textContent = '⏳ সিরিয়াল লোড হচ্ছে…'; btn.style.display = 'none'; return; }
+    msg.innerHTML = !st.tracked ? 'এই অর্ডারের প্রোডাক্টে সিরিয়াল-ট্র্যাকিং নেই' : (c.missing.length ? '<span style="color:#F0A030">⚠️ সিরিয়াল ' + st.have + '/' + st.need + ' বসানো — বাকিগুলো ইনভয়েসে আসবে না</span>' : '<span style="color:#3FB97F">✅ সব ' + st.need + 'টি সিরিয়াল বসানো</span>');
+    btn.style.display = (st.tracked && c.missing.length) ? '' : 'none';
+    if (!on || !st.tracked) { try { invFit(); } catch (e) {} return; }
+    const used = {};
+    c.items.forEach((it, idx) => {
+      const k = key(it.product); if (!S3.tracked.has(k)) return; const tr = rows[idx]; if (!tr || !tr.cells[1]) return;
+      const all = (S3.by[String(c.id)] || {})[k] || [], q = Math.max(1, Math.round(num(it.qty) || 1)), from = used[k] || 0, mine = all.slice(from, from + q); used[k] = from + q;
+      if (!mine.length) return;
+      const lots = uniq(mine.map(r => r.lot)), wu = uniq(mine.map(r => r.warrantyUntil));
+      const d = document.createElement('div'); d.className = 'iv-sn'; d.contentEditable = 'false';
+      d.style.cssText = 'margin-top:3px;font-size:11px;font-weight:500;color:#4a5568;line-height:1.4;letter-spacing:.1px;';
+      d.textContent = 'S/N: ' + mine.map(r => r.serial).join(', ') + (lots.length ? '  ·  Lot: ' + lots.join(', ') : '') + (wu.length ? '  ·  ওয়ারেন্টি শেষ: ' + wu.join(' / ') : '');
+      tr.cells[1].appendChild(d);
+    });
+    try { invFit(); } catch (e) {}
+  }
+  const origOpenInv = window.openInvoice;
+  if (typeof origOpenInv === 'function') window.openInvoice = function (r) {
+    const res = origOpenInv.apply(this, arguments);
+    try {
+      ensureInvCtrl(); const items = (Array.isArray(r.items) && r.items.length) ? r.items : [{ product: r.product, qty: r.qty }];
+      S3.inv = { id: String(r.id || ''), items: items.map(i => ({ product: i.product, qty: i.qty })), missing: [] };
+      const cb = $('isn-on'); if (cb) cb.checked = true; paintInvoice();
+      load(true).then(() => { if (S3.inv && S3.inv.id === String(r.id || '')) paintInvoice(); });
+    } catch (e) { console.error('sales3 invoice', e); }
+    return res;
+  };
+  // প্রিন্ট/PDF/PNG-এর আগে: সিরিয়াল চালু থাকলে এবং কিছু বসানো না থাকলে একবার জিজ্ঞেস
+  function guard(name) {
+    const orig = window[name]; if (typeof orig !== 'function') return;
+    window[name] = function () {
+      const self = this, args = arguments, c = S3.inv, on = $('isn-on') && $('isn-on').checked;
+      if (on && c && c.missing && c.missing.length && !c.__ok) {
+        const lines = c.missing.map(p => `🔢 "${p.product}": ${p.have}/${p.need} সিরিয়াল বসানো`);
+        const go = ok => { if (!ok) return; c.__ok = true; try { return orig.apply(self, args); } finally { c.__ok = false; } };
+        if (typeof window.__s1Confirm === 'function') { window.__s1Confirm('⚠️ ইনভয়েসে সিরিয়াল অসম্পূর্ণ', lines.concat(['যে সিরিয়াল বসানো নেই সেগুলো ইনভয়েসে আসবে না। চাইলে আগে 🔢 দিয়ে বসিয়ে নিন।']), '🖨️ তবুও চালিয়ে যান').then(go); return; }
+        return go(confirm(lines.join('\n') + '\n\nতবুও চালিয়ে যাবেন?'));
+      }
+      return orig.apply(this, arguments);
+    };
+  }
+  ['invPrint', 'downloadInvoicePDF', 'downloadInvoicePNG'].forEach(guard);
+
+  // সিরিয়াল বসানোর পর ডেটা পুরোনো না দেখানোর জন্য
+  const oa = window.inv3SerAssignSubmit;
+  if (typeof oa === 'function') window.inv3SerAssignSubmit = async function () { const r = await oa.apply(this, arguments); setTimeout(() => window.__s3Refresh(), 600); return r; };
+  const ou = window.inv3SerUnassign;
+  if (typeof ou === 'function') window.inv3SerUnassign = async function () { const r = await ou.apply(this, arguments); setTimeout(() => window.__s3Refresh(), 600); return r; };
+
+  window.__s3 = { S3, load, status, badges, paintInvoice };
+})();
+
+</script>
+<script id="sales4-js">
+/* ═══ SALES v4 · ধাপ ৪ — 💬 WhatsApp টেমপ্লেট · 🔁 রিপিট-কাস্টমার ব্যাজ · 💾 সেভ-করা ফিল্টার
+   শুধু দেখানো/সুবিধা — শিটে কিছু লেখে না। টেমপ্লেট ও ফিল্টার এই ব্রাউজারে (localStorage) জমা থাকে।
+   WhatsApp বোতাম শুধু প্রস্তুত বার্তাসহ চ্যাট খোলে — পাঠাতে আপনাকেই Send চাপতে হয়। */
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const num = v => Number(v) || 0;
+  const taka = n => '৳' + Math.round(num(n)).toLocaleString('en-US');
+  const toast = (m, t) => { try { showToast(m, t || 'success'); } catch (e) {} };
+  const HELP = '+8801560016179';
+  const S2 = () => (window.__s2 && window.__s2.S2) || { groups: [], attn: null };
+  const lsGet = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } };
+  const ph10 = p => String(p || '').replace(/\D/g, '').slice(-10);
+  const waNum = p => { const d = String(p || '').replace(/\D/g, ''); return d.length === 11 && d.startsWith('01') ? '88' + d : d; };
+
+  // ───────── 💬 টেমপ্লেট ─────────
+  const TPL = [
+    { k: 'confirm', t: '✅ অর্ডার কনফার্মেশন', d: 'আসসালামু আলাইকুম {name}, আপনার অর্ডার #{id} ({product}) আমরা পেয়েছি। মোট {total}, ডেলিভারি চার্জ {delivery}। ঠিকানা: {address}। সব ঠিক থাকলে অনুগ্রহ করে কনফার্ম করুন। ধন্যবাদ — InnoGix, {helpline}' },
+    { k: 'dispatch', t: '🚚 কুরিয়ারে পাঠানো হয়েছে', d: 'আসসালামু আলাইকুম {name}, আপনার অর্ডার #{id} {courier} কুরিয়ারে পাঠানো হয়েছে। ট্র্যাকিং: {tracking} {link}। পণ্য হাতে পেয়ে খুলে দেখে নিন। পরিশোধযোগ্য (COD): {cod}। — InnoGix, {helpline}' },
+    { k: 'delivered', t: '🎉 ডেলিভারি-পরবর্তী ফলো-আপ', d: 'আসসালামু আলাইকুম {name}, আপনার অর্ডার #{id} ({product}) পৌঁছেছে — ধন্যবাদ! পণ্য ঠিকমতো কাজ করছে তো? {serials}কোনো সমস্যা হলে নির্দ্বিধায় জানাবেন: {helpline}। — InnoGix' },
+    { k: 'due', t: '💰 বাকি টাকার অনুরোধ', d: 'আসসালামু আলাইকুম {name}, আপনার অর্ডার #{id}-এর {due} বাকি আছে। সুবিধামতো পরিশোধ করলে কৃতজ্ঞ থাকব। — InnoGix, {helpline}' },
+    { k: 'wait', t: '⏳ কনফার্মের অপেক্ষায়', d: 'আসসালামু আলাইকুম {name}, আপনার অর্ডার #{id} ({product}) এখনো কনফার্ম হয়নি। অর্ডারটি রাখতে চাইলে অনুগ্রহ করে জানান — আমরা পাঠিয়ে দিচ্ছি। — InnoGix, {helpline}' },
+    { k: 'return', t: '↩️ ফেরত নিয়ে খোঁজ', d: 'আসসালামু আলাইকুম {name}, আপনার অর্ডার #{id} ফেরত এসেছে। কোনো সমস্যা হয়েছিল কি? জানালে আমরা সমাধানে সাহায্য করব। — InnoGix, {helpline}' }
+  ];
+  const tplAll = () => { const u = lsGet('ig_s4_wa', {}); return TPL.map(x => ({ ...x, text: (u && typeof u[x.k] === 'string' && u[x.k].trim()) ? u[x.k] : x.d })); };
+  const pick = o => o._st === 'Delivered' ? (o._due > 0.5 ? 'due' : 'delivered') : o._st === 'In Transit' ? 'dispatch' : o._st === 'Returned' ? 'return' : (o._ts && Date.now() - o._ts > 24 * 36e5 ? 'wait' : 'confirm');
+  function fill(text, o) {
+    let ser = ''; try { const st = window.__s3 && window.__s3.status(o); if (st && st.tracked) { const all = []; st.prods.forEach(p => p.rows.forEach(r => all.push(r.serial))); if (all.length) ser = 'সিরিয়াল: ' + all.join(', ') + '। '; } } catch (e) {}
+    const prod = (o.items || []).map(i => i.product + (num(i.qty) > 1 ? ' ×' + i.qty : '')).join(', ') || o.product || '';
+    const link = o.trackingLink || '', cod = num(o.netPayable) > 0 ? num(o.netPayable) : num(o.total) + num(o.delivery) - num(o.paid);
+    const map = { name: o.customer || '', id: o.id, product: prod, total: taka(o.total), delivery: taka(o.delivery), paid: taka(o.paid), due: taka(o._due != null ? o._due : o.due), cod: taka(Math.max(0, cod)), address: [o.address, o.thana, o.dist].filter(Boolean).join(', '), courier: o.courier || 'কুরিয়ার', tracking: o.tracking || '—', link, serials: ser, helpline: HELP, phone: o.phone || '' };
+    return text.replace(/\{(\w+)\}/g, (m, k) => k in map ? map[k] : m).replace(/ {2,}/g, ' ').replace(/\s+([।,])/g, '$1').trim();
+  }
+  const waUrl = (o, msg) => 'https://wa.me/' + waNum(o.phone) + '?text=' + encodeURIComponent(msg);
+  const orderOf = id => (S2().groups || []).find(g => String(g.id) === String(id));
+
+  // ───────── CSS ─────────
+  const css = document.createElement('style'); css.id = 's4-style';
+  css.textContent = `
+  .s4-b{display:inline-block;margin:3px 0 0 4px;padding:0 7px;border-radius:999px;font-size:11px;border:1px solid rgba(205,169,53,.45);color:var(--gold,#CDA935);background:rgba(205,169,53,.08);white-space:nowrap;line-height:1.55;cursor:help}
+  .s4-b.r{color:var(--red,#E5534B);border-color:rgba(229,83,75,.5);background:rgba(229,83,75,.09)}
+  .s4-wa{margin-left:6px;text-decoration:none;cursor:pointer;opacity:.85}.s4-wa:hover{opacity:1}
+  #s4-sf{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+  #s4-sf .t{font-size:12.5px;color:var(--text3,#888);margin-right:2px}
+  .s4-ch{background:var(--bg3,#111);border:1px solid var(--border,#262626);color:var(--text2,#bbb);border-radius:999px;padding:3px 6px 3px 11px;font-size:12.5px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+  .s4-ch:hover{border-color:var(--gold,#CDA935)}.s4-ch.on{border-color:var(--gold,#CDA935);color:var(--gold,#CDA935)}
+  .s4-ch i{font-style:normal;opacity:.55;padding:0 4px;border-radius:50%}.s4-ch i:hover{opacity:1;color:var(--red,#E5534B)}
+  #s4-wa .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  #s4-wa select,#s4-wa textarea,#modal-s4-wt textarea{width:100%;background:var(--bg3,#111);color:var(--text,#eee);border:1px solid var(--border,#262626);border-radius:8px;padding:7px 9px;font-family:inherit;font-size:13px}
+  #s4-wa textarea{margin-top:6px;min-height:92px}
+  `;
+  document.head.appendChild(css);
+
+  // ───────── 🔁 রিপিট-কাস্টমার ব্যাজ + 💬 সারি-বোতাম ─────────
+  function decorate() {
+    const body = $('sales-body'); if (!body) return; const G = S2().groups || []; if (!G.length) return;
+    const by = {}; G.forEach(o => { const k = ph10(o.phone); if (k.length >= 10) (by[k] || (by[k] = [])).push(o); });
+    Object.values(by).forEach(a => a.sort((x, y) => ((x._ts || 0) - (y._ts || 0)) || (num(x.id) - num(y.id))));
+    const byId = {}; G.forEach(o => byId[String(o.id)] = o);
+    [...body.rows].forEach(tr => {
+      const id = tr.dataset.oid; if (!id) return; const o = byId[id]; if (!o) return;
+      const c = tr.cells[2], p = tr.cells[3]; if (c) c.querySelectorAll('.s4-b').forEach(x => x.remove()); if (p) p.querySelectorAll('.s4-wa').forEach(x => x.remove());
+      const list = (by[ph10(o.phone)] || []).filter(x => x._st !== 'Cancelled');
+      if (c && list.length >= 2) {
+        const rank = list.findIndex(x => String(x.id) === id) + 1, rets = list.filter(x => x._st === 'Returned').length, spent = list.filter(x => x._st === 'Delivered').reduce((s, x) => s + num(x.total), 0);
+        if (rank > 0) { const b = document.createElement('span'); b.className = 's4-b'; b.textContent = '🔁 ' + rank + '/' + list.length; b.title = 'এই কাস্টমারের ' + list.length + 'টি অর্ডার (এটি ' + rank + 'ম/য়)\nDelivered মোট ' + taka(spent) + (rets ? '\n↩️ ' + rets + 'টি Returned' : ''); c.appendChild(b); }
+        if (rets && o._st !== 'Returned') { const r = document.createElement('span'); r.className = 's4-b r'; r.textContent = '↩️ ' + rets; r.title = 'এই কাস্টমারের আগের ' + rets + 'টি অর্ডার Returned — সতর্ক থাকুন'; c.appendChild(r); }
+      }
+      if (p && waNum(o.phone)) { const a = document.createElement('a'); a.className = 's4-wa'; a.textContent = '💬'; a.href = '#'; a.title = 'WhatsApp — "' + (tplAll().find(t => t.k === pick(o)) || {}).t + '" বার্তাসহ চ্যাট খুলুন (Send আপনাকেই চাপতে হবে)'; a.dataset.oid = id; p.appendChild(a); }
+    });
+  }
+  document.addEventListener('click', e => {
+    const a = e.target.closest && e.target.closest('#sales-body .s4-wa'); if (!a) return; e.preventDefault(); e.stopPropagation();
+    const o = orderOf(a.dataset.oid); if (!o) return; const t = tplAll().find(x => x.k === pick(o)); window.open(waUrl(o, fill(t.text, o)), '_blank', 'noopener');
+  }, true);
+  const origRender = window._renderSalesPage;
+  if (typeof origRender === 'function') window._renderSalesPage = function () {
+    const r = origRender.apply(this, arguments); try { decorate(); } catch (e) { console.error('sales4', e); } return r;
+  };
+  // sales3-এর ব্যাজ দেরিতে (ডেটা এলে) আঁকা হয় — তখনও আমাদের ব্যাজ টিকে থাকে (আলাদা সেল)
+
+  // ───────── 💬 ড্রয়ারে টেমপ্লেট ─────────
+  const prevExtra = window.s2DrawerExtra;
+  window.s2DrawerExtra = function (o, box) {
+    let r; try { r = typeof prevExtra === 'function' ? prevExtra.apply(this, arguments) : null; } catch (e) { console.error(e); }
+    try {
+      const dr = $('s2-dr'); if (!dr || !box) return r; const old = $('s4-wa'); if (old) old.remove();
+      const sec = document.createElement('div'); sec.className = 'sec'; sec.id = 's4-wa';
+      const T = tplAll(), def = pick(o);
+      sec.innerHTML = `<div class="st">💬 WhatsApp বার্তা</div><select id="s4-sel">${T.map(t => `<option value="${t.k}" ${t.k === def ? 'selected' : ''}>${esc(t.t)}${t.k === def ? ' (প্রস্তাবিত)' : ''}</option>`).join('')}</select><textarea id="s4-txt"></textarea><div class="row"><button class="btn" id="s4-go" style="background:var(--gold);color:#000;border-color:var(--gold);font-weight:700">💬 WhatsApp খুলুন</button><button class="btn" id="s4-cp">📋 কপি</button><button class="btn" id="s4-ed">✏️ টেমপ্লেট এডিট</button></div><div style="font-size:11.5px;color:var(--text3);margin-top:5px">মেসেজ এখানে বদলাতে পারেন — শুধু এই বারের জন্য। পাঠাতে WhatsApp-এ Send আপনাকেই চাপতে হবে।</div>`;
+      box.parentNode.insertBefore(sec, box.nextSibling);
+      const upd = () => { const t = T.find(x => x.k === $('s4-sel').value); $('s4-txt').value = fill(t.text, o); };
+      $('s4-sel').onchange = upd; upd();
+      $('s4-go').onclick = () => { if (!waNum(o.phone)) { toast('ফোন নম্বর ঠিক নয়', 'error'); return; } window.open(waUrl(o, $('s4-txt').value), '_blank', 'noopener'); };
+      $('s4-cp').onclick = async () => { try { await navigator.clipboard.writeText($('s4-txt').value); toast('📋 কপি হয়েছে'); } catch (e) { $('s4-txt').select(); document.execCommand && document.execCommand('copy'); toast('📋 কপি হয়েছে'); } };
+      $('s4-ed').onclick = openEditor;
+    } catch (e) { console.error('sales4 drawer', e); }
+    return r;
+  };
+
+  // ───────── টেমপ্লেট এডিটর ─────────
+  function openEditor() {
+    let m = $('modal-s4-wt'); if (!m) { m = document.createElement('div'); m.className = 'modal-overlay'; m.id = 'modal-s4-wt'; m.style.zIndex = '9600'; m.onclick = e => { if (e.target === m) closeModal('s4-wt'); }; m.innerHTML = '<div class="modal-box" style="max-width:680px;width:96vw"><div class="modal-header"><span class="modal-title">✏️ WhatsApp টেমপ্লেট</span><button class="modal-close" onclick="closeModal(\'s4-wt\')">✕</button></div><div class="modal-body" id="s4-wt-body" style="max-height:70vh;overflow:auto"></div><div class="modal-footer"><button class="btn" id="s4-wt-reset">↩️ ডিফল্টে ফেরান</button><button class="btn" style="background:var(--gold);color:#000;border-color:var(--gold);font-weight:700" id="s4-wt-save">💾 সংরক্ষণ</button><button class="btn" onclick="closeModal(\'s4-wt\')">বন্ধ</button></div></div>'; document.body.appendChild(m); }
+    const draw = () => { $('s4-wt-body').innerHTML = '<div style="font-size:12px;color:var(--text3);margin-bottom:8px;line-height:1.6">ব্যবহারযোগ্য: <code>{name}</code> <code>{id}</code> <code>{product}</code> <code>{total}</code> <code>{delivery}</code> <code>{paid}</code> <code>{due}</code> <code>{cod}</code> <code>{address}</code> <code>{courier}</code> <code>{tracking}</code> <code>{link}</code> <code>{serials}</code> <code>{phone}</code> <code>{helpline}</code><br>টেমপ্লেট এই ব্রাউজারে সংরক্ষিত থাকে (অন্য ডিভাইসে আলাদা)।</div>' + tplAll().map(t => `<div style="margin-bottom:10px"><b style="font-size:13px">${esc(t.t)}</b><textarea data-k="${t.k}" rows="3">${esc(t.text)}</textarea></div>`).join(''); };
+    draw();
+    $('s4-wt-save').onclick = () => { const u = {}; document.querySelectorAll('#s4-wt-body textarea').forEach(a => { const d = TPL.find(x => x.k === a.dataset.k).d; if (a.value.trim() && a.value.trim() !== d) u[a.dataset.k] = a.value; }); if (lsSet('ig_s4_wa', u)) { toast('💾 টেমপ্লেট সংরক্ষিত'); closeModal('s4-wt'); const s = $('s4-sel'); if (s && $('s2-dr') && $('s2-dr').classList.contains('open')) { /* ড্রয়ার খোলা — পরের বার নতুন টেমপ্লেট */ } } else toast('সংরক্ষণ করা যায়নি (ব্রাউজার স্টোরেজ বন্ধ)', 'error'); };
+    $('s4-wt-reset').onclick = () => { if (!confirm('সব টেমপ্লেট ডিফল্টে ফিরবে?')) return; lsSet('ig_s4_wa', {}); draw(); };
+    openModal('s4-wt');
+  }
+  window.s4Templates = openEditor;
+
+  // ───────── 💾 সেভ-করা ফিল্টার ─────────
+  const FID = { status: 'sales-status-filter', sm: 'sales-salesman-filter', div: 'sales-div-filter', prod: 'sales-prod-filter', q: 'sales-search-input', date: 'sales-date-filter' };
+  const cur = () => { const f = {}; Object.keys(FID).forEach(k => { const e = $(FID[k]); const v = e ? String(e.value || '') : ''; if (v && !/^All /.test(v)) f[k] = v; }); if (S2().attn) f.attn = S2().attn; return f; };
+  const same = (a, b) => { const ka = Object.keys(a), kb = Object.keys(b); return ka.length === kb.length && ka.every(k => a[k] === b[k]); };
+  const presets = () => { const p = lsGet('ig_s4_filters', []); return Array.isArray(p) ? p.filter(x => x && x.name && x.f) : []; };
+  function ensureSf() {
+    if ($('s4-sf')) return true; const at = $('s2-at'); if (!at) return false;
+    const d = document.createElement('div'); d.id = 's4-sf'; at.insertAdjacentElement('afterend', d);
+    d.onclick = e => {
+      const x = e.target.closest('[data-del]'); if (x) { e.stopPropagation(); const n = x.dataset.del; if (!confirm('"' + n + '" ফিল্টারটি মুছবেন?')) return; lsSet('ig_s4_filters', presets().filter(p => p.name !== n)); paintSf(); return; }
+      const c = e.target.closest('[data-n]'); if (c) { const p = presets().find(z => z.name === c.dataset.n); if (p) apply(p.f); return; }
+      if (e.target.closest('#s4-save')) save(); else if (e.target.closest('#s4-clr')) apply({});
+    };
+    return true;
+  }
+  function paintSf() {
+    if (!ensureSf()) return; const now = cur(), P = presets();
+    $('s4-sf').innerHTML = '<span class="t">💾 ফিল্টার:</span>' + P.map(p => `<span class="s4-ch${same(p.f, now) ? ' on' : ''}" data-n="${esc(p.name)}" title="${esc(JSON.stringify(p.f))}">${esc(p.name)}<i data-del="${esc(p.name)}" title="মুছুন">✕</i></span>`).join('') + (Object.keys(now).length ? '<button class="s2-btn" id="s4-save">＋ এই ফিল্টার সেভ</button><button class="s2-btn" id="s4-clr">🧹 সব ফিল্টার মুছুন</button>' : (P.length ? '' : '<span style="font-size:12px;color:var(--text3)">কোনো ফিল্টার বাছুন, তারপর সেভ করুন — পরে এক ক্লিকে ফিরে আসবে</span>'));
+  }
+  function save() {
+    const f = cur(); if (!Object.keys(f).length) { toast('আগে কোনো ফিল্টার বাছুন', 'error'); return; }
+    let n = prompt('ফিল্টারের নাম দিন (যেমন: "ঢাকার Pending"):'); if (n == null) return; n = n.trim().slice(0, 30); if (!n) { toast('নাম দিন', 'error'); return; }
+    const P = presets(); const i = P.findIndex(p => p.name === n); if (i >= 0) { if (!confirm('"' + n + '" আছে — বদলে দেবেন?')) return; P[i] = { name: n, f }; } else { if (P.length >= 12) { toast('সর্বোচ্চ ১২টি ফিল্টার — আগে একটা মুছুন', 'error'); return; } P.push({ name: n, f }); }
+    if (lsSet('ig_s4_filters', P)) { toast('💾 সেভ হয়েছে'); paintSf(); } else toast('সেভ করা যায়নি (ব্রাউজার স্টোরেজ বন্ধ)', 'error');
+  }
+  function apply(f) {
+    Object.keys(FID).forEach(k => { const e = $(FID[k]); if (!e) return; const v = f[k] || ''; if (e.tagName === 'SELECT') { if (!v) e.selectedIndex = 0; else { const has = [...e.options].some(o => o.value === v || o.text === v); if (has) e.value = v; else { e.selectedIndex = 0; toast('"' + v + '" এখন তালিকায় নেই — বাকি ফিল্টার প্রয়োগ হয়েছে', 'info'); } } } else e.value = v; });
+    S2().attn = f.attn || null; try { filterSales(); } catch (e) {} setTimeout(paintSf, 450);
+  }
+  const origFS = window.filterSales;
+  if (typeof origFS === 'function') window.filterSales = function () { const r = origFS.apply(this, arguments); setTimeout(paintSf, 400); return r; };
+  const _t = setInterval(() => { if ($('s2-at') && ensureSf()) { paintSf(); clearInterval(_t); } }, 400);
+  window.__s4 = { fill, pick, tplAll, cur, apply, presets };
 })();
 
 </script>
