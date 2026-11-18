@@ -7344,7 +7344,7 @@ body.light #page-expense{--x-cyan:#52525B;--x-blue:#52525B}
 // ═══════════════════════════════════════════════════════════════
 
 // ⚠️ এখানে আপনার Google Apps Script Web App URL বসান (Deploy > New Deployment > Web App)
-      const API_URL = "https://script.google.com/macros/s/AKfycbyCGcA7Cj7gPoIXdY6VekZLDzjfmTPx8YAkL6QEm5VFkIOUrbX_9l6LnC-U4n0jLQYy/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
+      const API_URL = "https://script.google.com/macros/s/AKfycbzVWXaSn-iOLxxy_k1jhSxuLpMD-wIKIEaL3IF1UqQvJEXEM-Bb2IC6wJVFUEBKYx0Z7A/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
 
 // ─── CONNECTION STATE ────────────────────────────────────────
 let apiConnected = false;
@@ -25816,6 +25816,12 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
     { k: 'delivered', t: '🎉 ডেলিভারি-পরবর্তী ফলো-আপ', d: 'আসসালামু আলাইকুম {name}, আপনার অর্ডার #{id} ({product}) পৌঁছেছে — ধন্যবাদ! পণ্য ঠিকমতো কাজ করছে তো? {serials}কোনো সমস্যা হলে নির্দ্বিধায় জানাবেন: {helpline}। — InnoGix' },
     { k: 'due', t: '💰 বাকি টাকার অনুরোধ', d: 'আসসালামু আলাইকুম {name}, আপনার অর্ডার #{id}-এর {due} বাকি আছে। সুবিধামতো পরিশোধ করলে কৃতজ্ঞ থাকব। — InnoGix, {helpline}' },
     { k: 'wait', t: '⏳ কনফার্মের অপেক্ষায়', d: 'আসসালামু আলাইকুম {name}, আপনার অর্ডার #{id} ({product}) এখনো কনফার্ম হয়নি। অর্ডারটি রাখতে চাইলে অনুগ্রহ করে জানান — আমরা পাঠিয়ে দিচ্ছি। — InnoGix, {helpline}' },
+    { k: 'feedback', t: '📞 ফিডব্যাক/খোঁজ', d: 'আসসালামু আলাইকুম {name}, আমরা InnoGix থেকে বলছি। আপনি অর্ডার #{id} ({product}) নিয়েছিলেন — পণ্যটি কেমন চলছে? কোনো সমস্যা হলে জানাবেন, আমরা সাহায্য করব। হেল্পলাইন: {helpline}' },
+    { k: 'repeat', t: '🛒 আবার কেনার আমন্ত্রণ', d: 'আসসালামু আলাইকুম {name}, InnoGix থেকে বলছি। আপনার আগের অর্ডারের জন্য ধন্যবাদ! নতুন কিছু দরকার হলে জানাবেন — আপনার জন্য বিশেষ সুবিধা আছে। হেল্পলাইন: {helpline}' },
+    { k: 'warranty', t: '🛡️ ওয়ারেন্টি শেষ হওয়ার আগে', d: 'আসসালামু আলাইকুম {name}, আপনার অর্ডার #{id} ({product}) এর ওয়ারেন্টি শীঘ্রই শেষ হচ্ছে। কোনো সমস্যা থাকলে এখনই জানান। হেল্পলাইন: {helpline}' },
+    { k: 'birthday', t: '🎂 জন্মদিনের শুভেচ্ছা', d: 'আসসালামু আলাইকুম {name}, জন্মদিনের অনেক অনেক শুভেচ্ছা! আল্লাহ আপনাকে সুস্থ ও সুখে রাখুন। — InnoGix পরিবার। হেল্পলাইন: {helpline}' },
+    { k: 'anniversary', t: '💍 বার্ষিকীর শুভেচ্ছা', d: 'আসসালামু আলাইকুম {name}, আপনাদের বিশেষ দিনের জন্য আন্তরিক শুভকামনা। — InnoGix পরিবার। হেল্পলাইন: {helpline}' },
+    { k: 'festival', t: '🎉 উৎসবের শুভেচ্ছা', d: 'আসসালামু আলাইকুম {name}, আপনাকে ও আপনার পরিবারকে আন্তরিক শুভেচ্ছা। আমাদের সাথে থাকার জন্য ধন্যবাদ। — InnoGix পরিবার। হেল্পলাইন: {helpline}' },
     { k: 'return', t: '↩️ ফেরত নিয়ে খোঁজ', d: 'আসসালামু আলাইকুম {name}, আপনার অর্ডার #{id} ফেরত এসেছে। কোনো সমস্যা হয়েছিল কি? জানালে আমরা সমাধানে সাহায্য করব। — InnoGix, {helpline}' }
   ];
   const tplAll = () => { const u = lsGet('ig_s4_wa', {}); return TPL.map(x => ({ ...x, text: (u && typeof u[x.k] === 'string' && u[x.k].trim()) ? u[x.k] : x.d })); };
@@ -25938,6 +25944,840 @@ ${window.__igxPngBtn||''}<script>window.onload=function(){setTimeout(function(){
   if (typeof origFS === 'function') window.filterSales = function () { const r = origFS.apply(this, arguments); setTimeout(paintSf, 400); return r; };
   const _t = setInterval(() => { if ($('s2-at') && ensureSf()) { paintSf(); clearInterval(_t); } }, 400);
   window.__s4 = { fill, pick, tplAll, cur, apply, presets };
+})();
+
+</script>
+<script id="cust1-js">
+/* ═══ CUSTOMERS v1 · 📞 ফলো-আপ / ফিডব্যাক রিমাইন্ডার
+   • নিয়ম আপনি ঠিক করেন (কত দিন পর · কোন তারিখ থেকে গোনা) — যেকোনো সংখ্যা: ১০ / ৯০ / ১৮০ / ৩৬৫…
+   • তালিকা প্রতিবার অর্ডার + নিয়ম থেকে হিসাব হয় (আগে থেকে তৈরি করা নয়) → দিন বদলালে সাথে সাথে বদলে যায়
+   • কাজ শেষ করলে ফলাফল/রেটিং/মন্তব্য '📞 Followup_Log' শিটে জমা (শুধু যোগ হয়, মোছে না)
+   • সাইডবার/ড্যাশবোর্ডে আজকের সংখ্যা। মূল Customers তালিকা অপরিবর্তিত — উপরে সুইচ দিয়ে ফলো-আপে যেতে হয় */
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const num = v => Number(v) || 0;
+  const key = s => String(s || '').trim().toLowerCase();
+  const taka = n => '৳' + Math.round(num(n)).toLocaleString('en-US');
+  const toast = (m, t) => { try { showToast(m, t || 'success'); } catch (e) {} };
+  const ph10 = p => String(p || '').replace(/\D/g, '').slice(-10);
+  const mp = pk => { const m = (C1.b && C1.b.merges) || {}; let k = pk, g = 0; while (m[k] && g++ < 20) k = m[k]; return k; };
+  const waNum = p => { const d = String(p || '').replace(/\D/g, ''); return d.length === 11 && d.startsWith('01') ? '88' + d : d; };
+  const DAY = 864e5, TZ = 6 * 36e5;
+  const dayIdx = ts => Math.floor((ts + TZ) / DAY);
+  const ymdIdx = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? Math.floor(Date.UTC(+m[1], +m[2] - 1, +m[3]) / DAY) : null; };
+  const idxYmd = i => new Date(i * DAY).toISOString().slice(0, 10);
+  const fmtDay = i => { const d = new Date(i * DAY); return d.getUTCDate() + '-' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getUTCMonth()] + '-' + d.getUTCFullYear(); };
+  const ANCH = { delivered: 'ডেলিভারির পর', order: 'অর্ডারের পর', last: 'শেষ অর্ডারের পর', warranty: 'ওয়ারেন্টি শেষের আগে' };
+  const OUT = { greeted: ['🎉', 'শুভেচ্ছা পাঠানো'], happy: ['😊', 'খুশি'], issue: ['🛠️', 'সমস্যা আছে'], repeat: ['🛒', 'আবার কিনতে আগ্রহী'], other: ['💬', 'অন্য'], noanswer: ['📵', 'ফোন ধরেনি'] };
+  const C1 = { b: null, at: 0, loading: null, mode: 'list', inited: false, tab: 'now', rule: '', mine: false, open: null, sel: { out: '', rating: 0 }, tasks: null, S: null };
+  const partner = () => { try { return currentPartner || ''; } catch (e) { return ''; } };
+  const groups = () => { try { return (window.__s2 && window.__s2.build && window.__s2.build()) || []; } catch (e) { console.error('c1 groups', e); return []; } };
+
+  // ───────── ডেটা ─────────
+  async function load(force) {
+    if (!force && C1.b && Date.now() - C1.at < 120000) return C1.b;
+    if (C1.loading) return C1.loading;
+    C1.loading = (async () => { try { const d = await fetchFromAPI('custBundle', {}); if (d && d.status === 'ok') { d.rules = Array.isArray(d.rules) ? d.rules : []; d.log = Array.isArray(d.log) ? d.log : []; d.profiles = Array.isArray(d.profiles) ? d.profiles : []; d.delivered = d.delivered || {}; d.merges = (d.merges && typeof d.merges === 'object') ? d.merges : {}; d.occasions = Array.isArray(d.occasions) ? d.occasions : []; d.digest = Object.assign({ enabled: false, email: '', hour: 8, onlyIfAny: true, last: '' }, d.digest || {}); d.settings = Object.assign({ maxOverdueDays: 14, retryDays: 2, maxAttempts: 3, vipOrders: 5, vipSpent: 15000, dormantDays: 90, upcomingDays: 7 }, d.settings || {}); C1.b = d; C1.at = Date.now(); } } catch (e) { console.error('c1 load', e); } try { if (C1.b && C1.b.rules.some(r => r.enabled && r.anchor === 'warranty') && window.__s3) await window.__s3.load(false); } catch (e) {} C1.loading = null; return C1.b; })();
+    return C1.loading;
+  }
+
+  // ───────── কাজের তালিকা হিসাব ─────────
+  function tsOfStr(s) { try { return window.__s2.tsOf({ date: s, time: '' }) || 0; } catch (e) { return 0; } }
+  function compute() {
+    const B = C1.b; if (!B) return null;
+    const G = groups(), S = B.settings, today = dayIdx(Date.now()), pro = {}, dnc = {};
+    B.profiles.forEach(p => { const r = mp(p.pk); pro[r] = pro[r] || p; if (p.dnc) dnc[r] = 1; });
+    // লগ: প্রতিটি কী-র সর্বশেষ এন্ট্রি
+    const last = {}; B.log.forEach((e, i) => { const o = last[e.key]; if (!o || e.ts >= o.ts) last[e.key] = e; });
+    const byPk = {}; G.forEach(g => { if (g._st === 'Cancelled' || g._st === 'Returned') return; const k = mp(ph10(g.phone)); if (k.length >= 10) (byPk[k] = byPk[k] || []).push(g); });
+    const dts = g => { const v = B.delivered[String(g.id)]; return v ? { ts: v, approx: false } : { ts: g._ts || 0, approx: true }; };
+    const lastOf = {}; Object.keys(byPk).forEach(k => { const arr = byPk[k].slice().sort((a, b) => (dts(b).ts - dts(a).ts) || (num(b.id) - num(a.id))); lastOf[k] = arr[0]; });
+    let S3 = null; try { S3 = window.__s3 && window.__s3.S3; } catch (e) {}
+    const open = [], done = []; const rules = B.rules.filter(r => r.enabled);
+    const NOW = Date.now();
+    G.forEach(g => {
+      if (g._st !== 'Delivered') return; const pk = mp(ph10(g.phone)); if (pk.length < 10) return;
+      const d = dts(g); if (!d.ts) return; const id = String(g.id), prodTxt = (g.items || []).map(i => key(i.product)).join(' | ');
+      rules.forEach(r => {
+        if (r.minAmount && num(g.total) < r.minAmount) return;
+        if (r.products) { const terms = r.products.split(',').map(key).filter(Boolean); if (terms.length && !terms.some(t => prodTxt.includes(t))) return; }
+        let base = d.ts, dueIdx, approx = d.approx;
+        if (r.anchor === 'order') { base = g._ts || d.ts; approx = false; dueIdx = dayIdx(base) + r.days; }
+        else if (r.anchor === 'last') { const l = lastOf[pk]; if (!l || String(l.id) !== id) return; dueIdx = dayIdx(base) + r.days; }
+        else if (r.anchor === 'warranty') {
+          const rows = S3 && S3.by && S3.by[id]; if (!rows) return; let mn = 0; Object.keys(rows).forEach(k => rows[k].forEach(x => { const t = tsOfStr(x.warrantyUntil); if (t && (!mn || t < mn)) mn = t; })); if (!mn) return;
+          approx = false; base = mn; dueIdx = dayIdx(mn) - r.days;
+        } else dueIdx = dayIdx(base) + r.days;
+        const k = r.id + '|' + id, e = last[k];
+        const t = { key: k, rule: r, order: g, pk, dueIdx, approx, baseTs: base };
+        if (e && (e.act === 'DONE' || e.act === 'SKIP')) { done.push({ ...t, entry: e }); return; }
+        if (e && e.act === 'ATTEMPT') { if (e.attempt >= S.maxAttempts) { done.push({ ...t, entry: { ...e, act: 'UNREACH' } }); return; } const u = ymdIdx(e.until); if (u != null) { t.dueIdx = u; t.attempt = e.attempt; t.retry = true; } }
+        if (e && e.act === 'SNOOZE') { const u = ymdIdx(e.until); if (u != null) { t.dueIdx = u; t.snoozed = true; } }
+        t.late = today - t.dueIdx; open.push(t);
+      });
+    });
+    // কাস্টমার+নিয়ম ধরে একত্র
+    const mapG = {}; open.forEach(t => { const gk = t.pk + '|' + t.rule.id; (mapG[gk] = mapG[gk] || []).push(t); });
+    const items = Object.keys(mapG).map(gk => { const a = mapG[gk].sort((x, y) => y.late - x.late), f = a[0]; const o = a.map(x => x.order).sort((x, y) => (y._ts || 0) - (x._ts || 0)); return { gk, pk: f.pk, rule: f.rule, tasks: a, orders: o, order: o[0], late: f.late, due: f.dueIdx, keys: a.map(x => x.key), approx: a.some(x => x.approx), retry: a.some(x => x.retry), attempt: Math.max(0, ...a.map(x => x.attempt || 0)), snoozed: a.some(x => x.snoozed), customer: o[0].customer, phone: o[0].phone, dnc: !!dnc[f.pk] }; });
+    const vis = items.filter(i => !i.dnc);
+    const R = { now: [], soon: [], expired: [], dncN: items.length - vis.length };
+    vis.forEach(i => { if (i.late > S.maxOverdueDays) R.expired.push(i); else if (i.late >= 0) R.now.push(i); else if (i.late >= -S.upcomingDays) R.soon.push(i); });
+    R.now.sort((a, b) => b.late - a.late); R.soon.sort((a, b) => b.late - a.late); R.expired.sort((a, b) => a.late - b.late);
+    // সমাপ্ত (সর্বশেষ ২০০টি)
+    R.done = done.sort((a, b) => b.entry.ts - a.entry.ts).slice(0, 200);
+    // সমস্যা: DONE+issue যার পরে RESOLVE নেই
+    const resolved = {}; B.log.forEach(e => { if (e.act === 'RESOLVE') resolved[e.key] = Math.max(resolved[e.key] || 0, e.ts); });
+    const seen = {}; R.issues = []; B.log.slice().reverse().forEach(e => { if (e.act === 'DONE' && e.outcome === 'issue' && !(resolved[e.key] >= e.ts) && !seen[e.key]) { seen[e.key] = 1; R.issues.push(e); } });
+    // 🎉 উপলক্ষ (জন্মদিন/বিশেষ দিন)
+    R.occ = []; { const y0 = new Date(today * DAY).getUTCFullYear(), T = { birthday: '🎂 জন্মদিন', anniversary: '💍 বার্ষিকী', other: '🎉 বিশেষ দিন' };
+      (B.occasions || []).forEach(o => { const pk = mp(o.pk); if (dnc[pk]) return; let ds = null;
+        for (let yy = y0; yy <= y0 + 1; yy++) { const di = Math.floor(Date.UTC(yy, o.month - 1, o.day) / DAY); if (new Date(di * DAY).getUTCDate() !== o.day) continue; if (di >= today && di - today <= S.upcomingDays) { ds = { d: di - today, y: yy }; break; } if (di > today + S.upcomingDays) break; }
+        if (!ds) return; const key = 'OCC|' + o.id + '|' + ds.y, e = last[key]; if (e && (e.act === 'DONE' || e.act === 'SKIP')) return;
+        const ords = (byPk[pk] || []).slice().sort((a, b) => (b._ts || 0) - (a._ts || 0)); const g0 = ords[0] || G.find(g => mp(ph10(g.phone)) === pk) || null;
+        R.occ.push({ occ: o, key, pk, inDays: ds.d, year: ds.y, age: (o.year && o.type !== 'other') ? ds.y - o.year : 0, label: (T[o.type] || T.other) + (o.label ? ' (' + o.label + ')' : ''), name: (g0 && g0.customer) || o.customer || ('0' + pk), phone: g0 ? g0.phone : '0' + pk, order: g0 }); });
+      R.occ.sort((a, b) => a.inDays - b.inDays); }
+    R.counts = { occ: R.occ.length, occToday: R.occ.filter(x => x.inDays === 0).length, now: R.now.length, late: R.now.filter(i => i.late >= 1).length, today: R.now.filter(i => i.late === 0).length, soon: R.soon.length, expired: R.expired.length, issues: R.issues.length, done: done.length };
+    return R;
+  }
+  const state = () => { C1.S = compute(); return C1.S; };
+
+  // ───────── CSS ─────────
+  const css = document.createElement('style'); css.id = 'c1-style';
+  css.textContent = `
+  #fu-bar{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}
+  #fu-bar .sg{background:var(--bg3,#121212);border:1px solid var(--border,#262626);color:var(--text2,#bbb);border-radius:10px;padding:8px 16px;cursor:pointer;font-size:13.5px;font-family:inherit;display:inline-flex;gap:8px;align-items:center}
+  #fu-bar .sg.on{border-color:var(--gold,#CDA935);color:var(--gold,#CDA935);background:rgba(205,169,53,.08);font-weight:700}
+  #fu-bar .sg b{background:var(--red,#E5534B);color:#fff;border-radius:10px;font-size:11.5px;padding:1px 7px}
+  #page-crm.fu-mode > *:not(.breadcrumb):not(.section-head):not(#fu-bar):not(#fu-view):not(#cx-view),#page-crm.cx-mode > *:not(.breadcrumb):not(.section-head):not(#fu-bar):not(#fu-view):not(#cx-view){display:none!important}
+  #fu-view{display:none}#page-crm.fu-mode #fu-view{display:block}
+  .fu-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 12px}
+  .fu-tab{background:var(--bg3,#121212);border:1px solid var(--border,#262626);border-radius:999px;padding:5px 13px;cursor:pointer;color:var(--text2,#bbb);font-size:12.5px;display:inline-flex;gap:6px;align-items:center}
+  .fu-tab b{color:var(--text,#eee)}.fu-tab.on{border-color:var(--gold,#CDA935);color:var(--gold,#CDA935)}.fu-tab.on b{color:var(--gold,#CDA935)}.fu-tab.red b{color:var(--red,#E5534B)}
+  .fu-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:14px}
+  @media(max-width:1100px){.fu-grid{grid-template-columns:1fr}}
+  .fu-card{background:var(--bg2,#0a0a0a);border:1px solid var(--border,#262626);border-radius:14px;overflow:hidden}
+  .fu-ch{padding:11px 14px;border-bottom:1px solid var(--border,#262626);display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700;flex-wrap:wrap}
+  .fu-sec{font-size:11.5px;color:var(--text3,#888);padding:7px 14px;background:var(--bg3,#121212);letter-spacing:.4px;font-weight:700}
+  .fu-it{padding:11px 14px;border-bottom:1px solid var(--border,#262626)}
+  .fu-it.open{background:rgba(205,169,53,.05)}
+  .fu-top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .fu-nm{font-weight:700;font-size:14px}.fu-mu{color:var(--text3,#888);font-size:12px}
+  .fu-due{font-size:12px;font-weight:700;white-space:nowrap}
+  .fu-b{display:inline-block;font-size:11px;border-radius:999px;padding:0 8px;margin-left:5px;border:1px solid var(--border,#262626);line-height:1.6}
+  .fu-b.y{color:var(--gold,#CDA935);border-color:rgba(205,169,53,.5)}.fu-b.r{color:var(--red,#E5534B);border-color:rgba(229,83,75,.5)}.fu-b.o{color:var(--orange,#F0A030);border-color:rgba(240,160,48,.5)}
+  .fu-act{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .fu-btn{background:var(--bg3,#121212);color:var(--text,#eee);border:1px solid var(--border,#262626);border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-block}
+  .fu-btn:hover{border-color:var(--gold,#CDA935)}.fu-btn.gold{background:var(--gold,#CDA935);color:#000;border-color:var(--gold,#CDA935);font-weight:700}
+  .fu-form{margin-top:9px;border:1px solid var(--border,#262626);border-radius:10px;padding:10px;background:var(--bg3,#121212)}
+  .fu-oc{display:inline-block;border:1px solid var(--border,#262626);border-radius:999px;padding:3px 11px;margin:0 6px 6px 0;cursor:pointer;font-size:12.5px;color:var(--text2,#bbb)}
+  .fu-oc.on{border-color:var(--gold,#CDA935);color:var(--gold,#CDA935);background:rgba(205,169,53,.1)}
+  .fu-st span{font-size:22px;cursor:pointer;color:#444}.fu-st span.on{color:var(--gold,#CDA935)}
+  .fu-in{width:100%;background:var(--bg,#000);color:var(--text,#eee);border:1px solid var(--border,#262626);border-radius:8px;padding:7px 9px;font-family:inherit;font-size:13px}
+  .fu-rule{display:grid;grid-template-columns:38px minmax(0,1fr) 92px 28px;gap:8px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border,#262626)}
+  .fu-tg{width:32px;height:18px;border-radius:9px;background:#333;position:relative;cursor:pointer;border:0}.fu-tg.on{background:var(--gold,#CDA935)}
+  .fu-tg::after{content:'';position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#999;transition:.15s}.fu-tg.on::after{left:16px;background:#000}
+  .fu-dn{width:54px;text-align:center;background:var(--bg3,#121212);color:var(--text,#eee);border:1px solid var(--border,#262626);border-radius:8px;padding:4px;font-weight:700;font-family:inherit}
+  .fu-kp{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:0 0 14px}
+  .fu-k{background:var(--bg2,#0a0a0a);border:1px solid var(--border,#262626);border-radius:11px;padding:9px 12px}.fu-k .l{font-size:11.5px;color:var(--text3,#888)}.fu-k .v{font-size:20px;font-weight:700}
+  @media(max-width:700px){.fu-kp{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  #c1-dash{display:none;margin:10px 0 14px;padding:12px 14px;border:1px solid rgba(205,169,53,.5);background:rgba(205,169,53,.08);border-radius:12px;cursor:pointer}
+  `;
+  document.head.appendChild(css);
+
+  // ───────── সুইচ + কাঠামো ─────────
+  function ensure() {
+    const pg = $('page-crm'); if (!pg) return false; if ($('fu-bar')) return true;
+    const head = pg.querySelector('.section-head'); if (!head) return false;
+    const bar = document.createElement('div'); bar.id = 'fu-bar';
+    bar.innerHTML = '<button class="sg" data-m="cx">👥 কাস্টমার</button><button class="sg on" data-m="list">📋 ক্লাসিক তালিকা</button><button class="sg" data-m="fu">📞 ফলো-আপ <b id="fu-bar-n" style="display:none">0</b></button>';
+    head.insertAdjacentElement('afterend', bar);
+    const v = document.createElement('div'); v.id = 'fu-view'; bar.insertAdjacentElement('afterend', v);
+    const cx = document.createElement('div'); cx.id = 'cx-view'; v.insertAdjacentElement('afterend', cx);
+    bar.onclick = e => { const b = e.target.closest('[data-m]'); if (b) setMode(b.dataset.m); };
+    v.onclick = onClick; v.onchange = onChange; v.oninput = onInput;
+    return true;
+  }
+  async function setMode(m) {
+    if (!ensure()) return; C1.mode = m; $('page-crm').classList.toggle('fu-mode', m === 'fu'); $('page-crm').classList.toggle('cx-mode', m === 'cx');
+    document.querySelectorAll('#fu-bar .sg').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+    if (m === 'cx') { const cv = $('cx-view'); if (cv && !cv.innerHTML) cv.innerHTML = '<div style="padding:24px;color:var(--text3)">⏳ লোড হচ্ছে…</div>'; await load(false); if (!(window.liveSalesData || []).length) { try { await loadLiveSales(); } catch (e) {} } state(); if (window.__c2) { window.__c2.build(); window.__c2.render(); } refreshBadges(); }
+    if (m === 'fu') { $('fu-view').innerHTML = '<div style="padding:24px;color:var(--text3)">⏳ লোড হচ্ছে…</div>'; await load(true); if (!(window.liveSalesData || []).length) { try { await loadLiveSales(); } catch (e) {} } state(); render(); }
+  }
+  window.c1Open = () => { try { showPage('crm', document.querySelector('.nav-item[onclick*="showPage(\'crm\'"]')); } catch (e) {} setMode('fu'); };
+
+  // ───────── রেন্ডার ─────────
+  function ruleBadge(r) { return `<span class="fu-b y">${esc(r.name)}</span>`; }
+  function dueTxt(i) { const l = i.late; return l > 0 ? `<span class="fu-due" style="color:var(--red)">${l} দিন দেরি</span>` : l === 0 ? '<span class="fu-due" style="color:var(--orange)">আজ</span>' : `<span class="fu-due" style="color:var(--text2)">${-l} দিন পর</span>`; }
+  function itemHtml(i) {
+    const o = i.order, n = i.orders.length, prod = i.orders.map(x => (x.items || []).map(p => p.product).join(', ')).join(' · ');
+    const since = i.rule.anchor === 'warranty' ? 'ওয়ারেন্টি শেষ ' + fmtDay(dayIdx(i.tasks[0].baseTs)) : (i.approx ? '~' : '') + fmtDay(dayIdx(i.tasks[0].baseTs)) + ' থেকে';
+    const id = i.gk, openI = C1.open === id;
+    return `<div class="fu-it${openI ? ' open' : ''}" data-gk="${esc(id)}"><div class="fu-top"><div><span class="fu-nm">${esc(i.customer)}</span>${ruleBadge(i.rule)}${i.retry ? `<span class="fu-b o">📵 ${i.attempt}ম চেষ্টা হয়েছে</span>` : ''}${i.snoozed ? '<span class="fu-b">⏰ পিছানো</span>' : ''}<div class="fu-mu">${n > 1 ? '#' + i.orders.map(x => x.id).join(' + #') + ` (${n}টি একসাথে)` : '#' + esc(o.id)} · ${esc(prod).slice(0, 80)} · ${since}${i.approx ? ' <span title="ডেলিভারির তারিখ রেকর্ড নেই — অর্ডারের তারিখ ধরা হয়েছে">(আনুমানিক)</span>' : ''}</div></div>${dueTxt(i)}</div>
+      <div class="fu-act"><a class="fu-btn gold" href="tel:${esc(String(i.phone || '').replace(/\s/g, ''))}">📞 ${esc(i.phone)}</a>${waNum(i.phone) ? '<button class="fu-btn" data-a="wa">💬 WhatsApp</button>' : ''}<button class="fu-btn" data-a="open">✅ ${openI ? 'বন্ধ' : 'ফলাফল লিখুন'}</button><button class="fu-btn" data-a="snz">⏰ পরে</button><button class="fu-btn" data-a="skip">⏭️ বাদ</button></div>${openI ? formHtml(i) : ''}</div>`;
+  }
+  function formHtml(i) {
+    const s = C1.sel;
+    return `<div class="fu-form"><div class="fu-mu" style="margin-bottom:6px">ফলাফল:</div>${Object.keys(OUT).map(k => `<span class="fu-oc${s.out === k ? ' on' : ''}" data-oc="${k}">${OUT[k][0]} ${OUT[k][1]}</span>`).join('')}
+      ${s.out && s.out !== 'noanswer' ? `<div class="fu-st" style="margin:2px 0 8px"><span class="${s.rating >= 1 ? 'on' : ''}" data-r="1">★</span><span class="${s.rating >= 2 ? 'on' : ''}" data-r="2">★</span><span class="${s.rating >= 3 ? 'on' : ''}" data-r="3">★</span><span class="${s.rating >= 4 ? 'on' : ''}" data-r="4">★</span><span class="${s.rating >= 5 ? 'on' : ''}" data-r="5">★</span> <span class="fu-mu">রেটিং (ঐচ্ছিক)</span></div>` : ''}
+      <textarea class="fu-in" id="fu-cm" rows="2" placeholder="মন্তব্য / কী বললেন…"></textarea>
+      <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="fu-btn gold" data-a="save">💾 সংরক্ষণ</button><span class="fu-mu">${s.out === 'noanswer' ? 'আবার আসবে ' + (C1.b.settings.retryDays) + ' দিন পরে (সর্বোচ্চ ' + C1.b.settings.maxAttempts + ' বার)' : 'সংরক্ষণ করলে এই কাজ তালিকা থেকে সরে যাবে'}</span></div></div>`;
+  }
+  function render() {
+    const v = $('fu-view'); if (!v || C1.mode !== 'fu') return; const B = C1.b, R = C1.S;
+    if (!B) { v.innerHTML = '<div style="padding:24px;color:var(--red)">ফলো-আপ ডেটা আনা যায়নি — Apps Script-এ নতুন ভার্সন Deploy হয়েছে কি দেখুন, তারপর রিফ্রেশ করুন।</div>'; return; }
+    if (!R) { v.innerHTML = '<div style="padding:24px;color:var(--text3)">অর্ডার ডেটা লোড হচ্ছে…</div>'; return; }
+    const c = R.counts, T = (k, l, n, red) => `<span class="fu-tab${C1.tab === k ? ' on' : ''}${red && n ? ' red' : ''}" data-t="${k}">${l} <b>${n}</b></span>`;
+    let list = '';
+    const rf = C1.rule, mine = C1.mine, me = key(partner());
+    const flt = a => a.filter(i => (!rf || i.rule.id === rf) && (!mine || i.orders.some(o => key(o.salesman) === me)));
+    if (C1.tab === 'now') { const L = flt(R.now), late = L.filter(i => i.late >= 1), td = L.filter(i => i.late === 0); list = (late.length ? `<div class="fu-sec">⚠️ দেরি হয়েছে (${late.length})</div>` + late.map(itemHtml).join('') : '') + (td.length ? `<div class="fu-sec">📅 আজ (${td.length})</div>` + td.map(itemHtml).join('') : '') || '<div style="padding:26px;text-align:center;color:var(--green)">✅ এই মুহূর্তে কোনো ফলো-আপ বাকি নেই</div>'; }
+    else if (C1.tab === 'soon') { const L = flt(R.soon); list = L.length ? L.map(itemHtml).join('') : '<div style="padding:26px;text-align:center;color:var(--text3)">আগামী ' + B.settings.upcomingDays + ' দিনে কিছু নেই</div>'; }
+    else if (C1.tab === 'expired') { const L = flt(R.expired); list = `<div class="fu-sec">${B.settings.maxOverdueDays} দিনের বেশি পুরোনো — স্বয়ংক্রিয়ভাবে আড়ালে রাখা হয়েছে (বদলাতে ডানের সেটিং)</div>` + (L.length ? L.map(i => itemHtml(i).replace('data-a="snz">⏰ পরে', 'data-a="today">▶ এখনই করুন')).join('') : '<div style="padding:22px;text-align:center;color:var(--text3)">কিছু নেই</div>'); }
+    else if (C1.tab === 'issues') { list = R.issues.length ? R.issues.map(e => `<div class="fu-it"><div class="fu-top"><div><span class="fu-nm">${esc(e.customer)}</span><span class="fu-b r">🛠️ সমস্যা</span><div class="fu-mu">অর্ডার #${esc(e.orders)} · ${esc(e.ruleName)} · ${esc(e.time)} · ${esc(e.by)}</div></div></div><div style="margin-top:6px;font-size:13px">${esc(e.comment) || '<span class="fu-mu">(মন্তব্য নেই)</span>'}</div><div class="fu-act"><button class="fu-btn gold" data-a="resolve" data-k="${esc(e.key)}" data-i="${esc(e.orders)}" data-p="${esc(e.pk)}" data-n="${esc(e.customer)}">✅ সমাধান হয়েছে</button></div></div>`).join('') : '<div style="padding:26px;text-align:center;color:var(--green)">✅ কোনো খোলা সমস্যা নেই</div>'; }
+    else if (C1.tab === 'done') { list = R.done.length ? R.done.map(t => { const e = t.entry, ou = OUT[e.outcome]; return `<div class="fu-it"><div class="fu-top"><div><span class="fu-nm">${esc(t.order.customer)}</span>${ruleBadge(t.rule)}<span class="fu-b">${e.act === 'SKIP' ? '⏭️ বাদ' : e.act === 'UNREACH' ? '📵 পাওয়া যায়নি' : (ou ? ou[0] + ' ' + ou[1] : 'সম্পন্ন')}</span>${e.rating ? `<span class="fu-b y">${'★'.repeat(e.rating)}</span>` : ''}<div class="fu-mu">#${esc(t.order.id)} · ${esc(e.time)} · ${esc(e.by)}${e.comment ? ' · "' + esc(e.comment).slice(0, 90) + '"' : ''}</div></div></div></div>`; }).join('') : '<div style="padding:26px;text-align:center;color:var(--text3)">এখনো কিছু সম্পন্ন হয়নি</div>'; }
+    else if (C1.tab === 'occ') { const L = R.occ.filter(x => !mine || (x.order && key(x.order.salesman) === me)); list = L.length ? `<div class="fu-sec">আগামী ${B.settings.upcomingDays} দিনের জন্মদিন/বিশেষ দিন — শুভেচ্ছা পাঠালে তালিকা থেকে সরে যায়</div>` + L.map(x => `<div class="fu-it" data-ok="${esc(x.key)}"><div class="fu-top"><div><span class="fu-nm">${esc(x.name)}</span><span class="fu-b y">${esc(x.label)}</span>${x.age ? `<span class="fu-b">${x.age} বছর</span>` : ''}<div class="fu-mu">${esc(x.phone)}</div></div><span class="fu-due" style="color:${x.inDays === 0 ? 'var(--orange)' : 'var(--text2)'}">${x.inDays === 0 ? 'আজ' : x.inDays + ' দিন পর'}</span></div><div class="fu-act"><a class="fu-btn gold" href="tel:${esc(String(x.phone).replace(/\s/g, ''))}">📞 কল</a>${waNum(x.phone) ? '<button class="fu-btn" data-a="occwa">💬 শুভেচ্ছা</button>' : ''}<button class="fu-btn" data-a="occdone">✅ পাঠানো হয়েছে</button><button class="fu-btn" data-a="occskip">⏭️ বাদ</button></div></div>`).join('') : '<div style="padding:26px;text-align:center;color:var(--text3)">এই সময়ে কোনো জন্মদিন/বিশেষ দিন নেই — কাস্টমারের প্রোফাইলে "🎉 বিশেষ দিন" যোগ করুন</div>'; }
+    else if (C1.tab === 'sum') list = summaryHtml();
+    const rulesOpts = '<option value="">সব নিয়ম</option>' + B.rules.map(r => `<option value="${esc(r.id)}"${rf === r.id ? ' selected' : ''}>${esc(r.name)}</option>`).join('');
+    v.innerHTML = `<div class="fu-kp"><div class="fu-k"><div class="l">⚠️ দেরি</div><div class="v" style="color:${c.late ? 'var(--red)' : 'var(--green)'}">${c.late}</div></div><div class="fu-k"><div class="l">📅 আজ</div><div class="v" style="color:var(--gold)">${c.today}</div></div><div class="fu-k"><div class="l">🗓️ আগামী ${B.settings.upcomingDays} দিন</div><div class="v">${c.soon}</div></div><div class="fu-k"><div class="l">🛠️ খোলা সমস্যা</div><div class="v" style="color:${c.issues ? 'var(--orange)' : 'inherit'}">${c.issues}</div></div></div>
+      <div class="fu-tabs">${T('now', '📞 আজ ও দেরি', c.now, true)}${T('soon', '🗓️ আসছে', c.soon)}${T('issues', '🛠️ সমস্যা', c.issues, true)}${T('done', '✅ সম্পন্ন', c.done)}${T('expired', '⌛ মেয়াদোত্তীর্ণ', c.expired)}${T('occ', '🎉 উপলক্ষ', c.occ)}${T('sum', '⭐ ফিডব্যাক সারাংশ', '')}</div>
+      <div class="fu-grid"><div class="fu-card"><div class="fu-ch"><span>করণীয় তালিকা</span><span style="display:flex;gap:6px;flex-wrap:wrap"><select class="fu-in" id="fu-rf" style="width:auto">${rulesOpts}</select><label class="fu-mu" style="display:inline-flex;gap:5px;align-items:center;cursor:pointer"><input type="checkbox" id="fu-mine" ${mine ? 'checked' : ''}> শুধু আমার বিক্রি</label><button class="fu-btn" data-a="refresh">🔄</button></span></div>${list}</div>
+      <div class="fu-card">${rulesHtml()}</div></div>`;
+  }
+  function rulesHtml() {
+    const B = C1.b, S = B.settings;
+    return `<div class="fu-ch"><span>⚙️ ফলো-আপের নিয়ম (আপনি ঠিক করবেন)</span><button class="fu-btn gold" data-a="newrule">＋ নতুন নিয়ম</button></div>` + B.rules.map(r => `<div class="fu-rule" data-rid="${esc(r.id)}"><button class="fu-tg${r.enabled ? ' on' : ''}" data-a="tg" title="${r.enabled ? 'চালু — বন্ধ করতে ক্লিক' : 'বন্ধ — চালু করতে ক্লিক'}"></button><div style="min-width:0"><b style="font-size:13px">${esc(r.name)}</b><div class="fu-mu">${ANCH[r.anchor] || ''}${r.minAmount ? ' · ' + taka(r.minAmount) + '+ অর্ডার' : ''}${r.products ? ' · ' + esc(r.products) : ''}</div></div><div><input class="fu-dn" type="number" min="1" max="3650" value="${r.days}" data-a="days" title="কত দিন"> <span class="fu-mu">দিন</span></div><button class="fu-btn" data-a="editrule" style="padding:3px 6px">✏️</button></div>`).join('') +
+      `<div style="padding:11px 14px;font-size:12px;color:var(--text2);border-top:1px solid var(--border,#262626)">দিন বদলালে তালিকা সাথে সাথে নতুন করে হিসাব হয়; আগের সম্পন্ন রেকর্ড নষ্ট হয় না। একই কাস্টমারের একাধিক অর্ডার একটি কলে জমা হয়।</div>
+      <details style="border-top:1px solid var(--border,#262626)"><summary style="cursor:pointer;padding:10px 14px;font-size:12.5px;color:var(--text2)">🔧 আরও সেটিং</summary><div style="padding:4px 14px 14px;display:grid;grid-template-columns:1fr 80px;gap:8px 10px;align-items:center;font-size:12.5px">
+      <span>দেরি কত দিনের বেশি হলে "মেয়াদোত্তীর্ণ" ধরব</span><input class="fu-in" type="number" id="fs-maxOverdueDays" value="${S.maxOverdueDays}">
+      <span>ফোন না ধরলে কত দিন পর আবার</span><input class="fu-in" type="number" id="fs-retryDays" value="${S.retryDays}">
+      <span>ফোন না ধরলে সর্বোচ্চ কত বার চেষ্টা</span><input class="fu-in" type="number" id="fs-maxAttempts" value="${S.maxAttempts}">
+      <span>"আসছে" ট্যাবে কত দিন সামনের কাজ দেখাব</span><input class="fu-in" type="number" id="fs-upcomingDays" value="${S.upcomingDays}">
+      <span></span><button class="fu-btn gold" data-a="saveset">💾 সেটিং সেভ</button></div></details>
+      <details style="border-top:1px solid var(--border,#262626)"><summary style="cursor:pointer;padding:10px 14px;font-size:12.5px;color:var(--text2)">📧 দৈনিক ইমেইল ডাইজেস্ট${B.digest.enabled ? ' <span class="fu-b y">চালু</span>' : ''}</summary><div style="padding:4px 14px 14px;font-size:12.5px;line-height:1.7">
+      <div class="fu-mu" style="margin-bottom:8px">অ্যাপ বন্ধ থাকলেও প্রতিদিন নির্দিষ্ট সময়ে ইমেইলে আজকের ফলো-আপ ও উপলক্ষের সারাংশ আসবে (Google-এর নিজস্ব ট্রিগার — সার্ভারে আলাদা খরচ নেই)।</div>
+      <label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="dg-en" ${B.digest.enabled ? 'checked' : ''}> চালু রাখুন</label>
+      <div style="display:grid;grid-template-columns:1fr 90px;gap:8px;margin-top:6px"><input class="fu-in" id="dg-email" type="email" placeholder="ইমেইল ঠিকানা" value="${esc(B.digest.email)}"><select class="fu-in" id="dg-hour">${Array.from({ length: 24 }, (_, h) => `<option value="${h}"${B.digest.hour === h ? ' selected' : ''}>${String(h).padStart(2, '0')}:00</option>`).join('')}</select></div>
+      <label style="display:flex;gap:6px;align-items:center;cursor:pointer;margin-top:6px"><input type="checkbox" id="dg-any" ${B.digest.onlyIfAny ? 'checked' : ''}> কিছু না থাকলে ইমেইল পাঠাবে না</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="fu-btn gold" data-a="dgsave">💾 সেভ (PIN)</button><button class="fu-btn" data-a="dgtest">✉️ টেস্ট ইমেইল</button><button class="fu-btn" data-a="dgprev">👁️ আজকের প্রিভিউ</button></div>
+      <div class="fu-mu" style="margin-top:8px">⚠️ প্রথমবার: Google Sheet-এর <b>Extensions → Apps Script</b>-এ গিয়ে <code>customerDigestTest</code> একবার Run করে Gmail-এর অনুমতি দিন (নইলে ইমেইল যাবে না)। সেটিং সেভ করলে প্রতিদিনের ট্রিগার নিজে বসে।${B.digest.last ? '<br>সর্বশেষ পাঠানো: ' + esc(B.digest.last) : ''}</div></div></details>`;
+  }
+  function summaryHtml() {
+    const B = C1.b, G = groups(), byId = {}; G.forEach(g => byId[String(g.id)] = g);
+    const seen = {}, ent = []; B.log.forEach(e => { if (e.act !== 'DONE' || e.outcome === 'greeted' || !e.cid || seen[e.cid]) return; seen[e.cid] = 1; ent.push(e); });
+    const rated = ent.filter(e => e.rating > 0), avg = rated.length ? rated.reduce((s, e) => s + e.rating, 0) / rated.length : 0;
+    const dist = [5, 4, 3, 2, 1].map(r => [r, rated.filter(e => e.rating === r).length]);
+    const oc = {}; ent.forEach(e => { oc[e.outcome] = (oc[e.outcome] || 0) + 1; });
+    const att = B.log.filter(e => e.act === 'ATTEMPT').length;
+    const prod = {}; rated.forEach(e => String(e.orders).split(',').map(x => x.trim()).filter(Boolean).forEach(id => { const g = byId[id]; if (!g) return; (g.items || []).forEach(it => { const k = it.product; (prod[k] = prod[k] || { s: 0, n: 0 }); prod[k].s += e.rating; prod[k].n++; }); }));
+    const pr = Object.keys(prod).map(k => ({ k, avg: prod[k].s / prod[k].n, n: prod[k].n })).sort((a, b) => b.n - a.n);
+    const cm = ent.filter(e => e.comment).slice(0, 8);
+    if (!ent.length) return '<div style="padding:26px;text-align:center;color:var(--text3)">এখনো কোনো ফিডব্যাক নেই — ফলো-আপ সম্পন্ন করলে এখানে সারাংশ জমবে</div>';
+    return `<div style="padding:14px"><div class="fu-kp" style="margin-bottom:12px"><div class="fu-k"><div class="l">গড় রেটিং</div><div class="v" style="color:var(--gold)">${rated.length ? avg.toFixed(1) + ' ★' : '—'}</div></div><div class="fu-k"><div class="l">কথা হয়েছে</div><div class="v">${ent.length}</div></div><div class="fu-k"><div class="l">ফোন ধরেনি (চেষ্টা)</div><div class="v">${att}</div></div><div class="fu-k"><div class="l">রেটিং পাওয়া</div><div class="v">${rated.length}</div></div></div>
+      <div class="fu-mu" style="font-weight:700;margin:6px 0">রেটিং বণ্টন</div>${dist.map(d => `<div style="display:flex;align-items:center;gap:8px;font-size:12.5px;margin:3px 0"><span style="width:26px">${d[0]} ★</span><div style="flex:1;background:var(--bg3);border-radius:5px;height:9px"><div style="width:${rated.length ? d[1] / rated.length * 100 : 0}%;height:9px;border-radius:5px;background:var(--gold)"></div></div><span style="width:24px;text-align:right">${d[1]}</span></div>`).join('')}
+      <div class="fu-mu" style="font-weight:700;margin:12px 0 6px">ফলাফল</div>${Object.keys(oc).map(k => `<span class="fu-b">${(OUT[k] || ['', k])[0]} ${(OUT[k] || ['', k])[1]} · ${oc[k]}</span>`).join('')}
+      ${pr.length ? `<div class="fu-mu" style="font-weight:700;margin:12px 0 6px">প্রোডাক্ট অনুযায়ী</div>` + pr.slice(0, 8).map(p => `<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0;border-bottom:1px solid var(--border)"><span>${esc(p.k)}</span><span><b style="color:var(--gold)">${p.avg.toFixed(1)} ★</b> <span class="fu-mu">(${p.n})</span></span></div>`).join('') : ''}
+      ${cm.length ? `<div class="fu-mu" style="font-weight:700;margin:12px 0 6px">সাম্প্রতিক মন্তব্য</div>` + cm.map(e => `<div style="font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--border)"><b>${esc(e.customer)}</b> ${e.rating ? `<span style="color:var(--gold)">${'★'.repeat(e.rating)}</span>` : ''}<br><span class="fu-mu">"${esc(e.comment)}"</span></div>`).join('') : ''}</div>`;
+  }
+
+  // ───────── ইভেন্ট ─────────
+  const findItem = gk => { const R = C1.S; if (!R) return null; return [].concat(R.now, R.soon, R.expired).find(i => i.gk === gk); };
+  const cidNew = () => 'fu_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  async function logIt(i, act, extra) {
+    const p = Object.assign({ action: 'fuLog', keys: i.keys, orders: i.orders.map(o => o.id).join(','), pk: i.pk, customer: i.customer, rule: i.rule.id, ruleName: i.rule.name, act, by: partner(), cid: cidNew() }, extra || {});
+    const r = await postToAPI(p); if (!r || r.status === 'error') return false;
+    C1.open = null; C1.sel = { out: '', rating: 0 }; await load(true); state(); render(); refreshBadges(); return true;
+  }
+  async function onClick(e) {
+    const t = e.target;
+    const tab = t.closest('[data-t]'); if (tab) { C1.tab = tab.dataset.t; C1.open = null; render(); return; }
+    const oc = t.closest('[data-oc]'); if (oc) { C1.sel.out = oc.dataset.oc; if (C1.sel.out === 'noanswer') C1.sel.rating = 0; const cm = $('fu-cm') && $('fu-cm').value; render(); if (cm && $('fu-cm')) $('fu-cm').value = cm; return; }
+    const st = t.closest('[data-r]'); if (st) { C1.sel.rating = C1.sel.rating === +st.dataset.r ? 0 : +st.dataset.r; const cm = $('fu-cm') && $('fu-cm').value; render(); if (cm && $('fu-cm')) $('fu-cm').value = cm; return; }
+    const a = t.closest('[data-a]'); if (!a) return; const act = a.dataset.a, itemEl = a.closest('[data-gk]'), it = itemEl ? findItem(itemEl.dataset.gk) : null;
+    if (act === 'refresh') { await load(true); state(); render(); refreshBadges(); toast('🔄 নতুন হিসাব হয়েছে'); }
+    else if (act === 'open' && it) { C1.open = C1.open === it.gk ? null : it.gk; C1.sel = { out: '', rating: 0 }; render(); }
+    else if (act === 'wa' && it) { const T = window.__s4 && window.__s4.tplAll(), tp = T && (T.find(x => x.k === it.rule.template) || T.find(x => x.k === 'feedback')); if (!tp) { toast('টেমপ্লেট পাওয়া যায়নি', 'error'); return; } window.open('https://wa.me/' + waNum(it.phone) + '?text=' + encodeURIComponent(window.__s4.fill(tp.text, it.order)), '_blank', 'noopener'); }
+    else if (act === 'save' && it) {
+      const s = C1.sel; if (!s.out) { toast('আগে ফলাফল বাছুন', 'error'); return; }
+      const cm = ($('fu-cm') || {}).value || ''; a.disabled = true;
+      let ok;
+      if (s.out === 'noanswer') ok = await logIt(it, 'ATTEMPT', { outcome: 'noanswer', comment: cm, attempt: it.attempt + 1, until: idxYmd(dayIdx(Date.now()) + C1.b.settings.retryDays) });
+      else ok = await logIt(it, 'DONE', { outcome: s.out, rating: s.rating, comment: cm });
+      if (ok) toast(s.out === 'noanswer' ? '📵 ' + C1.b.settings.retryDays + ' দিন পরে আবার আসবে' : '✅ সংরক্ষিত'); else a.disabled = false;
+    }
+    else if (act === 'snz' && it) {
+      const v = prompt('কত দিন পরে মনে করিয়ে দেব? (যেমন 1, 3, 7, 30)', '3'); if (v == null) return; const d = Math.round(Number(v)); if (!(d >= 1 && d <= 365)) { toast('১ থেকে ৩৬৫ এর মধ্যে সংখ্যা দিন', 'error'); return; }
+      if (await logIt(it, 'SNOOZE', { outcome: 'later', until: idxYmd(dayIdx(Date.now()) + d) })) toast('⏰ ' + d + ' দিন পরে আসবে');
+    }
+    else if (act === 'today' && it) { if (await logIt(it, 'SNOOZE', { outcome: 'later', until: idxYmd(dayIdx(Date.now())) })) toast('▶ আজকের তালিকায় এসেছে'); }
+    else if (act === 'skip' && it) { if (!confirm('"' + it.customer + '" — এই ফলো-আপ বাদ দেবেন? (আর আসবে না)')) return; if (await logIt(it, 'SKIP', { outcome: 'skip' })) toast('⏭️ বাদ দেওয়া হয়েছে'); }
+    else if (act === 'resolve') {
+      const r = await postToAPI({ action: 'fuLog', keys: [a.dataset.k], orders: a.dataset.i, pk: a.dataset.p, customer: a.dataset.n, rule: '', ruleName: 'সমস্যা সমাধান', act: 'RESOLVE', outcome: 'resolved', by: partner(), cid: cidNew() });
+      if (r && r.status !== 'error') { await load(true); state(); render(); refreshBadges(); toast('✅ সমাধান হিসেবে চিহ্নিত'); }
+    }
+    else if (act === 'tg') { const rid = a.closest('[data-rid]').dataset.rid, r = C1.b.rules.find(x => x.id === rid); await saveRule({ ...r, enabled: !r.enabled }); }
+    else if (act === 'occwa' || act === 'occdone' || act === 'occskip') {
+      const okey = a.closest('[data-ok]').dataset.ok, x = (C1.S.occ || []).find(y => y.key === okey); if (!x) return;
+      if (act === 'occwa') { const T = (window.__s4 && window.__s4.tplAll()) || [], tk = x.occ.type === 'birthday' ? 'birthday' : x.occ.type === 'anniversary' ? 'anniversary' : 'festival', tp = T.find(t => t.k === tk); if (!tp || !x.order) { toast('টেমপ্লেট/অর্ডার পাওয়া যায়নি', 'error'); return; } window.open('https://wa.me/' + waNum(x.phone) + '?text=' + encodeURIComponent(window.__s4.fill(tp.text, x.order)), '_blank', 'noopener'); return; }
+      if (act === 'occskip' && !confirm('"' + x.name + '" — এই বছরের শুভেচ্ছা বাদ দেবেন?')) return;
+      const r = await postToAPI({ action: 'fuLog', keys: [x.key], orders: '', pk: x.pk, customer: x.name, rule: '', ruleName: 'শুভেচ্ছা', act: act === 'occdone' ? 'DONE' : 'SKIP', outcome: act === 'occdone' ? 'greeted' : 'skip', by: partner(), cid: cidNew() });
+      if (r && r.status !== 'error') { await load(true); state(); render(); refreshBadges(); toast(act === 'occdone' ? '🎉 শুভেচ্ছা পাঠানো চিহ্নিত' : '⏭️ বাদ দেওয়া হয়েছে'); }
+    }
+    else if (act === 'dgsave' || act === 'dgtest' || act === 'dgprev') digestAct(act, a);
+    else if (act === 'newrule') ruleModal(null);
+    else if (act === 'editrule') ruleModal(a.closest('[data-rid]').dataset.rid);
+    else if (act === 'saveset') {
+      const s = {}; ['maxOverdueDays', 'retryDays', 'maxAttempts', 'upcomingDays'].forEach(k => s[k] = Number($('fs-' + k).value));
+      const r = await postToAPI({ action: 'custSettingSave', settings: s, by: partner() }); if (r && r.status !== 'error') { await load(true); state(); render(); refreshBadges(); toast('💾 সেটিং সেভ হয়েছে'); }
+    }
+  }
+  async function onChange(e) {
+    const t = e.target;
+    if (t.id === 'fu-rf') { C1.rule = t.value; render(); return; }
+    if (t.id === 'fu-mine') { C1.mine = t.checked; render(); return; }
+    if (t.dataset && t.dataset.a === 'days') { const rid = t.closest('[data-rid]').dataset.rid, r = C1.b.rules.find(x => x.id === rid), d = Math.round(Number(t.value)); if (!(d >= 1 && d <= 3650)) { toast('১ থেকে ৩৬৫০ এর মধ্যে দিন দিন', 'error'); t.value = r.days; return; } if (d !== r.days) await saveRule({ ...r, days: d }); }
+  }
+  function onInput() {}
+  async function saveRule(rule) {
+    const r = await postToAPI({ action: 'fuRuleSave', rule, by: partner() });
+    if (r && r.status !== 'error') { await load(true); state(); render(); refreshBadges(); toast('💾 নিয়ম সেভ হয়েছে'); return true; } return false;
+  }
+  async function digestAct(act, a) {
+    if (act === 'dgprev') { const r = await fetchFromAPI('custDigestPreview', {}); if (!r) { toast('প্রিভিউ আনা যায়নি', 'error'); return; } alert(r.body); return; }
+    if (act === 'dgtest') { a.disabled = true; const r = await postToAPI({ action: 'custDigestTest', by: partner() }); a.disabled = false; if (r && r.status !== 'error') toast('✉️ ' + (r.message || 'টেস্ট ইমেইল গেছে')); return; }
+    const email = $('dg-email').value.trim(), en = $('dg-en').checked, hour = Number($('dg-hour').value), any = $('dg-any').checked;
+    if (en && !email) { toast('চালু করতে ইমেইল দিন', 'error'); return; }
+    const pin = await _askPartnerPin('ডাইজেস্ট সেটিং'); if (!pin) return;
+    const r = await postToAPI({ action: 'custDigestSave', enabled: en, email, hour, onlyIfAny: any, by: partner(), pin }); if (!r || r.status === 'error') return;
+    await load(true); render(); toast(r.trigger === 'need-auth' ? '⚠️ সেভ হয়েছে, কিন্তু ট্রিগার বসেনি — Apps Script মেনু থেকে "কাস্টমার ডাইজেস্ট চালু" একবার চালান' : (r.message || '💾 সেভ হয়েছে'), r.trigger === 'need-auth' ? 'error' : 'success');
+  }
+  function ruleModal(rid) {
+    const r = rid ? C1.b.rules.find(x => x.id === rid) : { id: '', name: '', days: 30, anchor: 'delivered', enabled: true, minAmount: 0, products: '', template: 'feedback' };
+    let m = $('modal-c1-rule'); if (!m) { m = document.createElement('div'); m.className = 'modal-overlay'; m.id = 'modal-c1-rule'; m.onclick = e => { if (e.target === m) closeModal('c1-rule'); }; document.body.appendChild(m); }
+    const tpls = (window.__s4 && window.__s4.tplAll()) || [];
+    m.innerHTML = `<div class="modal-box" style="max-width:520px;width:96vw"><div class="modal-header"><span class="modal-title">${rid ? '✏️ নিয়ম এডিট' : '＋ নতুন ফলো-আপ নিয়ম'}</span><button class="modal-close" onclick="closeModal('c1-rule')">✕</button></div><div class="modal-body" style="display:grid;gap:10px">
+      <label class="fu-mu">নিয়মের নাম<input class="fu-in" id="cr-name" value="${esc(r.name)}" maxlength="40" placeholder="যেমন: ২ সপ্তাহের খোঁজ"></label>
+      <div><div class="fu-mu" style="margin-bottom:4px">কত দিন পর</div><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><input class="fu-in" id="cr-days" type="number" min="1" max="3650" value="${r.days}" style="width:90px"> <span class="fu-mu">দিন — দ্রুত:</span>${[7, 10, 30, 60, 90, 180, 365].map(d => `<button type="button" class="fu-btn" data-q="${d}">${d}</button>`).join('')}</div></div>
+      <label class="fu-mu">কোন তারিখ থেকে গুনবে<select class="fu-in" id="cr-anchor">${Object.keys(ANCH).map(k => `<option value="${k}"${r.anchor === k ? ' selected' : ''}>${ANCH[k]}</option>`).join('')}</select></label>
+      <div class="fu-mu" style="font-size:11.5px;margin-top:-4px">"শেষ অর্ডারের পর" = কাস্টমারের সবচেয়ে সাম্প্রতিক Delivered অর্ডারের জন্য (আবার কেনার আমন্ত্রণ)। "ওয়ারেন্টি শেষের আগে" = সিরিয়াল বসানো পণ্যের ওয়ারেন্টি-শেষের এতদিন আগে।</div>
+      <label class="fu-mu">শুধু এত টাকার বেশি অর্ডারে (০ = সব)<input class="fu-in" id="cr-min" type="number" min="0" value="${r.minAmount || 0}"></label>
+      <label class="fu-mu">শুধু এই প্রোডাক্টে (কমা দিয়ে নামের অংশ; ফাঁকা = সব)<input class="fu-in" id="cr-prod" value="${esc(r.products)}" placeholder="যেমন: Zeta, Siren"></label>
+      <label class="fu-mu">WhatsApp টেমপ্লেট<select class="fu-in" id="cr-tpl">${['feedback', 'repeat', 'warranty'].map(k => { const t = tpls.find(x => x.k === k); return `<option value="${k}"${r.template === k ? ' selected' : ''}>${t ? esc(t.t) : k}</option>`; }).join('')}</select></label>
+      </div><div class="modal-footer">${rid ? '<button class="btn danger" id="cr-del">🗑️ মুছুন (PIN)</button>' : ''}<button class="btn gold" id="cr-save" style="background:var(--gold);color:#000;border-color:var(--gold);font-weight:700">💾 সেভ</button><button class="btn" onclick="closeModal('c1-rule')">বন্ধ</button></div></div>`;
+    m.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { $('cr-days').value = b.dataset.q; });
+    $('cr-save').onclick = async () => { const ok = await saveRule({ id: r.id, name: $('cr-name').value, days: Number($('cr-days').value), anchor: $('cr-anchor').value, enabled: r.enabled, minAmount: Number($('cr-min').value) || 0, products: $('cr-prod').value, template: $('cr-tpl').value }); if (ok) closeModal('c1-rule'); };
+    if (rid) $('cr-del').onclick = async () => { const pin = await _askPartnerPin('নিয়ম মুছতে'); if (!pin) return; const x = await postToAPI({ action: 'fuRuleDelete', id: rid, by: partner(), pin }); if (x && x.status !== 'error') { closeModal('c1-rule'); await load(true); state(); render(); refreshBadges(); toast('🗑️ নিয়ম মুছে গেছে'); } };
+    openModal('c1-rule');
+  }
+
+  // ───────── ব্যাজ: সাইডবার · Customers সুইচ · ড্যাশবোর্ড ─────────
+  function refreshBadges() {
+    try {
+      const R = C1.S || state(); const n = R ? R.counts.now + R.counts.occToday : 0;
+      const nav = document.querySelector('.nav-item[onclick*="showPage(\'crm\'"]');
+      if (nav) { let b = $('fu-nb'); if (!b) { b = document.createElement('span'); b.id = 'fu-nb'; b.className = 'nav-badge gold'; nav.appendChild(b); } b.style.display = n ? '' : 'none'; b.textContent = n; b.title = 'আজ ও দেরি হওয়া ফলো-আপ'; }
+      const sb = $('fu-bar-n'); if (sb) { sb.style.display = n ? '' : 'none'; sb.textContent = n; }
+      const dp = $('page-dashboard'); if (dp) {
+        let d = $('c1-dash'); if (!d) { d = document.createElement('div'); d.id = 'c1-dash'; d.onclick = () => window.c1Open(); const bc = dp.querySelector('.breadcrumb'); (bc ? bc.insertAdjacentElement('afterend', d) : dp.prepend(d)); }
+        if (n && R) { d.style.display = 'block'; d.innerHTML = `<b style="color:var(--gold)">📞 ${R.counts.now + R.counts.occToday} জনকে ফলো-আপ/শুভেচ্ছা জানাতে হবে</b> <span style="color:var(--text2);font-size:13px">${R.counts.late ? '· ⚠️ ' + R.counts.late + 'টি দেরি হয়ে গেছে ' : ''}· খুলতে ক্লিক করুন →</span>`; } else d.style.display = 'none';
+      }
+    } catch (e) { console.error('c1 badges', e); }
+  }
+  async function tick() { try { if (!(window.liveSalesData || []).length) return; await load(false); state(); refreshBadges(); if (C1.mode === 'fu' && !C1.open) render(); if (C1.mode === 'cx' && window.__c2 && !(document.getElementById('cx-dr') && document.getElementById('cx-dr').classList.contains('on')) && document.activeElement.id !== 'cx-q') { window.__c2.build(); window.__c2.render(); } } catch (e) { console.error('c1 tick', e); } }
+  const ps = window.showPage;
+  if (typeof ps === 'function') window.showPage = function (id) {
+    const r = ps.apply(this, arguments);
+    try { if (id === 'crm') { if (ensure() && !C1.inited) { C1.inited = true; setMode('cx'); } } if (id === 'crm' || id === 'dashboard') setTimeout(tick, 300); } catch (e) {}
+    return r;
+  };
+  setInterval(tick, 150000); setTimeout(tick, 4000); setTimeout(tick, 12000);
+  window.__c1 = { mp, C1, load, compute, state, render, setMode };
+})();
+
+</script>
+<script id="cust2-js">
+/* ═══ CUSTOMERS v2 · 👥 নতুন কাস্টমার পেজ
+   • অর্ডার থেকে প্রতিটি কাস্টমারের হিসাব নিজে তৈরি হয় (ফোনের শেষ ১০ ডিজিট = একজন কাস্টমার) — আলাদা করে কিছু বসাতে হয় না
+   • অটো সেগমেন্ট: 🆕 নতুন · 🔄 রিপিট · 👑 VIP · 😴 ঘুমন্ত · ⚠️ ঝুঁকি · 💳 বাকি (সংখ্যাগুলো ফলো-আপের সেটিংয়ে বদলানো যায়)
+   • কাস্টমারে ক্লিক → ৩৬০° প্রোফাইল: LTV, ব্যবধান, ওয়ারেন্টি/সিরিয়াল, টাইমলাইন, নোট, ট্যাগ, ফোন-করবেন-না, 🛒 আবার অর্ডার
+   • নোট/ট্যাগ '📇 Customer_Profile' শিটে; পরিবর্তনের ইতিহাস '🧾 Customer_Audit'-এ */
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const num = v => Number(v) || 0;
+  const key = s => String(s || '').trim().toLowerCase();
+  const taka = n => '৳' + Math.round(num(n)).toLocaleString('en-US');
+  const toast = (m, t) => { try { showToast(m, t || 'success'); } catch (e) {} };
+  const ph10 = p => String(p || '').replace(/\D/g, '').slice(-10);
+  const waNum = p => { const d = String(p || '').replace(/\D/g, ''); return d.length === 11 && d.startsWith('01') ? '88' + d : d; };
+  const DAY = 864e5, TZ = 6 * 36e5, dayIdx = ts => Math.floor((ts + TZ) / DAY);
+  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const fmtTs = ts => { if (!ts) return '—'; const d = new Date(ts + TZ); return d.getUTCDate() + '-' + MON[d.getUTCMonth()] + '-' + d.getUTCFullYear(); };
+  const ago = ts => { if (!ts) return '—'; const d = dayIdx(Date.now()) - dayIdx(ts); return d <= 0 ? 'আজ' : d === 1 ? 'গতকাল' : d < 60 ? d + ' দিন আগে' : d < 730 ? Math.round(d / 30) + ' মাস আগে' : Math.round(d / 365) + ' বছর আগে'; };
+  const partner = () => { try { return currentPartner || ''; } catch (e) { return ''; } };
+  const C1 = () => (window.__c1 && window.__c1.C1) || null;
+  const SEG = { all: ['👥', 'সব'], new: ['🆕', 'নতুন'], repeat: ['🔄', 'রিপিট'], vip: ['👑', 'VIP'], dormant: ['😴', 'ঘুমন্ত'], risk: ['⚠️', 'ঝুঁকি'], due: ['💳', 'বাকি'], dnc: ['🚫', 'ফোন করবেন না'] };
+  const DEF_TAGS = ['পাইকারি', 'ডিলার', 'রিসেলার', 'পরিচিত', 'সমস্যাযুক্ত', 'ভালো পেমেন্ট'];
+  const AV = ['#CDA935', '#3FB950', '#A8A8A8', '#F0A030', '#2EA7A0'];
+  const X = { sub: 'list', dupN: 0, list: [], by: {}, kp: null, q: '', seg: 'all', sort: 'spent', tag: '', mine: false, shown: 40, dr: null, ready: false };
+
+  // ───────── হিসাব ─────────
+  function groups() { try { return (window.__s2 && window.__s2.build && window.__s2.build()) || []; } catch (e) { console.error('c2 groups', e); return []; } }
+  function build() {
+    const c1 = C1(), B = c1 && c1.b, S = (B && B.settings) || { vipOrders: 5, vipSpent: 15000, dormantDays: 90 };
+    const mp = (window.__c1 && window.__c1.mp) || (x => x), merges = (B && B.merges) || {};
+    const pro = {}, proAll = {}; ((B && B.profiles) || []).forEach(p => { const r = mp(p.pk); pro[r] = pro[r] || (p.pk === r ? p : null) || pro[r]; (proAll[r] = proAll[r] || []).push(p); }); Object.keys(proAll).forEach(r => { if (!pro[r]) pro[r] = proAll[r][0]; });
+    const map = {};
+    groups().forEach(g => {
+      if (g._st === 'Cancelled') return; const own = ph10(g.phone); if (own.length < 10) return; const pk = mp(own);
+      const c = map[pk] || (map[pk] = { pk, orders: [], deliv: [], ret: [], act: [], tags: [], salesmen: {}, phones: {} });
+      c.phones[own] = 1;
+      c.orders.push(g); if (g._st === 'Delivered') c.deliv.push(g); else if (g._st === 'Returned') c.ret.push(g); else c.act.push(g);
+      if (g.salesman) c.salesmen[key(g.salesman)] = 1;
+    });
+    const now = Date.now(), dd = (B && B.delivered) || {};
+    const dts = g => dd[String(g.id)] || g._ts || 0;
+    const list = Object.keys(map).map(pk => {
+      const c = map[pk], p = pro[pk] || null;
+      c.orders.sort((a, b) => (b._ts || 0) - (a._ts || 0) || num(b.id) - num(a.id));
+      const lo = c.orders[0]; c.last = lo; c.phone = lo.phone; c.autoName = lo.customer; c.name = (p && p.name) || lo.customer; c.profile = p;
+      const tg = []; (proAll[pk] || []).forEach(x => String(x.tags || '').split(',').forEach(t => { t = t.trim(); if (t && !tg.includes(t)) tg.push(t); })); c.tags = tg; c.absorbed = Object.keys(merges).filter(f => mp(f) === pk && f !== pk); c.altPhones = Object.keys(c.phones).filter(x => x !== pk);
+      c.dnc = (proAll[pk] || []).some(x => x.dnc);
+      c.spent = c.deliv.reduce((s, o) => s + num(o.total), 0); c.nDel = c.deliv.length; c.nAll = c.orders.length; c.avg = c.nDel ? c.spent / c.nDel : 0;
+      const dts_ = c.deliv.map(dts).filter(Boolean).sort((a, b) => a - b); c.lastDel = dts_.length ? dts_[dts_.length - 1] : 0; c.firstDel = dts_.length ? dts_[0] : 0;
+      c.interval = dts_.length >= 2 ? Math.round((c.lastDel - c.firstDel) / DAY / (dts_.length - 1)) : 0;
+      c.lastAny = lo._ts || c.lastDel || 0; c.firstAny = Math.min.apply(null, c.orders.map(o => o._ts || Infinity)); if (!isFinite(c.firstAny)) c.firstAny = 0;
+      c.due = c.deliv.filter(o => o._due > 0.5).reduce((s, o) => s + o._due, 0); c.cod = c.act.filter(o => o._st === 'In Transit').reduce((s, o) => s + o._net, 0);
+      c.rate = (c.nDel + c.ret.length) ? c.ret.length / (c.nDel + c.ret.length) : 0;
+      const seg = []; if (c.nAll === 1 && c.lastAny && now - c.lastAny < 30 * DAY) seg.push('new');
+      if (c.nDel >= 2) seg.push('repeat');
+      if (c.nDel >= S.vipOrders || c.spent >= S.vipSpent) seg.push('vip');
+      if (c.nDel > 0 && !c.act.length && c.lastDel && now - c.lastDel > S.dormantDays * DAY) seg.push('dormant');
+      if (c.ret.length >= 2 || (c.ret.length >= 1 && c.rate >= 0.4)) seg.push('risk');
+      if (c.due > 0.5) seg.push('due'); if (c.dnc) seg.push('dnc');
+      c.seg = seg;
+      c.prod = {}; c.orders.forEach(o => { if (o._st === 'Returned') return; (o.items || []).forEach(i => { c.prod[i.product] = (c.prod[i.product] || 0) + num(i.qty); }); });
+      c.search = key([c.name, c.autoName, c.phone, pk, Object.keys(c.phones).join(' '), c.absorbed.join(' '), p && p.alt, c.tags.join(' '), Object.keys(c.prod).join(' '), lo.dist, lo.thana, lo.address].join(' '));
+      return c;
+    });
+    X.list = list; X.by = {}; list.forEach(c => { X.by[c.pk] = c; });
+    const withDel = list.filter(c => c.nDel > 0), rep = list.filter(c => c.nDel >= 2), cnt = s => list.filter(c => c.seg.includes(s)).length;
+    X.cnt = { all: list.length }; Object.keys(SEG).forEach(s => { if (s !== 'all') X.cnt[s] = cnt(s); });
+    X.kp = { total: list.length, repRate: withDel.length ? Math.round(rep.length / withDel.length * 100) : 0, rep: rep.length, vip: X.cnt.vip, dormant: X.cnt.dormant, due: list.reduce((s, c) => s + c.due, 0), dueN: X.cnt.due, ltv: withDel.length ? withDel.reduce((s, c) => s + c.spent, 0) / withDel.length : 0 };
+    // পরের ফলো-আপ
+    X.fu = {}; const R = c1 && c1.S; if (R) [].concat(R.now, R.soon, R.expired).forEach(i => { const o = X.fu[i.pk]; if (!o || i.late > o.late) X.fu[i.pk] = i; });
+    X.occ = {}; if (R && R.occ) R.occ.forEach(o => { const q = X.occ[o.pk]; if (!q || o.inDays < q.inDays) X.occ[o.pk] = o; });
+    X.ready = true; try { X.dupN = window.__c3 ? window.__c3.detect(true).length : 0; } catch (e) { console.error('c3 detect', e); X.dupN = 0; } return list;
+  }
+
+  // ───────── CSS ─────────
+  const css = document.createElement('style'); css.id = 'c2-style';
+  css.textContent = `
+  #cx-view{display:none}#page-crm.cx-mode #cx-view{display:block}
+  .cx-kp{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;margin:0 0 14px}
+  @media(max-width:1200px){.cx-kp{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:620px){.cx-kp{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .cx-k{background:var(--bg2,#0a0a0a);border:1px solid var(--border,#262626);border-radius:12px;padding:10px 13px}.cx-k .l{font-size:11.5px;color:var(--text3,#888)}.cx-k .v{font-size:20px;font-weight:700;margin-top:2px}.cx-k .s{font-size:11.5px;color:var(--text3,#888)}
+  .cx-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
+  .cx-bar .fu-in{width:auto}
+  .cx-seg{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 12px}
+  .cx-chip{background:var(--bg3,#121212);border:1px solid var(--border,#262626);border-radius:999px;padding:5px 13px;cursor:pointer;color:var(--text2,#bbb);font-size:12.5px;display:inline-flex;gap:6px;align-items:center}
+  .cx-chip b{color:var(--text,#eee)}.cx-chip.on{border-color:var(--gold,#CDA935);color:var(--gold,#CDA935)}.cx-chip.on b{color:var(--gold,#CDA935)}
+  .cx-row{display:grid;grid-template-columns:44px minmax(0,1.6fr) minmax(0,.7fr) minmax(0,.8fr) minmax(0,1.1fr);gap:12px;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border,#262626);cursor:pointer}
+  .cx-row:hover{background:rgba(205,169,53,.05)}
+  @media(max-width:900px){.cx-row{grid-template-columns:44px minmax(0,1fr) minmax(0,.8fr)}.cx-row .c4,.cx-row .c5{display:none}}
+  .cx-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#000}
+  .cx-nm{font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cx-mu{color:var(--text3,#888);font-size:12px}
+  .cx-tg{display:inline-block;font-size:11px;border-radius:6px;padding:0 7px;margin:2px 4px 0 0;background:var(--bg3,#121212);border:1px solid var(--border,#262626);color:var(--text2,#bbb)}
+  .cx-hd{display:grid;grid-template-columns:44px minmax(0,1.6fr) minmax(0,.7fr) minmax(0,.8fr) minmax(0,1.1fr);gap:12px;padding:8px 14px;font-size:11.5px;color:var(--text3,#888);background:var(--bg3,#121212);font-weight:700}
+  @media(max-width:900px){.cx-hd{display:none}}
+  #cx-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1190;display:none}
+  #cx-dr{position:fixed;top:0;right:0;bottom:0;width:min(560px,100vw);background:var(--bg,#000);border-left:1px solid var(--border,#262626);z-index:1200;transform:translateX(100%);transition:transform .2s;overflow-y:auto;display:block}
+  #cx-dr.on{transform:none}
+  #cx-dr .dh{padding:14px 16px;border-bottom:1px solid var(--border,#262626);display:flex;gap:12px;align-items:flex-start;position:sticky;top:0;background:var(--bg,#000);z-index:2}
+  #cx-dr .sec{padding:12px 16px;border-bottom:1px solid var(--border,#262626)}
+  #cx-dr h4{margin:0 0 8px;font-size:12.5px;color:var(--text3,#888);letter-spacing:.4px}
+  .cx-st{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .cx-st>div{background:var(--bg2,#0a0a0a);border:1px solid var(--border,#262626);border-radius:10px;padding:8px 10px}.cx-st .l{font-size:11px;color:var(--text3,#888)}.cx-st .v{font-size:16px;font-weight:700}
+  .cx-tl{border-left:2px solid var(--border,#262626);margin-left:6px;padding-left:12px}
+  .cx-ev{position:relative;padding:0 0 11px;font-size:12.5px}.cx-ev::before{content:'';position:absolute;left:-18px;top:5px;width:8px;height:8px;border-radius:50%;background:var(--gold,#CDA935)}
+  .cx-ev.f::before{background:var(--green,#3FB950)}.cx-ev.r::before{background:var(--red,#E5534B)}
+  .cx-chipx{display:inline-flex;gap:5px;align-items:center;background:rgba(205,169,53,.1);border:1px solid rgba(205,169,53,.4);color:var(--gold,#CDA935);border-radius:999px;padding:1px 4px 1px 10px;margin:0 6px 6px 0;font-size:12px}
+  .cx-chipx button{background:none;border:0;color:inherit;cursor:pointer;font-size:13px;padding:0 4px}
+  .cx-sug{display:inline-block;border:1px dashed var(--border,#262626);color:var(--text3,#888);border-radius:999px;padding:1px 10px;margin:0 6px 6px 0;font-size:12px;cursor:pointer}
+  .cx-sug:hover{border-color:var(--gold,#CDA935);color:var(--gold,#CDA935)}
+  .cx-w{width:100%;border-collapse:collapse;font-size:12.5px}.cx-w th{text-align:left;color:var(--text3,#888);font-weight:600;padding:4px 6px}.cx-w td{padding:5px 6px;border-top:1px solid var(--border,#262626)}
+  `;
+  document.head.appendChild(css);
+
+  // ───────── তালিকা ─────────
+  function applyFilters() {
+    const q = key(X.q), me = key(partner());
+    let L = X.list.filter(c => (X.seg === 'all' || c.seg.includes(X.seg)) && (!q || c.search.includes(q)) && (!X.tag || c.tags.includes(X.tag)) && (!X.mine || c.salesmen[me]));
+    const s = X.sort;
+    L.sort((a, b) => s === 'spent' ? b.spent - a.spent : s === 'orders' ? (b.nAll - a.nAll) || (b.spent - a.spent) : s === 'recent' ? (b.lastAny - a.lastAny) : s === 'old' ? (a.lastDel || a.lastAny) - (b.lastDel || b.lastAny) : s === 'due' ? b.due - a.due : String(a.name).localeCompare(String(b.name), 'bn'));
+    return L;
+  }
+  const avHtml = (c, big) => `<div class="cx-av" style="background:${AV[(c.pk.charCodeAt(c.pk.length - 1) + c.pk.charCodeAt(c.pk.length - 2)) % AV.length]};${big ? 'width:48px;height:48px;font-size:19px' : ''}">${esc((c.name || '?').trim().charAt(0).toUpperCase())}</div>`;
+  const segB = c => c.seg.map(s => `<span title="${SEG[s][1]}">${SEG[s][0]}</span>`).join(' ');
+  function fuTxt(c) {
+    const oc = X.occ && X.occ[c.pk], ot = (oc && !c.dnc) ? `<div class="cx-mu" style="margin-top:3px">${esc(oc.label)} · <b style="color:var(--orange)">${oc.inDays === 0 ? 'আজ' : oc.inDays + ' দিন পর'}</b></div>` : '';
+    const i = X.fu && X.fu[c.pk]; if (!i || c.dnc) return ot;
+    const l = i.late; return `<div class="cx-mu" style="margin-top:3px">📞 ${esc(i.rule.name)} · <b style="color:${l > 0 ? 'var(--red)' : l === 0 ? 'var(--orange)' : 'var(--text2)'}">${l > 0 ? l + ' দিন দেরি' : l === 0 ? 'আজ' : -l + ' দিন পর'}</b></div>` + ot;
+  }
+  function rowHtml(c) {
+    return `<div class="cx-row" data-pk="${esc(c.pk)}">${avHtml(c)}
+      <div style="min-width:0"><div class="cx-nm">${esc(c.name)} <span style="font-size:13px">${segB(c)}</span></div><div class="cx-mu">${esc(c.phone)}${c.last.dist ? ' · ' + esc(c.last.dist) : ''}</div>${c.tags.length ? '<div>' + c.tags.slice(0, 4).map(t => `<span class="cx-tg">${esc(t)}</span>`).join('') + '</div>' : ''}</div>
+      <div class="c3"><b>${taka(c.spent)}</b><div class="cx-mu">${c.nDel}/${c.nAll} অর্ডার</div></div>
+      <div class="c4"><div>${ago(c.lastAny)}</div><div class="cx-mu">${c.due > 0.5 ? '<span style="color:var(--red)">বাকি ' + taka(c.due) + '</span>' : (c.interval ? 'গড় ' + c.interval + ' দিন পরপর' : '')}</div></div>
+      <div class="c5">${fuTxt(c) || '<span class="cx-mu">—</span>'}</div></div>`;
+  }
+  function render() {
+    const v = $('cx-view'); if (!v) return;
+    if (!X.ready) build();
+    if (!v.dataset.bound) { v.dataset.bound = 1; v.onclick = onClick; v.oninput = onInput; v.onchange = onChange; }
+    const k = X.kp, L = applyFilters(), show = L.slice(0, X.shown);
+    const tags = {}; X.list.forEach(c => c.tags.forEach(t => tags[t] = 1));
+    const K = (l, val, s, col) => `<div class="cx-k"><div class="l">${l}</div><div class="v"${col ? ` style="color:${col}"` : ''}>${val}</div><div class="s">${s || '&nbsp;'}</div></div>`;
+    const focus = document.activeElement && document.activeElement.id === 'cx-q'; const selS = focus ? document.activeElement.selectionStart : 0;
+    v.innerHTML = `<div class="cx-kp">${K('👥 মোট কাস্টমার', k.total, 'অর্ডার আছে এমন')}${K('🔄 রিপিট রেট', k.repRate + '%', k.rep + ' জন ২+ বার কিনেছেন', 'var(--gold)')}${K('👑 VIP', k.vip, 'অর্ডার/খরচ সেটিং অনুযায়ী')}${K('😴 ঘুমন্ত', k.dormant, 'অনেকদিন অর্ডার নেই', k.dormant ? 'var(--orange)' : '')}${K('💳 বাকি', taka(k.due), k.dueN + ' জনের কাছে', k.due ? 'var(--red)' : '')}${K('💰 গড় LTV', taka(k.ltv), 'প্রতি কাস্টমারের মোট কেনা')}</div>
+      <div class="cx-seg">${Object.keys(SEG).map(s => (s === 'dnc' && !X.cnt.dnc) ? '' : `<span class="cx-chip${X.seg === s ? ' on' : ''}" data-s="${s}">${SEG[s][0]} ${SEG[s][1]} <b>${X.cnt[s] || 0}</b></span>`).join('')}</div>
+      <div class="cx-bar"><input class="fu-in" id="cx-q" style="min-width:220px;flex:1" placeholder="🔍 নাম / ফোন / ঠিকানা / ট্যাগ / প্রোডাক্ট" value="${esc(X.q)}">
+        <select class="fu-in" id="cx-sort"><option value="spent"${X.sort === 'spent' ? ' selected' : ''}>সর্বোচ্চ খরচ</option><option value="orders"${X.sort === 'orders' ? ' selected' : ''}>বেশি অর্ডার</option><option value="recent"${X.sort === 'recent' ? ' selected' : ''}>সাম্প্রতিক</option><option value="old"${X.sort === 'old' ? ' selected' : ''}>অনেকদিন অর্ডার নেই</option><option value="due"${X.sort === 'due' ? ' selected' : ''}>বেশি বাকি</option><option value="name"${X.sort === 'name' ? ' selected' : ''}>নাম (অ-য)</option></select>
+        ${Object.keys(tags).length ? `<select class="fu-in" id="cx-tag"><option value="">সব ট্যাগ</option>${Object.keys(tags).sort().map(t => `<option${X.tag === t ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select>` : ''}
+        <label class="fu-mu" style="display:inline-flex;gap:5px;align-items:center;cursor:pointer;font-size:12.5px"><input type="checkbox" id="cx-mine" ${X.mine ? 'checked' : ''}> শুধু আমার বিক্রি</label>
+        <button class="fu-btn" data-a="refresh">🔄</button></div>
+      <div class="cx-bar" style="margin-top:-2px"><button class="cx-chip${X.sub === 'an' ? '' : ' on'}" data-a="sub" data-v="list">👥 তালিকা</button><button class="cx-chip${X.sub === 'an' ? ' on' : ''}" data-a="sub" data-v="an">📈 অ্যানালিটিক্স</button><span style="flex:1"></span>
+        <button class="fu-btn" data-a="c3-csv">📥 CSV</button><button class="fu-btn" data-a="c3-bc">📣 ব্রডকাস্ট লিস্ট</button><button class="fu-btn" data-a="c3-dup">🔗 ডুপ্লিকেট${X.dupN ? ' <b style="color:var(--orange)">(' + X.dupN + ')</b>' : ''}</button></div>
+      ${X.sub === 'an' && window.__c3 ? window.__c3.anHtml() : ''}
+      <div class="fu-card"${X.sub === 'an' ? ' style="display:none"' : ''}><div class="cx-hd"><span></span><span>কাস্টমার</span><span>মোট কেনা</span><span>শেষ অর্ডার</span><span>পরের ফলো-আপ</span></div>
+        ${show.length ? show.map(rowHtml).join('') : '<div style="padding:30px;text-align:center;color:var(--text3)">' + (X.list.length ? 'এই ফিল্টারে কেউ নেই' : 'কোনো কাস্টমার পাওয়া যায়নি — অর্ডার লোড হচ্ছে…') + '</div>'}
+        ${L.length > show.length ? `<div style="padding:12px;text-align:center"><button class="fu-btn" data-a="more">আরও দেখান (${L.length - show.length}টি বাকি)</button></div>` : ''}</div>
+      <div class="cx-mu" style="margin:8px 2px">${L.length} জন দেখানো হচ্ছে · সেগমেন্ট আপনার অর্ডার থেকে নিজে নিজে হিসাব হয়; VIP/ঘুমন্ত-এর সংখ্যা "📞 ফলো-আপ → আরও সেটিং"-এ বদলানো যাবে।</div>`;
+    if (focus && $('cx-q')) { $('cx-q').focus(); try { $('cx-q').setSelectionRange(selS, selS); } catch (e) {} }
+  }
+  function onClick(e) {
+    const t = e.target, ch = t.closest('[data-s]'); if (ch) { X.seg = ch.dataset.s; X.shown = 40; render(); return; }
+    const a = t.closest('[data-a]');
+    if (a && a.dataset.a === 'refresh') { refresh(true); return; }
+    if (a && a.dataset.a === 'sub') { X.sub = a.dataset.v; render(); return; }
+    if (a && a.dataset.a.indexOf('c3-') === 0) { if (window.__c3) window.__c3.act(a.dataset.a); return; }
+    if (a && a.dataset.a === 'more') { X.shown += 60; render(); return; }
+    const r = t.closest('[data-pk]'); if (r) openDr(r.dataset.pk);
+  }
+  let qt = 0;
+  function onInput(e) { if (e.target.id === 'cx-q') { X.q = e.target.value; X.shown = 40; clearTimeout(qt); qt = setTimeout(render, 180); } }
+  function onChange(e) { const t = e.target; if (t.id === 'cx-sort') X.sort = t.value; else if (t.id === 'cx-tag') X.tag = t.value; else if (t.id === 'cx-mine') X.mine = t.checked; else return; X.shown = 40; render(); }
+  async function refresh(force) {
+    const c1 = window.__c1; if (!c1) return;
+    try { if (force && typeof loadLiveSales === 'function') await loadLiveSales(); } catch (e) {}
+    await c1.load(!!force); c1.state(); build(); render(); if (X.dr && $('cx-dr') && $('cx-dr').classList.contains('on')) drRender();
+    if (force) toast('🔄 নতুন হিসাব হয়েছে');
+  }
+
+  // ───────── ৩৬০° ড্রয়ার ─────────
+  function ensureDr() {
+    if ($('cx-dr')) return;
+    const ov = document.createElement('div'); ov.id = 'cx-ov'; ov.onclick = closeDr; document.body.appendChild(ov);
+    const d = document.createElement('div'); d.id = 'cx-dr'; d.onclick = drClick; d.onkeydown = drKey; document.body.appendChild(d);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('cx-dr') && $('cx-dr').classList.contains('on')) closeDr(); });
+  }
+  function openDr(pk) {
+    const c = X.by[pk]; if (!c) return; ensureDr();
+    X.dr = { pk, tags: c.tags.slice(), dirty: false }; drRender();
+    $('cx-ov').style.display = 'block'; requestAnimationFrame(() => $('cx-dr').classList.add('on'));
+    try { if (window.__s3) window.__s3.load(false).then(() => { if (X.dr && X.dr.pk === pk) drRender(true); }); } catch (e) {}
+  }
+  function closeDr() { if ($('cx-dr')) { $('cx-dr').classList.remove('on'); $('cx-ov').style.display = 'none'; } X.dr = null; }
+  function warrantyRows(c) {
+    const S3 = window.__s3 && window.__s3.S3; const out = []; if (!S3 || !S3.by) return out;
+    c.orders.forEach(o => { const m = S3.by[String(o.id)]; if (!m) return; Object.keys(m).forEach(k => m[k].forEach(r => out.push({ id: o.id, serial: r.serial, product: r.product, wu: r.warrantyUntil, lot: r.lot }))); });
+    return out;
+  }
+  function drRender(keep) {
+    const d = $('cx-dr'), s = X.dr; if (!d || !s) return; const c = X.by[s.pk]; if (!c) return;
+    const B = C1().b, p = c.profile || {}, keepScroll = d.scrollTop;
+    // ইনপুটের অসেভড মান ধরে রাখা
+    const cur = { name: ($('cxp-name') || {}).value, alt: ($('cxp-alt') || {}).value, notes: ($('cxp-notes') || {}).value, dnc: ($('cxp-dnc') || {}).checked };
+    const allTags = {}; DEF_TAGS.forEach(t => allTags[t] = 1); X.list.forEach(x => x.tags.forEach(t => allTags[t] = 1)); s.tags.forEach(t => delete allTags[t]);
+    const items = X.fu && X.fu[c.pk]; const pend = []; const R = C1().S; if (R) [].concat(R.now, R.soon, R.expired).forEach(i => { if (i.pk === c.pk) pend.push(i); });
+    const wr = warrantyRows(c), nowT = Date.now();
+    const tl = []; c.orders.forEach(o => tl.push({ ts: o._ts || 0, k: 'o', o }));
+    ((B && B.log) || []).forEach(e => { if (e.pk === c.pk && (e.act === 'DONE' || e.act === 'ATTEMPT' || e.act === 'SKIP' || e.act === 'RESOLVE')) tl.push({ ts: e.ts, k: 'f', e }); });
+    tl.sort((a, b) => b.ts - a.ts);
+    const OUTL = { happy: '😊 খুশি', issue: '🛠️ সমস্যা', repeat: '🛒 আবার কিনতে আগ্রহী', other: '💬 অন্য', noanswer: '📵 ফোন ধরেনি', resolved: '✅ সমাধান', skip: '⏭️ বাদ', greeted: '🎉 শুভেচ্ছা পাঠানো' };
+    const prods = Object.keys(c.prod).sort((a, b) => c.prod[b] - c.prod[a]);
+    const addrs = []; c.orders.forEach(o => { const a = [o.address, o.thana, o.dist, o.div].filter(Boolean).join(', '); if (a && !addrs.includes(a)) addrs.push(a); });
+    const T = (window.__s4 && window.__s4.tplAll()) || [];
+    const stl = (l, v, col) => `<div><div class="l">${l}</div><div class="v"${col ? ` style="color:${col}"` : ''}>${v}</div></div>`;
+    d.innerHTML = `<div class="dh">${avHtml(c, 1)}<div style="flex:1;min-width:0"><div style="font-size:18px;font-weight:700;overflow:hidden;text-overflow:ellipsis">${esc(c.name)}</div><div class="cx-mu">${esc(c.phone)}${p.alt ? ' · ' + esc(p.alt) : ''}${c.last.dist ? ' · ' + esc(c.last.dist) : ''}</div><div style="margin-top:4px;font-size:13px">${c.seg.map(x => `<span class="fu-b y" style="margin:0 5px 0 0">${SEG[x][0]} ${SEG[x][1]}</span>`).join('')}</div></div><button class="fu-btn" data-a="close">✕</button></div>
+      <div class="sec" style="display:flex;gap:7px;flex-wrap:wrap"><a class="fu-btn gold" href="tel:${esc(String(c.phone).replace(/\s/g, ''))}">📞 কল</a>
+        <select class="fu-in" id="cxd-tpl" style="width:auto">${['feedback', 'repeat', 'confirm', 'delivered', 'due'].map(k => { const t = T.find(x => x.k === k); return t ? `<option value="${k}">${esc(t.t)}</option>` : ''; }).join('')}</select><button class="fu-btn" data-a="wa">💬 WhatsApp</button>
+        <button class="fu-btn gold" data-a="reorder">🛒 আবার অর্ডার</button><button class="fu-btn" data-a="tofu">📋 ফলো-আপ তালিকা</button></div>
+      ${c.due > 0.5 || c.cod > 0.5 ? `<div class="sec" style="background:rgba(229,83,75,.07)">${c.due > 0.5 ? `<b style="color:var(--red)">💳 বাকি ${taka(c.due)}</b> ` : ''}${c.cod > 0.5 ? `<span style="color:var(--orange)">🚚 কুরিয়ারে COD ${taka(c.cod)}</span>` : ''}</div>` : ''}
+      <div class="sec"><h4>📊 সারসংক্ষেপ</h4><div class="cx-st">${stl('মোট কেনা (LTV)', taka(c.spent), 'var(--gold)')}${stl('অর্ডার', c.nDel + ' / ' + c.nAll)}${stl('গড় অর্ডার', taka(c.avg))}${stl('গড় ব্যবধান', c.interval ? c.interval + ' দিন' : '—')}${stl('শেষ অর্ডার', ago(c.lastAny))}${stl('ফেরত', c.ret.length + (c.ret.length ? ' (' + Math.round(c.rate * 100) + '%)' : ''), c.ret.length ? 'var(--orange)' : '')}</div></div>
+      ${pend.length ? `<div class="sec"><h4>📞 বাকি ফলো-আপ</h4>${pend.map(i => `<div style="font-size:12.5px;padding:2px 0"><b>${esc(i.rule.name)}</b> — ${i.late > 0 ? '<span style="color:var(--red)">' + i.late + ' দিন দেরি</span>' : i.late === 0 ? '<span style="color:var(--orange)">আজ</span>' : -i.late + ' দিন পর'} <span class="cx-mu">(#${i.orders.map(o => o.id).join(' + #')})</span></div>`).join('')}</div>` : ''}
+      <div class="sec"><h4>🏷️ ট্যাগ, নোট ও প্রোফাইল</h4>
+        <div id="cxp-tags">${s.tags.map((t, i) => `<span class="cx-chipx">${esc(t)}<button data-a="rmtag" data-i="${i}">✕</button></span>`).join('')}</div>
+        <div><input class="fu-in" id="cxp-tin" style="width:150px;display:inline-block" placeholder="＋ ট্যাগ লিখে Enter" maxlength="24"> ${Object.keys(allTags).slice(0, 10).map(t => `<span class="cx-sug" data-a="addtag" data-t="${esc(t)}">+ ${esc(t)}</span>`).join('')}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px"><label class="fu-mu">নাম (ঐচ্ছিক — বদলালে অর্ডারের নাম অপরিবর্তিত থাকে)<input class="fu-in" id="cxp-name" maxlength="80" value="${esc(cur.name != null ? cur.name : (p.name || ''))}" placeholder="${esc(c.autoName)}"></label><label class="fu-mu">বিকল্প ফোন<input class="fu-in" id="cxp-alt" maxlength="30" value="${esc(cur.alt != null ? cur.alt : (p.alt || ''))}"></label></div>
+        <label class="fu-mu" style="display:block;margin-top:8px">নোট (যেমন: কী পছন্দ, কোন সময় ফোন ধরেন)<textarea class="fu-in" id="cxp-notes" rows="3" maxlength="2000">${esc(cur.notes != null ? cur.notes : (p.notes || ''))}</textarea></label>
+        <label class="fu-mu" style="display:flex;gap:7px;align-items:center;margin-top:8px;cursor:pointer"><input type="checkbox" id="cxp-dnc" ${(cur.dnc != null ? cur.dnc : c.dnc) ? 'checked' : ''}> 🚫 ফলো-আপে ফোন করবেন না (তালিকা থেকে লুকানো থাকবে)</label>
+        <div style="margin-top:9px"><button class="fu-btn gold" data-a="saveprof">💾 প্রোফাইল সেভ</button> ${p.updated ? `<span class="cx-mu">সর্বশেষ সেভ: ${esc(p.updated)}</span>` : ''}</div></div>
+      ${window.__c3 ? window.__c3.drExtra(c) : ''}
+      ${prods.length ? `<div class="sec"><h4>📦 যা যা কিনেছেন</h4>${prods.map(k => `<span class="cx-tg" style="font-size:12px">${esc(k)} × ${c.prod[k]}</span>`).join('')}</div>` : ''}
+      ${wr.length ? `<div class="sec"><h4>🛡️ সিরিয়াল ও ওয়ারেন্টি</h4><table class="cx-w"><tr><th>অর্ডার</th><th>সিরিয়াল</th><th>প্রোডাক্ট</th><th>ওয়ারেন্টি</th></tr>${wr.map(r => { const t = (() => { try { return window.__s2.tsOf({ date: r.wu, time: '' }) || 0; } catch (e) { return 0; } })(); const st = !r.wu ? '—' : t && t < nowT ? `<span style="color:var(--red)">শেষ (${esc(r.wu)})</span>` : `<span style="color:var(--green)">চলমান — ${esc(r.wu)}</span>`; return `<tr><td>#${esc(r.id)}</td><td>${esc(r.serial)}</td><td>${esc(r.product)}</td><td>${st}</td></tr>`; }).join('')}</table></div>` : ''}
+      ${addrs.length ? `<div class="sec"><h4>📍 ঠিকানা</h4>${addrs.slice(0, 4).map(a => `<div style="font-size:12.5px;padding:2px 0">${esc(a)}</div>`).join('')}</div>` : ''}
+      <div class="sec"><h4>🕘 টাইমলাইন</h4><div class="cx-tl">${tl.slice(0, 60).map(x => x.k === 'o' ? `<div class="cx-ev${x.o._st === 'Returned' ? ' r' : ''}"><b>অর্ডার #${esc(x.o.id)}</b> · ${esc(x.o._st)} · ${taka(x.o.total)}<div class="cx-mu">${fmtTs(x.ts)} · ${(x.o.items || []).map(i => esc(i.product) + '×' + i.qty).join(', ')}${x.o.salesman ? ' · ' + esc(x.o.salesman) : ''}</div></div>` : `<div class="cx-ev f"><b>📞 ${esc(x.e.ruleName || 'ফলো-আপ')}</b> · ${esc(OUTL[x.e.outcome] || x.e.act)}${x.e.rating ? ' · ' + '★'.repeat(x.e.rating) : ''}<div class="cx-mu">${esc(x.e.time)} · ${esc(x.e.by)}${x.e.comment ? ' · "' + esc(x.e.comment) + '"' : ''}</div></div>`).join('') || '<span class="cx-mu">কিছু নেই</span>'}</div></div>`;
+    d.scrollTop = keepScroll; if (keep) { /* ওয়ারেন্টি লোডের পর আবার আঁকা */ }
+  }
+  function addTag(t) { const s = X.dr; t = String(t || '').trim().replace(/,/g, ' ').slice(0, 24); if (!t) return; if (s.tags.some(x => key(x) === key(t))) return; if (s.tags.length >= 12) { toast('সর্বোচ্চ ১২টি ট্যাগ', 'error'); return; } s.tags.push(t); drRender(); const i = $('cxp-tin'); if (i) i.focus(); }
+  function drKey(e) { if (e.target.id === 'cxp-tin' && (e.key === 'Enter' || e.key === ',')) { e.preventDefault(); addTag(e.target.value); } }
+  async function drClick(e) {
+    const a = e.target.closest('[data-a]'); if (!a) return; const s = X.dr; if (!s) return; const c = X.by[s.pk], act = a.dataset.a;
+    if (act.indexOf('c3-') === 0) { if (window.__c3) await window.__c3.drAct(act, a, c); return; }
+    if (act === 'close') closeDr();
+    else if (act === 'addtag') addTag(a.dataset.t);
+    else if (act === 'rmtag') { s.tags.splice(+a.dataset.i, 1); drRender(); }
+    else if (act === 'tofu') { closeDr(); window.__c1.setMode('fu'); }
+    else if (act === 'wa') { const T = window.__s4 && window.__s4.tplAll(), k = $('cxd-tpl').value, tp = T && T.find(x => x.k === k); if (!tp || !waNum(c.phone)) { toast('টেমপ্লেট বা নম্বর পাওয়া যায়নি', 'error'); return; } const o = c.deliv[0] || c.last; window.open('https://wa.me/' + waNum(c.phone) + '?text=' + encodeURIComponent(window.__s4.fill(tp.text, o)), '_blank', 'noopener'); }
+    else if (act === 'reorder') reorder(c);
+    else if (act === 'saveprof') {
+      const tin = $('cxp-tin'); if (tin && tin.value.trim()) addTag(tin.value);
+      a.disabled = true;
+      const r = await postToAPI({ action: 'custProfileSave', phoneKey: c.pk, phone: c.phone, name: $('cxp-name').value.trim(), alt: $('cxp-alt').value.trim(), tags: s.tags.join(','), notes: $('cxp-notes').value, dnc: $('cxp-dnc').checked, by: partner() });
+      a.disabled = false;
+      if (r && r.status !== 'error') { await window.__c1.load(true); window.__c1.state(); const pk = s.pk, keepTags = s.tags.slice(); build(); render(); X.dr = { pk, tags: keepTags, dirty: false }; drRender(); window.__c1.render && window.__c1.render(); toast('💾 প্রোফাইল সেভ হয়েছে'); }
+    }
+  }
+  function reorder(c) {
+    const o = c.deliv[0] || c.last; if (!o) return;
+    try {
+      resetOrderModal(); const m = $('modal-add-order');
+      m.querySelector('#order-customer').value = c.name; m.querySelector('#order-phone').value = (typeof _fixPhone === 'function') ? _fixPhone(c.phone) : c.phone;
+      const dv = m.querySelector('#order-division'); dv.value = o.div || ''; updateDistricts(dv);
+      setTimeout(() => { const ds = $('district-select'); ds.value = o.dist || ''; updateThanas(ds); setTimeout(() => { $('thana-select').value = o.thana || ''; }, 80); }, 80);
+      m.querySelector('#order-address').value = o.address || '';
+      window._orderItems = (o.items || []).map(i => ({ product: i.product || '', qty: num(i.qty) || 1, price: num(i.price) || 0 })); if (!window._orderItems.length) window._orderItems = [{ product: '', qty: 1, price: 0 }];
+      _renderOrderItems(); try { if (window.smFillOrderSelect) smFillOrderSelect(partner()); } catch (e) {}
+      closeDr(); openModal('add-order'); toast('🛒 আগের অর্ডারের তথ্য বসানো হয়েছে — দাম/পরিমাণ দেখে নিন');
+    } catch (e) { console.error('c2 reorder', e); toast('অর্ডার ফর্ম খোলা যায়নি', 'error'); }
+  }
+
+  window.__c2 = { X, build, render, refresh, openDr, closeDr, applyFilters };
+})();
+
+</script>
+<script id="cust3-js">
+/* ═══ CUSTOMERS v3 · 🔗 মার্জ · 📥 CSV · 📣 ব্রডকাস্ট লিস্ট · 📈 অ্যানালিটিক্স
+   • মার্জ: অর্ডার/ডেটা কখনো বদলায় না — শুধু "এই ফোন = ওই কাস্টমার" ম্যাপ ('⚙️ Customer_Settings'-এ), PIN লাগে, যেকোনো সময় আলাদা করা যায়
+   • ব্রডকাস্ট: একসাথে পাঠায় না — একজন একজন করে WhatsApp চ্যাট খুলে দেয়, Send আপনি চাপেন (পাঠানোর চিহ্ন এই ব্রাউজারে থাকে)
+   • অ্যানালিটিক্স: নতুন vs রিপিট, রিটেনশন, টপ কাস্টমার, এলাকা, রিপিট কাস্টমারের পছন্দ — সব অর্ডার থেকে হিসাব */
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const num = v => Number(v) || 0;
+  const key = s => String(s || '').trim().toLowerCase();
+  const taka = n => '৳' + Math.round(num(n)).toLocaleString('en-US');
+  const toast = (m, t) => { try { showToast(m, t || 'success'); } catch (e) {} };
+  const ph10 = p => String(p || '').replace(/\D/g, '').slice(-10);
+  const waNum = p => { const d = String(p || '').replace(/\D/g, ''); return d.length === 11 && d.startsWith('01') ? '88' + d : d; };
+  const DAY = 864e5, TZ = 6 * 36e5;
+  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const fmtTs = ts => { if (!ts) return ''; const d = new Date(ts + TZ); return d.getUTCDate() + '-' + MON[d.getUTCMonth()] + '-' + d.getUTCFullYear(); };
+  const ymd = ts => new Date(ts + TZ).toISOString().slice(0, 10);
+  const mkey = ts => { const d = new Date(ts + TZ); return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0'); };
+  const partner = () => { try { return currentPartner || ''; } catch (e) { return ''; } };
+  const X = () => window.__c2.X, C1 = () => window.__c1.C1;
+  const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  const S3 = { weak: false, bc: { tpl: 'repeat', text: '', camp: '', sent: {}, scope: 'filtered' } };
+
+  // ───────── ডুপ্লিকেট খোঁজা ─────────
+  const nameKey = n => String(n || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+  const ignKey = (a, b) => a < b ? a + '|' + b : b + '|' + a;
+  function detect(strongOnly) {
+    const x = X(), L = x.list, ign = lsGet('ig_c3_ign', {}), P = {};
+    const add = (a, b, reason, score) => {
+      if (!a || !b || a.pk === b.pk) return; const k = ignKey(a.pk, b.pk); if (ign[k]) return;
+      const p = P[k] || (P[k] = { k, a, b, reasons: [], score: 0 }); if (!p.reasons.includes(reason)) p.reasons.push(reason); p.score = Math.max(p.score, score);
+    };
+    L.forEach(c => { const alt = c.profile && c.profile.alt ? ph10(c.profile.alt) : ''; if (alt.length >= 10 && x.by[alt]) add(c, x.by[alt], 'বিকল্প ফোন নম্বর অন্য কাস্টমারের সাথে মিলেছে', 100); });
+    const nb = {}; L.forEach(c => { const k = nameKey(c.autoName); if (k.length >= 4) (nb[k] = nb[k] || []).push(c); });
+    const nameSame = (a, b) => nameKey(a.autoName) === nameKey(b.autoName) && nameKey(a.autoName).length >= 4;
+    Object.keys(nb).forEach(k => { const g = nb[k]; if (g.length < 2 || g.length > 8) return; for (let i = 0; i < g.length; i++) for (let j = i + 1; j < g.length; j++) { const a = g[i], b = g[j], area = a.last.dist && a.last.dist === b.last.dist && a.last.thana === b.last.thana; if (area) add(a, b, 'একই নাম ও একই এলাকা', 70); else add(a, b, 'একই নাম (ফোন আলাদা)', 40); } });
+    const pb = {}; L.forEach(c => { for (let i = 0; i < 10; i++) { const k = i + ':' + c.pk.slice(0, i) + c.pk.slice(i + 1); (pb[k] = pb[k] || []).push(c); } });
+    Object.keys(pb).forEach(k => { const g = pb[k]; if (g.length < 2 || g.length > 6) return; for (let i = 0; i < g.length; i++) for (let j = i + 1; j < g.length; j++) { const a = g[i], b = g[j]; if (a.pk !== b.pk) add(a, b, 'ফোন নম্বর ১ ডিজিট ফারাক' + (nameSame(a, b) ? ' + একই নাম' : ''), nameSame(a, b) ? 90 : 55); } });
+    let out = Object.keys(P).map(k => P[k]).sort((a, b) => b.score - a.score || (b.a.spent + b.b.spent) - (a.a.spent + a.b.spent));
+    if (strongOnly) out = out.filter(p => p.score >= 70);
+    return out;
+  }
+
+  // ───────── মডাল কাঠামো ─────────
+  function modal(html, wide) {
+    let m = $('modal-c3'); if (!m) { m = document.createElement('div'); m.className = 'modal-overlay'; m.id = 'modal-c3'; m.onclick = e => { if (e.target === m) closeModal('c3'); }; m.addEventListener('click', mClick); m.addEventListener('input', mInput); m.addEventListener('change', mInput); document.body.appendChild(m); }
+    m.innerHTML = `<div class="modal-box" style="max-width:${wide || 760}px;width:96vw;max-height:92vh;display:flex;flex-direction:column">${html}</div>`;
+    if (!m.classList.contains('open') && getComputedStyle(m).display === 'none') openModal('c3');
+  }
+  const mhead = (t) => `<div class="modal-header"><span class="modal-title">${t}</span><button class="modal-close" onclick="closeModal('c3')">✕</button></div>`;
+  const cardHtml = (c, tag) => `<div style="flex:1;min-width:0;border:1px solid var(--border,#262626);border-radius:10px;padding:9px 11px"><div style="font-size:11px;color:var(--text3)">${tag}</div><div style="font-weight:700">${esc(c.name)}</div><div class="cx-mu">${esc(c.phone)}${c.last.dist ? ' · ' + esc(c.last.dist) : ''}</div><div style="font-size:12.5px;margin-top:3px">${c.nAll} অর্ডার · ${taka(c.spent)}${c.absorbed.length ? ' · 🔗' + c.absorbed.length : ''}</div></div>`;
+
+  // ───────── ডুপ্লিকেট / মার্জ মডাল ─────────
+  function dupModal() {
+    const all = detect(false), strong = all.filter(p => p.score >= 70), show = S3.weak ? all : strong, x = X(), mg = (C1().b && C1().b.merges) || {};
+    const pairHtml = p => { const pri = (p.a.nAll > p.b.nAll || (p.a.nAll === p.b.nAll && p.a.spent >= p.b.spent)) ? [p.a, p.b] : [p.b, p.a];
+      return `<div style="border:1px solid var(--border,#262626);border-radius:12px;padding:10px;margin-bottom:10px" data-k="${esc(p.k)}"><div style="display:flex;gap:8px;flex-wrap:wrap">${cardHtml(pri[0], 'মূল (থাকবে)')}${cardHtml(pri[1], 'জুড়ে যাবে')}</div>
+        <div class="cx-mu" style="margin:6px 0">${p.reasons.map(r => '• ' + esc(r)).join('<br>')} <span class="fu-b ${p.score >= 90 ? 'r' : p.score >= 70 ? 'o' : ''}">${p.score >= 90 ? 'প্রায় নিশ্চিত' : p.score >= 70 ? 'সম্ভাব্য' : 'কম নিশ্চিত'}</span></div>
+        <div class="fu-act"><button class="fu-btn gold" data-m="merge" data-from="${esc(pri[1].pk)}" data-to="${esc(pri[0].pk)}">🔗 ${esc(pri[0].name)}-এ মার্জ (PIN)</button><button class="fu-btn" data-m="merge" data-from="${esc(pri[0].pk)}" data-to="${esc(pri[1].pk)}">⇄ উল্টোভাবে</button><button class="fu-btn" data-m="ign" data-k="${esc(p.k)}">✋ আলাদা রাখুন</button></div></div>`; };
+    const merged = Object.keys(mg).map(f => { const root = window.__c1.mp(f), rc = x.by[root]; return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border,#262626);font-size:12.5px"><span>📞 ${esc('0' + f)} <span class="cx-mu">→</span> <b>${esc(rc ? rc.name : '0' + root)}</b> <span class="cx-mu">(${esc('0' + root)})</span></span><button class="fu-btn" data-m="unm" data-from="${esc(f)}">✂️ আলাদা করুন</button></div>`; }).join('');
+    modal(mhead('🔗 ডুপ্লিকেট কাস্টমার ও মার্জ') + `<div class="modal-body" style="overflow:auto"><div class="cx-mu" style="margin-bottom:10px;line-height:1.7">একই মানুষ ভিন্ন নম্বরে/নামে থাকলে এক করা যায়। <b>অর্ডার বা শিটের কোনো ডেটা বদলায় না</b> — শুধু হিসাব/ফলো-আপ এক কাস্টমারের নামে জমা হয়। ভুল হলে নিচ থেকে আলাদা করা যায়। মার্জ ও আলাদা করতে PIN লাগে।</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>সম্ভাব্য ডুপ্লিকেট (${show.length})</b><label class="fu-mu" style="font-size:12px;cursor:pointer"><input type="checkbox" id="c3-weak" ${S3.weak ? 'checked' : ''}> কম নিশ্চিত মিলও দেখান (${all.length - strong.length})</label></div>
+      ${show.length ? show.slice(0, 40).map(pairHtml).join('') + (show.length > 40 ? `<div class="cx-mu">আরও ${show.length - 40}টি — আগেরগুলো নিষ্পত্তি করলে দেখা যাবে</div>` : '') : '<div style="padding:18px;text-align:center;color:var(--green)">✅ কোনো সম্ভাব্য ডুপ্লিকেট পাওয়া যায়নি</div>'}
+      ${merged ? `<div style="margin-top:14px"><b>এখন মার্জ করা আছে (${Object.keys(mg).length})</b>${merged}</div>` : ''}</div><div class="modal-footer"><button class="btn" onclick="closeModal('c3')">বন্ধ</button></div>`, 760);
+  }
+  async function reload() { const c1 = window.__c1; await c1.load(true); c1.state(); window.__c2.build(); window.__c2.render(); const dr = $('cx-dr'); if (dr && dr.classList.contains('on') && X().dr) { if (!X().by[X().dr.pk]) window.__c2.closeDr(); else window.__c2.openDr(X().dr.pk); } }
+  async function doMerge(from, to) {
+    const x = X(), a = x.by[from], b = x.by[to]; if (!a || !b) { toast('কাস্টমার পাওয়া যায়নি', 'error'); return false; }
+    if (!confirm('"' + a.name + '" (' + a.phone + ') কে "' + b.name + '" (' + b.phone + ')-এর সাথে মার্জ করবেন?\n\nঅর্ডার অপরিবর্তিত থাকবে; পরে আলাদা করা যাবে।')) return false;
+    const pin = await _askPartnerPin('কাস্টমার মার্জ'); if (!pin) return false;
+    const r = await postToAPI({ action: 'custMerge', from, to, by: partner(), pin }); if (!r || r.status === 'error') return false;
+    await reload(); toast('🔗 মার্জ হয়েছে'); return true;
+  }
+  async function doUnmerge(from) {
+    if (!confirm('এই নম্বরটি আলাদা কাস্টমার হিসেবে ফিরিয়ে দেবেন?')) return false;
+    const pin = await _askPartnerPin('মার্জ আলাদা করতে'); if (!pin) return false;
+    const r = await postToAPI({ action: 'custUnmerge', from, by: partner(), pin }); if (!r || r.status === 'error') return false;
+    await reload(); toast('✂️ আলাদা করা হয়েছে'); return true;
+  }
+
+  // ───────── ড্রয়ারে মার্জ অংশ ─────────
+  const MBN = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'], OTY = { birthday: '🎂 জন্মদিন', anniversary: '💍 বার্ষিকী', other: '🎉 অন্য' };
+  function occHtml(c) {
+    const B = C1().b, mp = window.__c1.mp, L = ((B && B.occasions) || []).filter(o => mp(o.pk) === c.pk);
+    return `<div class="sec"><h4>🎉 বিশেষ দিন (শুভেচ্ছার জন্য)</h4>${L.length ? L.map(o => `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;padding:3px 0"><span>${OTY[o.type] || OTY.other} · <b>${o.day} ${MBN[o.month - 1]}</b>${o.year ? ' <span class="cx-mu">(' + o.year + ')</span>' : ''}${o.label ? ' <span class="cx-mu">— ' + esc(o.label) + '</span>' : ''}</span><button class="fu-btn" data-a="c3-occdel" data-id="${esc(o.id)}">✕</button></div>`).join('') : '<div class="cx-mu" style="margin-bottom:6px">কোনো বিশেষ দিন যোগ করা নেই। জন্মদিন যোগ করলে আগের দিনগুলোতে "📞 ফলো-আপ → 🎉 উপলক্ষ" ট্যাবে শুভেচ্ছার কাজ ভেসে উঠবে।</div>'}
+      <div style="display:grid;grid-template-columns:110px 60px 1fr 74px;gap:6px;margin-top:6px"><select class="fu-in" id="c3o-type">${Object.keys(OTY).map(k => `<option value="${k}">${OTY[k]}</option>`).join('')}</select><input class="fu-in" id="c3o-day" type="number" min="1" max="31" placeholder="তারিখ"><select class="fu-in" id="c3o-mon">${MBN.map((m, i) => `<option value="${i + 1}">${m}</option>`).join('')}</select><input class="fu-in" id="c3o-year" type="number" min="1900" max="2100" placeholder="সাল"></div>
+      <div style="display:flex;gap:6px;margin-top:6px"><input class="fu-in" id="c3o-label" maxlength="40" placeholder="নোট (ঐচ্ছিক, যেমন: ছেলের জন্মদিন)" style="flex:1"><button class="fu-btn gold" data-a="c3-occadd">＋ যোগ</button></div></div>`;
+  }
+  function drExtra(c) {
+    const x = X();
+    return occHtml(c) + `<div class="sec"><h4>🔗 মার্জ</h4>${c.absorbed.length ? c.absorbed.map(f => { const own = c.orders.filter(o => ph10(o.phone) === f); return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;padding:3px 0"><span>📞 0${esc(f)} <span class="cx-mu">· ${own.length} অর্ডার এখানে জমা</span></span><button class="fu-btn" data-a="c3-unm" data-f="${esc(f)}">✂️ আলাদা</button></div>`; }).join('') : '<div class="cx-mu" style="margin-bottom:6px">এই কাস্টমারের সাথে কেউ মার্জ করা নেই।</div>'}
+      <div style="display:flex;gap:6px;margin-top:6px"><input class="fu-in" id="c3-mph" placeholder="এর সাথে জুড়তে অন্য কাস্টমারের ফোন নম্বর" style="flex:1"><button class="fu-btn" data-a="c3-mrg">🔗 জুড়ুন</button></div></div>`;
+  }
+  async function drAct(act, a, c) {
+    if (act === 'c3-mrg') { const k = ph10(($('c3-mph') || {}).value); if (k.length < 10) { toast('সঠিক ফোন নম্বর দিন', 'error'); return; } const o = X().by[window.__c1.mp(k)]; if (!o) { toast('এই নম্বরে কোনো কাস্টমার নেই', 'error'); return; } if (o.pk === c.pk) { toast('এটি আগে থেকেই একই কাস্টমার', 'error'); return; } await doMerge(o.pk, c.pk); }
+    else if (act === 'c3-unm') await doUnmerge(a.dataset.f);
+    else if (act === 'c3-occadd') {
+      const day = Number($('c3o-day').value), mon = Number($('c3o-mon').value), yr = Number($('c3o-year').value) || 0;
+      if (!(day >= 1 && day <= 31)) { toast('তারিখ ১–৩১ দিন', 'error'); return; }
+      const r = await postToAPI({ action: 'occSave', pk: c.pk, customer: c.name, type: $('c3o-type').value, month: mon, day, year: yr, label: $('c3o-label').value.trim(), by: partner() });
+      if (r && r.status !== 'error') { await reload(); toast(r.duplicate ? 'এটি আগে থেকেই আছে' : '🎉 বিশেষ দিন যোগ হয়েছে'); }
+    }
+    else if (act === 'c3-occdel') { if (!confirm('এই বিশেষ দিনটি মুছবেন?')) return; const r = await postToAPI({ action: 'occDelete', id: a.dataset.id, by: partner() }); if (r && r.status !== 'error') { await reload(); toast('মুছে গেছে'); } }
+  }
+
+  // ───────── CSV ─────────
+  const csvQ = (v, txt) => { let s = String(v == null ? '' : v); if (txt && /^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
+  function csvRows(L) {
+    const SEGN = { new: 'New', repeat: 'Repeat', vip: 'VIP', dormant: 'Dormant', risk: 'Risk', due: 'Due', dnc: 'DoNotContact' };
+    const head = ['Customer', 'Phone', 'Alt Phone', 'Delivered Orders', 'All Orders', 'Total Spent', 'Avg Order', 'First Order', 'Last Order', 'Avg Interval (days)', 'Due', 'Returns', 'Segments', 'Tags', 'Notes', 'District', 'Thana', 'Address', 'Do Not Contact'];
+    const rows = L.map(c => { const p = c.profile || {}; return [c.name, c.phone, p.alt || '', c.nDel, c.nAll, Math.round(c.spent), Math.round(c.avg), fmtTs(c.firstAny), fmtTs(c.lastAny), c.interval || '', Math.round(c.due), c.ret.length, c.seg.map(s => SEGN[s]).join(' | '), c.tags.join(' | '), p.notes || '', c.last.dist || '', c.last.thana || '', c.last.address || '', c.dnc ? 'Yes' : 'No']; });
+    return '﻿' + [head].concat(rows).map(r => r.map((v, i) => csvQ(v, [0, 1, 2, 12, 13, 14, 15, 16, 17].includes(i))).join(',')).join('\r\n');
+  }
+  function download(name, text) { const b = new Blob([text], { type: 'text/csv;charset=utf-8' }), u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(u); a.remove(); }, 500); }
+  function csvModal() {
+    const x = X(), f = window.__c2.applyFilters();
+    modal(mhead('📥 কাস্টমার তালিকা CSV') + `<div class="modal-body"><label style="display:flex;gap:8px;margin:6px 0;cursor:pointer"><input type="radio" name="c3-sc" value="filtered" checked> এখন যে ফিল্টারে আছেন (<b>${f.length}</b> জন)</label><label style="display:flex;gap:8px;margin:6px 0;cursor:pointer"><input type="radio" name="c3-sc" value="all"> সব কাস্টমার (<b>${x.list.length}</b> জন)</label>
+      <div class="cx-mu" style="margin-top:8px;line-height:1.7">কলাম: নাম, ফোন, বিকল্প ফোন, অর্ডার, মোট কেনা, গড়, প্রথম/শেষ অর্ডার, ব্যবধান, বাকি, ফেরত, সেগমেন্ট, ট্যাগ, নোট, ঠিকানা, ফোন-করবেন-না। Excel-এ সরাসরি খোলে (বাংলা ঠিক থাকে)।</div></div><div class="modal-footer"><button class="btn" style="background:var(--gold);color:#000;font-weight:700" data-m="csvgo">⬇ ডাউনলোড</button><button class="btn" onclick="closeModal('c3')">বন্ধ</button></div>`, 520);
+  }
+  function csvGo() { const sc = (document.querySelector('input[name="c3-sc"]:checked') || {}).value, L = sc === 'all' ? X().list.slice().sort((a, b) => b.spent - a.spent) : window.__c2.applyFilters(); download('customers_' + ymd(Date.now()) + '.csv', csvRows(L)); closeModal('c3'); toast('📥 ' + L.length + ' জনের CSV নামানো হয়েছে'); }
+
+  // ───────── ব্রডকাস্ট ─────────
+  const bcList = () => { const f = window.__c2.applyFilters(), ok = f.filter(c => !c.dnc && waNum(c.phone).length >= 12); return { all: f.length, dnc: f.filter(c => c.dnc).length, bad: f.filter(c => !c.dnc && waNum(c.phone).length < 12).length, list: ok }; };
+  const msgFor = c => window.__s4.fill(S3.bc.text, c.deliv[0] || c.last);
+  const sentKey = () => 'ig_c3_bc_' + (S3.bc.camp || 'default');
+  function bcModal(keepText) {
+    const T = (window.__s4 && window.__s4.tplAll()) || [], b = S3.bc;
+    if (!b.camp) b.camp = 'ক্যাম্পেইন-' + ymd(Date.now());
+    if (!keepText || !b.text) { const t = T.find(x => x.k === b.tpl) || T[0]; if (t) { b.tpl = t.k; b.text = t.text; } }
+    b.sent = lsGet(sentKey(), {});
+    const R = bcList(), sent = R.list.filter(c => b.sent[c.pk]).length;
+    modal(mhead('📣 ব্রডকাস্ট লিস্ট (WhatsApp)') + `<div class="modal-body" style="overflow:auto"><div class="cx-mu" style="line-height:1.7;margin-bottom:8px">এটি নিজে নিজে মেসেজ পাঠায় <b>না</b> — একজন একজন করে WhatsApp চ্যাট খোলে, <b>Send আপনি চাপবেন</b> (এতে নম্বর ব্লক হওয়ার ঝুঁকি কম)। তালিকা = এখন ফিল্টারে যাঁরা আছেন। "ফোন করবেন না" ও ভুল নম্বর বাদ।</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><label class="fu-mu">টেমপ্লেট<select class="fu-in" id="c3-tpl">${T.map(t => `<option value="${t.k}"${t.k === b.tpl ? ' selected' : ''}>${esc(t.t)}</option>`).join('')}</select></label><label class="fu-mu">ক্যাম্পেইনের নাম (পাঠানো চিহ্নের জন্য)<input class="fu-in" id="c3-camp" value="${esc(b.camp)}" maxlength="40"></label></div>
+      <label class="fu-mu" style="display:block;margin-top:8px">মেসেজ (এখানে বদলানো যায়; <code>{name}</code> <code>{product}</code> <code>{helpline}</code> …)<textarea class="fu-in" id="c3-txt" rows="4">${esc(b.text)}</textarea></label>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0 6px;flex-wrap:wrap;gap:6px"><b>${R.list.length} জন <span class="cx-mu" style="font-weight:400">(বাদ: ফোন-করবেন-না ${R.dnc}, ভুল নম্বর ${R.bad}) · ✓ পাঠানো ${sent}</span></b><span style="display:flex;gap:6px;flex-wrap:wrap"><button class="fu-btn gold" data-m="bcnext">▶ পরের জন</button><button class="fu-btn" data-m="bccopy">📋 নম্বর কপি</button><button class="fu-btn" data-m="bccsv">⬇ CSV</button><button class="fu-btn" data-m="bcreset">↺ চিহ্ন মোছা</button></span></div>
+      <div style="border:1px solid var(--border,#262626);border-radius:10px;max-height:300px;overflow:auto">${R.list.slice(0, 300).map(c => `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--border,#262626);font-size:13px"><span style="flex:1;min-width:0"><b>${esc(c.name)}</b> <span class="cx-mu">${esc(c.phone)}</span></span>${b.sent[c.pk] ? '<span class="fu-b y">✓ পাঠানো</span>' : ''}<button class="fu-btn" data-m="bcone" data-pk="${esc(c.pk)}">💬</button></div>`).join('') || '<div style="padding:16px;text-align:center" class="cx-mu">তালিকা খালি — আগে ফিল্টার ঠিক করুন</div>'}${R.list.length > 300 ? `<div class="cx-mu" style="padding:8px">প্রথম ৩০০ জন দেখানো হচ্ছে (পরের জন বোতামে সবাই আসবে)</div>` : ''}</div></div><div class="modal-footer"><button class="btn" onclick="closeModal('c3')">বন্ধ</button></div>`, 780);
+  }
+  function bcSend(c) { if (!S3.bc.text.trim()) { toast('মেসেজ ফাঁকা', 'error'); return; } window.open('https://wa.me/' + waNum(c.phone) + '?text=' + encodeURIComponent(msgFor(c)), '_blank', 'noopener'); S3.bc.sent[c.pk] = Date.now(); lsSet(sentKey(), S3.bc.sent); }
+
+  // ───────── অ্যানালিটিক্স ─────────
+  function analytics() {
+    const x = X(), c1 = C1(), dd = (c1.b && c1.b.delivered) || {}, now = Date.now(), L = x.list;
+    const dts = o => dd[String(o.id)] || o._ts || 0;
+    const months = []; { const d = new Date(now + TZ); let y = d.getUTCFullYear(), m = d.getUTCMonth(); for (let i = 0; i < 12; i++) { months.unshift(y + '-' + String(m + 1).padStart(2, '0')); m--; if (m < 0) { m = 11; y--; } } }
+    const M = {}; months.forEach(k => M[k] = { nw: 0, rep: 0, revN: 0, revR: 0 });
+    let elig = 0, r90 = 0, rEver = 0, gaps = [];
+    L.forEach(c => {
+      const ds = c.deliv.map(o => ({ t: dts(o), v: num(o.total) })).filter(o => o.t).sort((a, b) => a.t - b.t); if (!ds.length) return;
+      ds.forEach((o, i) => { const k = mkey(o.t); if (!M[k]) return; if (i === 0) { M[k].nw++; M[k].revN += o.v; } else { M[k].rep++; M[k].revR += o.v; } });
+      if (now - ds[0].t >= 90 * DAY) { elig++; if (ds[1] && ds[1].t - ds[0].t <= 90 * DAY) r90++; }
+      if (ds[1]) { rEver++; gaps.push((ds[1].t - ds[0].t) / DAY); }
+    });
+    const withDel = L.filter(c => c.nDel > 0), spentAll = withDel.reduce((s, c) => s + c.spent, 0), sorted = withDel.slice().sort((a, b) => b.spent - a.spent);
+    const top10n = Math.max(1, Math.ceil(sorted.length * 0.1)), top10s = sorted.slice(0, top10n).reduce((s, c) => s + c.spent, 0);
+    const geo = {}; withDel.forEach(c => { const k = c.last.dist || '(অজানা)'; const g = geo[k] || (geo[k] = { n: 0, s: 0 }); g.n++; g.s += c.spent; });
+    const geoL = Object.keys(geo).map(k => ({ k, n: geo[k].n, s: geo[k].s })).sort((a, b) => b.s - a.s).slice(0, 8);
+    const fav = {}; L.filter(c => c.nDel >= 2).forEach(c => Object.keys(c.prod).forEach(p => fav[p] = (fav[p] || 0) + c.prod[p])); const favL = Object.keys(fav).map(k => ({ k, q: fav[k] })).sort((a, b) => b.q - a.q).slice(0, 6);
+    const totDel = L.reduce((s, c) => s + c.nDel, 0), totRet = L.reduce((s, c) => s + c.ret.length, 0);
+    const ivs = L.filter(c => c.interval > 0).map(c => c.interval);
+    return { months, M, elig, r90, rEver, gaps, spentAll, sorted, top10n, top10s, geoL, favL, totDel, totRet, avgIv: ivs.length ? Math.round(ivs.reduce((a, b) => a + b, 0) / ivs.length) : 0, withDel: withDel.length };
+  }
+  const bar = (v, max, col, h) => `<div style="height:${h || 10}px;border-radius:4px;background:${col};width:${max ? Math.max(v ? 2 : 0, v / max * 100) : 0}%"></div>`;
+  function anHtml() {
+    const A = analytics(), x = X(), pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+    const mx = Math.max(1, ...A.months.map(k => Math.max(A.M[k].nw, A.M[k].rep)));
+    const K = (l, v, s) => `<div class="cx-k"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s || '&nbsp;'}</div></div>`;
+    const avgGap = A.gaps.length ? Math.round(A.gaps.reduce((a, b) => a + b, 0) / A.gaps.length) : 0;
+    const maxTop = A.sorted[0] ? A.sorted[0].spent : 1, maxGeo = A.geoL[0] ? A.geoL[0].s : 1, maxFav = A.favL[0] ? A.favL[0].q : 1;
+    const segMax = Math.max(1, ...Object.keys(x.cnt).filter(s => s !== 'all').map(s => x.cnt[s]));
+    const SEGL = { new: '🆕 নতুন', repeat: '🔄 রিপিট', vip: '👑 VIP', dormant: '😴 ঘুমন্ত', risk: '⚠️ ঝুঁকি', due: '💳 বাকি', dnc: '🚫 ফোন করবেন না' };
+    const card = (t, body) => `<div class="fu-card" style="margin-bottom:12px"><div class="fu-ch"><span>${t}</span></div><div style="padding:12px 14px">${body}</div></div>`;
+    return `<div id="c3-an"><div class="cx-kp">${K('🔄 রিপিট রেট', pct(A.rEver, A.withDel) + '%', A.rEver + '/' + A.withDel + ' জন')}${K('⏱️ ২য় অর্ডারে গড় সময়', avgGap ? avgGap + ' দিন' : '—', 'যাঁরা আবার কিনেছেন')}${K('🎯 ৯০ দিনে আবার কেনা', A.elig ? pct(A.r90, A.elig) + '%' : '—', A.elig ? A.r90 + '/' + A.elig + ' জন (৯০+ দিন পুরোনো)' : 'যথেষ্ট পুরোনো ডেটা নেই')}${K('📦 গড় অর্ডার/কাস্টমার', A.withDel ? (A.totDel / A.withDel).toFixed(1) : '—')}${K('↩️ ফেরতের হার', pct(A.totRet, A.totDel + A.totRet) + '%', A.totRet + ' টি অর্ডার')}${K('👑 টপ ১০%-এর অংশ', A.spentAll ? pct(A.top10s, A.spentAll) + '%' : '—', A.top10n + ' জন মোট কেনার')}</div>
+      ${card('📅 গত ১২ মাস — নতুন কাস্টমার বনাম রিপিট অর্ডার', `<div style="display:flex;gap:14px;font-size:12px;margin-bottom:8px"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#CDA935"></span> নতুন কাস্টমার (প্রথম ডেলিভারি)</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#8B8B8B"></span> রিপিট অর্ডার (পুরোনো কাস্টমারের)</span></div>${A.months.map(k => { const m = A.M[k]; return `<div style="display:grid;grid-template-columns:62px 1fr 120px;gap:8px;align-items:center;font-size:12px;margin:5px 0" title="${k}: নতুন ${m.nw} জন (${taka(m.revN)}), রিপিট ${m.rep} অর্ডার (${taka(m.revR)})"><span class="cx-mu">${k}</span><div>${bar(m.nw, mx, '#CDA935', 8)}<div style="height:2px"></div>${bar(m.rep, mx, '#8B8B8B', 8)}</div><span class="cx-mu">${m.nw} · ${m.rep}${(m.revN + m.revR) ? ' · ' + pct(m.revR, m.revN + m.revR) + '% রিপিট আয়' : ''}</span></div>`; }).join('')}`)}
+      <div class="fu-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+      ${card('🏆 টপ ১০ কাস্টমার (মোট কেনা)', A.sorted.length ? A.sorted.slice(0, 10).map((c, i) => `<div style="margin:6px 0;font-size:12.5px"><div style="display:flex;justify-content:space-between"><span>${i + 1}. <a href="#" data-a="c3-open" data-pk="${esc(c.pk)}" style="color:inherit">${esc(c.name)}</a></span><b>${taka(c.spent)}</b></div>${bar(c.spent, maxTop, '#CDA935', 6)}</div>`).join('') : '<span class="cx-mu">ডেটা নেই</span>')}
+      ${card('📍 এলাকা (জেলা) অনুযায়ী আয়', A.geoL.length ? A.geoL.map(g => `<div style="margin:6px 0;font-size:12.5px"><div style="display:flex;justify-content:space-between"><span>${esc(g.k)} <span class="cx-mu">(${g.n} জন)</span></span><b>${taka(g.s)}</b></div>${bar(g.s, maxGeo, '#8B8B8B', 6)}</div>`).join('') : '<span class="cx-mu">ডেটা নেই</span>')}
+      ${card('🔄 রিপিট কাস্টমাররা কী কেনেন', A.favL.length ? A.favL.map(f => `<div style="margin:6px 0;font-size:12.5px"><div style="display:flex;justify-content:space-between"><span>${esc(f.k)}</span><b>${f.q} পিস</b></div>${bar(f.q, maxFav, '#CDA935', 6)}</div>`).join('') : '<span class="cx-mu">এখনো কেউ ২+ বার কেনেননি</span>')}
+      ${card('🧩 সেগমেন্ট বণ্টন', Object.keys(SEGL).filter(s => x.cnt[s] != null).map(s => `<div style="margin:6px 0;font-size:12.5px"><div style="display:flex;justify-content:space-between"><span>${SEGL[s]}</span><b>${x.cnt[s]}</b></div>${bar(x.cnt[s], segMax, '#8B8B8B', 6)}</div>`).join(''))}</div>
+      <div class="cx-mu" style="margin:4px 2px 12px">সব সংখ্যা Delivered অর্ডার থেকে; ডেলিভারির তারিখ রেকর্ড না থাকলে অর্ডারের তারিখ ধরা হয়। মার্জ করা কাস্টমার একজন হিসেবে গোনা হয়।</div></div>`;
+  }
+
+  // ───────── ইভেন্ট ─────────
+  async function mClick(e) {
+    const t = e.target.closest('[data-m]'); if (!t) return; const m = t.dataset.m;
+    if (m === 'merge') { if (await doMerge(t.dataset.from, t.dataset.to)) dupModal(); }
+    else if (m === 'unm') { if (await doUnmerge(t.dataset.from)) dupModal(); }
+    else if (m === 'ign') { const g = lsGet('ig_c3_ign', {}); g[t.dataset.k] = 1; lsSet('ig_c3_ign', g); window.__c2.X.dupN = detect(true).length; window.__c2.render(); dupModal(); }
+    else if (m === 'csvgo') csvGo();
+    else if (m === 'bcone') { const c = X().by[t.dataset.pk]; if (c) { bcSend(c); bcModal(true); } }
+    else if (m === 'bcnext') { const R = bcList(), c = R.list.find(x => !S3.bc.sent[x.pk]); if (!c) { toast('সবাইকে পাঠানো হয়ে গেছে ✅'); return; } bcSend(c); bcModal(true); }
+    else if (m === 'bccopy') { const R = bcList(), txt = R.list.map(c => waNum(c.phone)).join('\n'); try { navigator.clipboard.writeText(txt); toast('📋 ' + R.list.length + 'টি নম্বর কপি হয়েছে'); } catch (er) { prompt('নম্বরগুলো কপি করুন:', txt); } }
+    else if (m === 'bccsv') { const R = bcList(); download('broadcast_' + ymd(Date.now()) + '.csv', '﻿' + [['Name', 'Phone', 'WhatsApp', 'Message']].concat(R.list.map(c => [c.name, c.phone, waNum(c.phone), msgFor(c)])).map(r => r.map(v => csvQ(v, true)).join(',')).join('\r\n')); }
+    else if (m === 'bcreset') { if (confirm('এই ক্যাম্পেইনের "পাঠানো" চিহ্ন মুছবেন?')) { S3.bc.sent = {}; lsSet(sentKey(), {}); bcModal(true); } }
+  }
+  function mInput(e) {
+    const t = e.target;
+    if (t.id === 'c3-weak') { S3.weak = t.checked; dupModal(); }
+    else if (t.id === 'c3-tpl' && e.type === 'change') { S3.bc.tpl = t.value; const T = window.__s4.tplAll(), tp = T.find(x => x.k === t.value); if (tp) { S3.bc.text = tp.text; $('c3-txt').value = tp.text; } }
+    else if (t.id === 'c3-txt') S3.bc.text = t.value;
+    else if (t.id === 'c3-camp' && e.type === 'change') { S3.bc.camp = t.value.trim() || S3.bc.camp; bcModal(true); }
+  }
+  function act(a) { if (a === 'c3-dup') dupModal(); else if (a === 'c3-csv') csvModal(); else if (a === 'c3-bc') { S3.bc.text = ''; bcModal(false); } }
+  document.addEventListener('click', e => { const a = e.target.closest && e.target.closest('[data-a="c3-open"]'); if (a) { e.preventDefault(); window.__c2.X.sub = 'list'; window.__c2.render(); window.__c2.openDr(a.dataset.pk); } });
+
+  window.__c3 = { detect, act, anHtml, drExtra, drAct, analytics, csvRows, S3 };
 })();
 
 </script>
