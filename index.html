@@ -905,7 +905,7 @@ tbody td.muted{color:var(--text3);}
 .lock-logo .innogix-logo-img{width:260px;}
 .lock-title { font-size:18px; font-weight:700; color:var(--text); margin-bottom:4px; }
 .lock-sub { font-size:12px; color:var(--text3); margin-bottom:28px; }
-.pin-dots { display:flex; justify-content:center; gap:14px; margin-bottom:28px; }
+.pin-dots { display:flex; justify-content:center; gap:12px; margin-bottom:28px; }
 .pin-dot {
   width:14px; height:14px; border-radius:50%;
   border:2px solid var(--border);
@@ -1744,6 +1744,10 @@ tbody td.muted{color:var(--text3);}
       <div class="pin-dot" id="d1"></div>
       <div class="pin-dot" id="d2"></div>
       <div class="pin-dot" id="d3"></div>
+      <div class="pin-dot" id="d4"></div>
+      <div class="pin-dot" id="d5"></div>
+      <div class="pin-dot" id="d6" style="display:none"></div>
+      <div class="pin-dot" id="d7" style="display:none"></div>
     </div>
     <!-- PIN Keypad -->
     <div class="pin-keypad">
@@ -2012,25 +2016,27 @@ tbody td.muted{color:var(--text3);}
   <div class="modal" style="max-width:400px;">
     <div class="modal-header">
       <span class="modal-title">🔑 PIN পরিবর্তন করুন</span>
-      <button class="modal-close" onclick="closeModal('change-pin')">✕</button>
+      <button class="modal-close" id="cp-x" onclick="closeModal('change-pin')">✕</button>
     </div>
     <div class="modal-body">
       <div class="form-group" style="margin-bottom:14px;">
         <label class="form-label">বর্তমান PIN</label>
-        <input class="form-input" type="password" maxlength="4" id="cp-current" placeholder="বর্তমান 4-digit PIN">
+        <input class="form-input" type="password" pattern="[0-9]*" autocomplete="off" maxlength="8" id="cp-current" placeholder="বর্তমান PIN">
       </div>
       <div class="form-group" style="margin-bottom:14px;">
         <label class="form-label">নতুন PIN</label>
-        <input class="form-input" type="password" maxlength="4" id="cp-new" placeholder="নতুন 4-digit PIN">
+        <input class="form-input" type="password" pattern="[0-9]*" autocomplete="new-password" maxlength="8" id="cp-new" placeholder="নতুন PIN (৬–৮ সংখ্যা)">
       </div>
       <div class="form-group" style="margin-bottom:14px;">
         <label class="form-label">নতুন PIN নিশ্চিত করুন</label>
-        <input class="form-input" type="password" maxlength="4" id="cp-confirm" placeholder="আবার লিখুন">
+        <input class="form-input" type="password" pattern="[0-9]*" autocomplete="new-password" maxlength="8" id="cp-confirm" placeholder="আবার লিখুন">
       </div>
+      <div id="cp-force-note" style="display:none;font-size:12px;color:var(--gold);margin-bottom:8px;line-height:1.5;"></div>
+      <div style="font-size:11px;color:var(--text3);line-height:1.5;margin-bottom:6px;">৬–৮ সংখ্যা। একই সংখ্যা (111111), ক্রম (123456), পুনরাবৃত্তি (121212) বা ডিফল্ট PIN চলবে না।</div>
       <div class="pin-error" id="cp-error" style="margin-top:4px;"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn" onclick="closeModal('change-pin')">Cancel</button>
+      <button class="btn" id="cp-cancel" onclick="closeModal('change-pin')">Cancel</button>
       <button class="btn primary" onclick="changePin()">✅ PIN পরিবর্তন করুন</button>
     </div>
   </div>
@@ -2055,7 +2061,7 @@ tbody td.muted{color:var(--text3);}
       <div id="cs-fields"></div>
       <div class="form-group" style="margin-top:6px;margin-bottom:8px;">
         <label class="form-label">নিশ্চিত করতে তোমার PIN দাও</label>
-        <input class="form-input" type="password" maxlength="4" id="cs-pin" placeholder="4-digit PIN">
+        <input class="form-input" type="password" pattern="[0-9]*" autocomplete="off" maxlength="8" id="cs-pin" placeholder="তোমার PIN">
       </div>
       <div class="pin-error" id="cs-error" style="margin-top:4px;"></div>
     </div>
@@ -2311,6 +2317,7 @@ tbody td.muted{color:var(--text3);}
   <div class="nav-item" onclick="showPage('activity-log',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg></span>অ্যাক্টিভিটি লগ</div>
   <div class="nav-item" onclick="showPage('recycle-bin',this)" id="nav-recycle-bin"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></span>রিসাইকেল বিন<span class="nav-badge" id="bin-badge" style="display:none">0</span></div>
   <div class="nav-item" onclick="openModal('change-pin')"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg></span>PIN পরিবর্তন</div>
+  <div class="nav-item" id="autolock-nav" onclick="igCycleAutoLock()" title="নিষ্ক্রিয় থাকলে অ্যাপ নিজে লক হবে — ক্লিক করে ৫/১০/১৫ মিনিট বদলান"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span id="autolock-label">অটো-লক: ১০ মিনিট</span></div>
   <div class="nav-item" onclick="openCourierSettings()"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>কুরিয়ার Settings</div>
 
   <div class="sidebar-footer">
@@ -7358,7 +7365,7 @@ body.light #page-expense{--x-cyan:#52525B;--x-blue:#52525B}
 // ═══════════════════════════════════════════════════════════════
 
 // ⚠️ এখানে আপনার Google Apps Script Web App URL বসান (Deploy > New Deployment > Web App)
-      const API_URL = "https://script.google.com/macros/s/AKfycbwAcE_oDRQDnzPUcNArJqcILBY8TQR1Z2rPjfqsEVSIEYRptVdP3muS0HaLcQRYQIteBQ/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
+      const API_URL = "https://script.google.com/macros/s/AKfycbwQW28LT2noXb_emFKJPbc3yfxoWs8feYH1Iw-rhnxq2zKZZPO76V3w93TvztHQX531/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
 
 // ─── CONNECTION STATE ────────────────────────────────────────
 let apiConnected = false;
@@ -7557,7 +7564,7 @@ async function postToAPI(payload) {
   if (!API_URL || !API_URL.includes('script.google.com')) {
     showToast('Google Sheets URL সেট নেই — Setup Guide দেখুন', 'error'); return false;
   }
-  window.__lastAPIErrorReason = null; // v65 FIX: clear any stale reason from a previous call
+  window.__lastAPIErrorMsg = null; window.__lastAPIErrorReason = null; // v65 FIX: clear any stale reason from a previous call
   const jsonStr = JSON.stringify(payload);
 
   // v43 FIX: helper — base64-GET+JSONP fallback (already proven to work for
@@ -7580,7 +7587,7 @@ async function postToAPI(payload) {
     try {
       const result = await jsonpFetch(url);
       if (!result) return false;
-      if (result.status === 'error') { showToast('Backend error: '+(result.message||'অজানা সমস্যা'),'error'); return false; }
+      if (result.status === 'error') { window.__lastAPIErrorMsg = result.message || ''; if (payload.action === 'login') return result; showToast('Backend error: '+(result.message||'অজানা সমস্যা'),'error'); return false; }
       return (result.status === 'success' || result.status === 'ok') ? result : false;
     } catch(fbErr) {
       console.error('postToAPI fallbackViaGet failed:', fbErr.message);
@@ -7669,7 +7676,7 @@ async function postToAPI(payload) {
       showToast('Apps Script থেকে সঠিক response আসেনি — Deploy settings চেক করুন','error');
       return false;
     }
-    if (data.status === 'error') { showToast('Backend error: '+(data.message||'অজানা সমস্যা'),'error'); return false; }
+    if (data.status === 'error') { window.__lastAPIErrorMsg = data.message || ''; if (payload.action === 'login') return data; showToast('Backend error: '+(data.message||'অজানা সমস্যা'),'error'); return false; }
     // ✅ BUG 1 FIX: Return full data object (not just boolean) so addOrder gets row number
     return (data.status === 'success' || data.status === 'ok') ? data : false;
   } catch(e) {
@@ -7710,17 +7717,19 @@ function isInLockout() {
   const lockoutUntil = parseInt(sessionStorage.getItem('innogix_lockout_until') || 0);
   return Date.now() < lockoutUntil;
 }
-function startLockout() {
-  const until = Date.now() + LOCKOUT_DURATION * 1000;
+function startLockout(sec) {
+  const until = Date.now() + Math.max(1, Math.min(1800, Number(sec) || LOCKOUT_DURATION)) * 1000;
   sessionStorage.setItem('innogix_lockout_until', until);
   failedAttempts = 0;
+  clearInterval(lockoutTimer);
   runLockoutCountdown();
 }
 function runLockoutCountdown() {
   const errEl = document.getElementById('pin-error');
   // keypad disable করো
   document.querySelectorAll('.pin-key').forEach(k => k.disabled = true);
-  lockoutTimer = setInterval(() => {
+  clearInterval(lockoutTimer);
+  const _tick = () => {
     const lockoutUntil = parseInt(sessionStorage.getItem('innogix_lockout_until') || 0);
     const remaining = Math.ceil((lockoutUntil - Date.now()) / 1000);
     if (remaining <= 0) {
@@ -7730,9 +7739,10 @@ function runLockoutCountdown() {
       if (errEl) errEl.textContent = '';
       pinBuffer = ''; updatePinDots();
     } else {
-      if (errEl) errEl.innerHTML = `🔒 অনেকবার ভুল চেষ্টা! <b>${remaining}s</b> অপেক্ষা করুন`;
+      if (errEl) errEl.innerHTML = `🔒 অনেকবার ভুল চেষ্টা! <b>${remaining >= 60 ? Math.floor(remaining/60) + ' মি ' + (remaining%60) + 's' : remaining + 's'}</b> অপেক্ষা করুন`;
     }
-  }, 500);
+  };
+  _tick(); lockoutTimer = setInterval(_tick, 500);
 }
 
 // ── SessionStorage helpers (ট্যাব/রিফ্রেশে সেশন রিসেট হবে) ──
@@ -7826,12 +7836,12 @@ function _askPartnerPin(label) {
     ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;';
     ov.innerHTML = '<div style="background:var(--bg2,#080808);border:1px solid var(--border,#262626);border-radius:14px;padding:22px;width:100%;max-width:340px;text-align:center;">'
       + '<div style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text,#F2F2F2);">🔐 ' + (label || 'PIN দিন') + '</div>'
-      + '<input type="password" inputmode="numeric" maxlength="4" autocomplete="off" style="width:100%;text-align:center;letter-spacing:12px;font-size:24px;padding:10px;border-radius:10px;border:1px solid var(--border,#262626);background:var(--bg3,#000000);color:var(--text,#F2F2F2);">'
+      + '<input type="password" inputmode="numeric" maxlength="8" autocomplete="off" style="width:100%;text-align:center;letter-spacing:12px;font-size:24px;padding:10px;border-radius:10px;border:1px solid var(--border,#262626);background:var(--bg3,#000000);color:var(--text,#F2F2F2);">'
       + '<div style="display:flex;gap:10px;margin-top:14px;"><button class="btn" style="flex:1" data-x="0">বাতিল</button><button class="btn btn-gold" style="flex:1" data-x="1">নিশ্চিত</button></div></div>';
     document.body.appendChild(ov);
     const inp = ov.querySelector('input'); inp.focus();
     const done = v => { ov.remove(); resolve(v); };
-    const ok = () => { const v = inp.value.trim(); if (!/^\d{4}$/.test(v)) { showToast('PIN ৪ সংখ্যার হতে হবে', 'error'); return; } done(v); };
+    const ok = () => { const v = inp.value.trim(); if (!/^\d{4,8}$/.test(v)) { showToast('PIN ৬–৮ সংখ্যার হতে হবে', 'error'); return; } done(v); };
     ov.querySelector('[data-x="0"]').onclick = () => done(null);
     ov.querySelector('[data-x="1"]').onclick = ok;
     inp.onkeydown = e => { if (e.key === 'Enter') ok(); if (e.key === 'Escape') done(null); };
@@ -7985,16 +7995,34 @@ function selectPartner(name) {
 }
 
 // ── PIN input ─────────────────────────────────────────────────
+// PIN ৪–৮ সংখ্যা (নতুন PIN সর্বনিম্ন ৬)। কোন পার্টনারের PIN কত সংখ্যার তা এই ডিভাইসে মনে রাখা হয়
+// (শুধু সংখ্যাটি, PIN নয়) — জানা থাকলে সেই সংখ্যা পূর্ণ হলে নিজে থেকে যাচাই হয়; নইলে ✓ চাপতে হয়।
+function igDevId() {
+  try {
+    let d = localStorage.getItem('ig_dev');
+    if (!d || !/^[a-f0-9]{16,64}$/.test(d)) {
+      const a = new Uint8Array(16);
+      if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(a); else for (let i = 0; i < 16; i++) a[i] = Math.floor(Math.random() * 256);
+      d = Array.from(a).map(b => b.toString(16).padStart(2, '0')).join('');
+      localStorage.setItem('ig_dev', d);
+    }
+    return d;
+  } catch (e) { return 'f'.repeat(32); }
+}
+function igPinLenHint(partner) { try { const n = parseInt(localStorage.getItem('ig_pl_' + partner) || 0); return n >= 4 && n <= 8 ? n : 0; } catch (e) { return 0; } }
+function igSetPinLenHint(partner, n) { try { localStorage.setItem('ig_pl_' + partner, String(n)); } catch (e) {} }
 function pinPress(d) {
   if (!selectedPartner) {
     document.getElementById('pin-error').textContent = '⚠️ আগে পার্টনার নির্বাচন করুন';
     return;
   }
   if (isInLockout()) return;
-  if (pinBuffer.length >= 4) return;
+  if (pinSubmitting) return;
+  if (pinBuffer.length >= 8) return;
   pinBuffer += d;
   updatePinDots();
-  if (pinBuffer.length === 4) setTimeout(pinSubmit, 300);
+  const hint = igPinLenHint(selectedPartner);
+  if (hint && pinBuffer.length === hint) setTimeout(pinSubmit, 250);
 }
 function pinDel() {
   pinBuffer = pinBuffer.slice(0,-1);
@@ -8002,129 +8030,129 @@ function pinDel() {
   document.getElementById('pin-error').textContent = '';
 }
 function updatePinDots() {
-  for (let i=0; i<4; i++) {
-    document.getElementById('d'+i).classList.toggle('filled', i < pinBuffer.length);
-    document.getElementById('d'+i).classList.remove('error');
+  const n = Math.min(8, Math.max(pinBuffer.length, (selectedPartner && igPinLenHint(selectedPartner)) || 6));
+  for (let i=0; i<8; i++) {
+    const el = document.getElementById('d'+i); if (!el) continue;
+    el.style.display = i < n ? '' : 'none';
+    el.classList.toggle('filled', i < pinBuffer.length);
+    el.classList.remove('error');
   }
 }
-// ─── Instant client-side PIN check ──────────────────────────────
-// PIN hash (salt সহ) একবার পেজ লোড হওয়ার সময় ব্যাকগ্রাউন্ডে নিয়ে আসা হয়,
-// তারপর প্রতিটা PIN চেষ্টা ব্রাউজারেই instant SHA-256 compare দিয়ে হয় —
-// কোনো নেটওয়ার্ক রাউন্ড-ট্রিপ ছাড়াই, তাই ১ সেকেন্ডের মধ্যেই লগইন হয়।
-let pinHashCache = null;        // { salt, hashes: {Ismail:'...', Ashik:'...'} }
-let pinHashCacheLoading = null;
-
-async function ensurePinHashCache() {
-  if (pinHashCache) return pinHashCache;
-  if (pinHashCacheLoading) return pinHashCacheLoading;
-  pinHashCacheLoading = postToAPI({ action: 'getPinHashes' }).then(result => {
-    pinHashCacheLoading = null;
-    if (result && result.hashes) { pinHashCache = { salt: result.salt, hashes: result.hashes }; }
-    return pinHashCache;
-  }).catch(() => { pinHashCacheLoading = null; return null; });
-  return pinHashCacheLoading;
-}
-// backend-এর _hashPin_() এর সাথে হুবহু মিলিয়ে: SHA-256("partner:pin:salt")
-// (file:// মোডের মতো secure-context-বিহীন পরিস্থিতিতে crypto.subtle না-ও
-// থাকতে পারে — তখন null ফেরত দেয়, আর pinSubmit() সার্ভার-ভেরিফাই ফলব্যাকে যায়)
-async function _computePinHashLocal(partner, pin, salt) {
-  if (!window.crypto || !window.crypto.subtle) return null;
-  const raw = `${partner}:${pin}:${salt}`;
-  const bytes = new TextEncoder().encode(raw);
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
-  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
+let pinSubmitting = false;
+window.__igxToken = '';
+function igSetToken(t) { window.__igxToken = t || ''; try { if (t) sessionStorage.setItem('innogix_token', t); else sessionStorage.removeItem('innogix_token'); } catch (e) {} }
 
 async function pinSubmit() {
   if (!selectedPartner) {
     document.getElementById('pin-error').textContent = '⚠️ পার্টনার নির্বাচন করুন';
     return;
   }
-  if (!pinBuffer.length) return;
+  if (!pinBuffer.length || pinSubmitting) return;
+  if (pinBuffer.length < 4) { document.getElementById('pin-error').textContent = '⚠️ PIN কমপক্ষে ৪ সংখ্যা'; return; }
 
   // লকআউট চলছে কিনা চেক করো
-  if (isInLockout()) {
-    runLockoutCountdown();
-    return;
-  }
+  if (isInLockout()) { runLockoutCountdown(); return; }
 
   const enteredPin = pinBuffer;
   const partnerAtSubmit = selectedPartner;
+  const errEl = document.getElementById('pin-error');
+  pinSubmitting = true;
+  errEl.textContent = '⏳ যাচাই করা হচ্ছে...';
+  let result;
+  try { result = await postToAPI({ action: 'login', partner: partnerAtSubmit, pin: enteredPin, device: igDevId() }); }
+  finally { pinSubmitting = false; }
 
-  // hash cache এখনো লোড না হয়ে থাকলে (যেমন পেজ লোড হওয়ার সাথে সাথেই টাইপ করলে)
-  // এই একবারই ছোট্ট অপেক্ষা লাগতে পারে — তারপর থেকে সবসময় instant।
-  if (!pinHashCache) {
-    document.getElementById('pin-error').textContent = '⏳ প্রস্তুত হচ্ছে...';
-    await ensurePinHashCache();
-  }
-  if (!pinHashCache || !pinHashCache.hashes || !pinHashCache.hashes[partnerAtSubmit]) {
-    document.getElementById('pin-error').textContent = '⚠️ সংযোগ সমস্যা — একটু পর আবার চেষ্টা করুন';
-    ensurePinHashCache(); // চুপচাপ আবার চেষ্টা করো
+  // সার্ভার লক (ধাপে ধাপে বিলম্ব বা গ্লোবাল সীমা)
+  if (result && result.status === 'error') {
+    if (result.code === 'LOCKED') { pinBuffer = ''; updatePinDots(); startLockout(result.wait || 30); return; }
+    pinBuffer = ''; updatePinDots();
+    errEl.textContent = '⚠️ ' + (result.message || 'লগইন করা যায়নি');
+    setTimeout(() => { errEl.textContent = ''; }, 2500);
     return;
   }
-
-  const computedHash = await _computePinHashLocal(partnerAtSubmit, enteredPin, pinHashCache.salt);
-
-  // crypto.subtle অনুপলব্ধ হলে (secure context নেই, যেমন file:// মোড) —
-  // সরাসরি সার্ভার-ভেরিফাই ফলব্যাকে যাও, instant check এখানে চলবে না
-  if (computedHash === null) {
-    document.getElementById('pin-error').textContent = '⏳ যাচাই করা হচ্ছে...';
-    const result = await postToAPI({ action: 'verifyPin', partner: partnerAtSubmit, pin: enteredPin });
-    document.getElementById('pin-error').textContent = '';
-    if (result && result.valid) {
-      failedAttempts = 0;
-      sessionStorage.removeItem('innogix_lockout_until');
-      unlockApp(partnerAtSubmit);
-      return;
-    }
-    if (!result) {
-      pinBuffer = ''; updatePinDots();
-      document.getElementById('pin-error').textContent = '⚠️ সার্ভারের সাথে যোগাযোগ করা যায়নি — আবার চেষ্টা করুন';
-      setTimeout(() => { document.getElementById('pin-error').textContent = ''; }, 1800);
-      return;
-    }
-    failedAttempts++;
-    for (let i=0; i<4; i++) {
-      document.getElementById('d'+i).classList.add('error');
-      document.getElementById('d'+i).classList.remove('filled');
-    }
-    const rem = MAX_ATTEMPTS - failedAttempts;
-    if (failedAttempts >= MAX_ATTEMPTS) { startLockout(); }
-    else {
-      document.getElementById('pin-error').textContent = `❌ ভুল PIN — আর ${rem} বার সুযোগ বাকি`;
-      setTimeout(() => { pinBuffer=''; updatePinDots(); document.getElementById('pin-error').textContent=''; }, 1200);
-    }
+  if (!result) {
+    pinBuffer = ''; updatePinDots();
+    errEl.textContent = '⚠️ সার্ভারের সাথে যোগাযোগ করা যায়নি — আবার চেষ্টা করুন';
+    setTimeout(() => { errEl.textContent = ''; }, 2500);
     return;
   }
-
-  const isValid = (computedHash === pinHashCache.hashes[partnerAtSubmit]);
-  document.getElementById('pin-error').textContent = '';
-
-  if (isValid) {
+  if (result.valid) {
+    errEl.textContent = '';
     failedAttempts = 0;
     sessionStorage.removeItem('innogix_lockout_until');
+    igSetPinLenHint(partnerAtSubmit, enteredPin.length);
+    igSetToken(result.token);
     unlockApp(partnerAtSubmit);
+    if (result.mustChange) igForcePinChange(enteredPin, partnerAtSubmit);
     return;
   }
 
   // ভুল PIN
-  failedAttempts++;
-  for (let i=0; i<4; i++) {
-    document.getElementById('d'+i).classList.add('error');
-    document.getElementById('d'+i).classList.remove('filled');
+  for (let i=0; i<8; i++) {
+    const el = document.getElementById('d'+i); if (!el) continue;
+    el.classList.add('error'); el.classList.remove('filled');
   }
+  if (result.wait > 0) { pinBuffer = ''; startLockout(result.wait); return; }
+  const left = Number(result.left);
+  errEl.textContent = '❌ ভুল PIN' + (left > 0 ? ` — আর ${left} বার সুযোগ বাকি` : '');
+  setTimeout(() => { pinBuffer = ''; updatePinDots(); errEl.textContent = ''; }, 1200);
+}
 
-  const remaining = MAX_ATTEMPTS - failedAttempts;
-  if (failedAttempts >= MAX_ATTEMPTS) {
-    startLockout();
-  } else {
-    document.getElementById('pin-error').textContent = `❌ ভুল PIN — আর ${remaining} বার সুযোগ বাকি`;
-    setTimeout(() => {
-      pinBuffer = ''; updatePinDots();
-      document.getElementById('pin-error').textContent = '';
-    }, 1200);
+// ── প্রথম লগইনে (ডিফল্ট/পুরনো ৪ সংখ্যার PIN) নতুন শক্ত PIN বসাতে বাধ্য করা ──
+function igForcePinChange(curPin, partner) {
+  window.__forcePin = { cur: curPin, partner: partner };
+  const cur = document.getElementById('cp-current');
+  cur.value = curPin; cur.parentElement.style.display = 'none';
+  ['cp-new','cp-confirm'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('cp-error').textContent = '';
+  const note = document.getElementById('cp-force-note');
+  note.style.display = 'block';
+  note.textContent = '🔐 নিরাপত্তার জন্য এখনই একটি নতুন, শক্ত PIN বসান (৬–৮ সংখ্যা)। এটি না করলে অ্যাপ চালানো যাবে না।';
+  ['cp-x','cp-cancel'].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = 'none'; });
+  openModal('change-pin');
+  setTimeout(() => { try { document.getElementById('cp-new').focus(); } catch (e) {} }, 50);
+}
+function igEndForcePin() {
+  window.__forcePin = null;
+  const cur = document.getElementById('cp-current'); if (cur) { cur.value = ''; cur.parentElement.style.display = ''; }
+  const note = document.getElementById('cp-force-note'); if (note) note.style.display = 'none';
+  ['cp-x','cp-cancel'].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = ''; });
+}
+// জোর-বদল চলাকালে মডাল কোনোভাবেই (Esc/বাইরে ক্লিক/অন্য কোড) বন্ধ করা যাবে না
+(function () {
+  const m = document.getElementById('modal-change-pin');
+  if (!m || !window.MutationObserver) return;
+  new MutationObserver(() => { if (window.__forcePin && !m.classList.contains('open')) m.classList.add('open'); }).observe(m, { attributes: true, attributeFilter: ['class'] });
+})();
+
+// ── নিষ্ক্রিয়তায় অটো-লক (ডিফল্ট ১০ মিনিট; ৫/১০/১৫) ──
+const IG_AUTOLOCK_OPTS = [5, 10, 15];
+function igAutoLockMin() { try { const n = parseInt(localStorage.getItem('ig_autolock_min') || 10); return IG_AUTOLOCK_OPTS.includes(n) ? n : 10; } catch (e) { return 10; } }
+function igAutoLockLabel() {
+  const el = document.getElementById('autolock-label'); if (!el) return;
+  const bn = { 5: '৫', 10: '১০', 15: '১৫' };
+  el.textContent = 'অটো-লক: ' + bn[igAutoLockMin()] + ' মিনিট';
+}
+function igCycleAutoLock() {
+  const i = IG_AUTOLOCK_OPTS.indexOf(igAutoLockMin());
+  const n = IG_AUTOLOCK_OPTS[(i + 1) % IG_AUTOLOCK_OPTS.length];
+  try { localStorage.setItem('ig_autolock_min', String(n)); } catch (e) {}
+  igAutoLockLabel(); igTouch(true);
+  showToast('⏱ ' + n + ' মিনিট নিষ্ক্রিয় থাকলে অ্যাপ নিজে লক হবে', 'info');
+}
+let igLastActive = Date.now(), igLastTouchWrite = 0;
+function igTouch(force) { const t = Date.now(); if (force || t - igLastTouchWrite > 1000) { igLastActive = t; igLastTouchWrite = t; } }
+['mousemove','mousedown','keydown','touchstart','scroll','click','wheel'].forEach(ev => document.addEventListener(ev, () => igTouch(false), { passive: true, capture: true }));
+function igIdleCheck() {
+  if (isLocked || !currentPartner) return;
+  if (Date.now() - igLastActive >= igAutoLockMin() * 60000) {
+    document.querySelectorAll('.modal-overlay.open').forEach(m => { if (!window.__forcePin) m.classList.remove('open'); });
+    lockApp(); showToast('🔒 নিষ্ক্রিয় থাকায় অ্যাপ নিজে লক হয়েছে', 'info');
   }
 }
+setInterval(igIdleCheck, 10000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) igIdleCheck(); });
+document.addEventListener('DOMContentLoaded', igAutoLockLabel);
 
 function unlockApp(partnerKey) {
   currentPartner = partnerKey;
@@ -8134,6 +8162,7 @@ function unlockApp(partnerKey) {
   const lb = document.getElementById('lock-btn');
   if(lb) { lb.style.display='flex'; lb.style.visibility='visible'; lb.style.opacity='1'; }
   isLocked = false;
+  igTouch(true); igAutoLockLabel();
 
   // Session সংরক্ষণ
   lsSet('innogix_session_partner', partnerKey);
@@ -8159,6 +8188,10 @@ function updatePartnerBadge(partnerKey) {
 function lockApp() {
   // লগ এন্ট্রি
   if (currentPartner) logAction(`লগআউট করেছেন — ${PARTNER_FULL_NAMES[currentPartner]}`);
+  // সার্ভারে সেশন বাতিল (নীরবে; ব্যর্থ হলেও লক হবে)
+  if (currentPartner && window.__igxToken) { try { const _p = postToAPI({ action: 'logout', partner: currentPartner, token: window.__igxToken }); if (_p && _p.catch) _p.catch(() => {}); } catch (e) {} }
+  igSetToken('');
+  if (window.__forcePin) { igEndForcePin(); try { document.getElementById('modal-change-pin').classList.remove('open'); } catch (e) {} }
 
   pinBuffer = ''; updatePinDots();
   document.getElementById('pin-error').textContent = '';
@@ -8169,6 +8202,7 @@ function lockApp() {
   selectedPartner = null;
   currentPartner = null;
   failedAttempts = 0;
+  updatePinDots();
 
   // সেশন সম্পূর্ণ মুছে ফেলো (sessionStorage)
   try {
@@ -8228,22 +8262,23 @@ async function changePin() {
   const partner    = currentPartner || selectedPartner;
 
   if (!partner) { errEl.textContent = '⚠️ পার্টনার শনাক্ত করা যায়নি — আগে লগইন/নির্বাচন করুন'; return; }
-  if (!/^\d{4}$/.test(curPin)) { errEl.textContent = '❌ বর্তমান PIN দিন (4 সংখ্যা)'; return; }
-  if (!/^\d{4}$/.test(newPin)) { errEl.textContent = '❌ নতুন PIN অবশ্যই 4টি সংখ্যা হতে হবে'; return; }
+  if (!/^\d{4,8}$/.test(curPin)) { errEl.textContent = '❌ বর্তমান PIN দিন'; return; }
+  if (!/^\d{6,8}$/.test(newPin)) { errEl.textContent = '❌ নতুন PIN অবশ্যই ৬ থেকে ৮টি সংখ্যা হতে হবে'; return; }
   if (newPin !== confirmPin) { errEl.textContent = '❌ PIN মিলছে না'; return; }
 
   errEl.textContent = '⏳ যাচাই করা হচ্ছে...';
   // বর্তমান ও নতুন PIN সার্ভারে পাঠিয়ে যাচাই ও আপডেট করা হয় —
   // ব্যাকএন্ড শুধু hash সেভ করে, PIN কোথাও প্লেইন টেক্সটে থাকে না।
-  const result = await postToAPI({ action: 'changePin', partner, currentPin: curPin, newPin });
+  window.__lastAPIErrorMsg = null;
+  const result = await postToAPI({ action: 'changePin', partner, currentPin: curPin, newPin, device: igDevId() });
   errEl.textContent = '';
 
-  if (!result) { errEl.textContent = '❌ PIN পরিবর্তন ব্যর্থ হয়েছে — বর্তমান PIN ঠিক আছে কিনা চেক করুন'; return; }
+  if (!result) { errEl.textContent = '❌ ' + (window.__lastAPIErrorMsg || 'PIN পরিবর্তন ব্যর্থ হয়েছে — বর্তমান PIN ঠিক আছে কিনা চেক করুন'); return; }
 
-  // নতুন PIN সেট হয়ে গেছে — local hash cache পুরনো হয়ে গেছে, তাই রিফ্রেশ করো
-  // (নাহলে instant client-side check পুরনো PIN দিয়েই যাচাই করবে)
-  pinHashCache = null;
-  ensurePinHashCache();
+  igSetPinLenHint(partner, newPin.length);
+  if (result.token) igSetToken(result.token);
+  const wasForced = !!window.__forcePin;
+  if (wasForced) igEndForcePin();
 
   if (currentPartner) logAction('PIN পরিবর্তন করেছেন');
   closeModal('change-pin');
@@ -8312,7 +8347,7 @@ async function saveCourierSettings() {
   const partner  = currentPartner;
 
   if (!partner) { errEl.textContent = '⚠️ আগে লগইন করো'; return; }
-  if (!/^\d{4}$/.test(pin)) { errEl.textContent = '❌ 4-digit PIN দাও'; return; }
+  if (!/^\d{4,8}$/.test(pin)) { errEl.textContent = '❌ তোমার PIN দাও'; return; }
 
   const credentials = {};
   let anyFilled = false;
@@ -8835,9 +8870,7 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(_cacheNavDOM);
   }
 
-  // PIN hash আগেভাগেই ব্যাকগ্রাউন্ডে নিয়ে আসো, যাতে ইউজার PIN টাইপ করা শেষ
-  // করার আগেই cache রেডি থাকে — লগইন সবসময় instant মনে হয়।
-  ensurePinHashCache();
+  // (নিরাপত্তা: PIN hash আর ব্রাউজারে আনা হয় না — যাচাই সম্পূর্ণ সার্ভারে)
 });
 
 
@@ -29546,6 +29579,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       const r = { id, g, cn, cfg, st, final, tr, cid, total, deliv, pct, codAmt, net, codSrc: live ? 'api' : (codAmt > 0 ? 'est' : 'none'), live, ts: born, since, tStart, days, delDays: delEv && tStart ? Math.max(0, dayIdx(delEv.ts) - dayIdx(tStart)) : null, delTs: delEv ? delEv.ts : 0, unbooked, urgent, transit, late, cat, evs, items, link, manual: !!g.trackingLink, loc, name: String(g.customer || ''), phone: String(g.phone || ''), addr: String(g.address || ''), paid: num(g.paid) };
       r.set = SM[nid(id)] || null; r.isCod = String(g.payment || '').trim().toUpperCase() === 'COD';
       if (r.set) { r.codAmt = r.set.cod; r.codSrc = 'stmt'; }
+      // 💳 কুরিয়ার থেকে প্রাপ্য (অনুমান) = কাস্টমার থেকে আদায় − অর্ডারে লেখা ডেলিভারি চার্জ − COD চার্জ (লাইভ/সেভ/রেট); স্টেটমেন্ট এলে আসল সংখ্যা এটাকে ছাপিয়ে যায়
+      r.colEst = Math.max(0, Math.round((total + deliv - r.paid) * 100) / 100); r.estCod = live || r.codAmt;
+      r.est = r.isCod && st !== 'Returned' && st !== 'Cancelled' ? Math.max(0, Math.round((r.colEst - deliv - r.estCod) * 100) / 100) : 0;
       r.unsettled = r.cat === 'done' && r.isCod && !r.set;
       r.dts = r.delTs || r.since || r.ts; r.dAge = r.dts ? Math.max(0, today - dayIdx(r.dts)) : 0;
       r.search = key([id, r.name, r.phone, tr, cid, r.addr, r.loc, items, cn].join(' '));
@@ -29698,7 +29734,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     return `<div class="cm-row ${r.cat}${r.urgent ? ' urg' : ''}" data-act="open" data-v="${esc(r.id)}">
       <div class="c1" style="min-width:0"><div class="cm-nm"><input type="checkbox" class="cm-ck" data-ck="${esc(r.id)}"${K1.sel.has(r.id) ? ' checked' : ''} aria-label="বাছুন" title="বাছুন"><span class="cm-cb" style="--cc:${cc}">${esc(c.icon)} ${esc(r.cn)}</span>${esc(r.name || '—')}</div><div class="cm-mu">#${esc(r.id)} · ${esc(r.phone)}${r.loc ? ' · ' + esc(r.loc) : ''}</div></div>
       <div class="c2"><div><span class="cm-pill ${pillCls}">${stL}</span> <span class="cm-mu">${sub}</span></div>${trk}${window.__cr3 ? window.__cr3.rowExtra(r) : ''}</div>
-      <div class="c3" style="font-size:13px"><div>${cod}</div><div class="cm-mu">নেট ${taka(r.net)} · মোট ${taka(r.total + r.deliv)}${payBadge(r)}</div></div>
+      <div class="c3" style="font-size:13px"><div>${cod}</div><div class="cm-mu">${r.isCod && !r.set ? 'কুরিয়ার থেকে ≈' + taka(r.est) + ' · ' : ''}মোট ${taka(r.total + r.deliv)}${payBadge(r)}</div></div>
       <div class="c4 cm-act">${r.cat === 'unbooked' ? `<button class="cm-btn gold" data-act="book" data-v="${esc(r.id)}">🚀 বুক করুন</button>` : ''}${r.link ? `<a class="cm-btn" href="${esc(r.link)}" target="_blank" rel="noopener" data-act="nop" title="ট্র্যাকিং লিংক">🔗</a>` : ''}<button class="cm-btn" data-act="open" data-v="${esc(r.id)}">🔍</button></div>
     </div>`;
   }
@@ -29763,7 +29799,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         ${s.oth ? `<div class="k">অন্যান্য কাটা</div><div class="v">${taka(s.oth)}</div>` : ''}</div>
         <div style="margin-top:8px"><button class="cm-btn" data-act="void">↩️ ভুল হলে বাতিল করুন (PIN)</button></div></div>`;
     }
-    return `<div class="cm-sec"><h4>💳 কুরিয়ার থেকে টাকা</h4><div class="cm-note">এখনো টাকা আসেনি · ${r.dAge} দিন আগে ডেলিভার্ড · অ্যাপের নেট পাওনা <b>${taka(r.net)}</b></div><div style="margin-top:8px"><button class="cm-btn gold" data-act="mark">✅ টাকা পেয়েছি মার্ক করুন</button></div></div>`;
+    return `<div class="cm-sec"><h4>💳 কুরিয়ার থেকে টাকা</h4><div class="cm-note">এখনো টাকা আসেনি · ${r.dAge} দিন আগে ডেলিভার্ড · কুরিয়ার থেকে প্রাপ্য (অনুমান) <b>≈${taka(r.est)}</b> <span class="cm-mu">= আদায় ${taka(r.colEst)} − ডেলিভারি ${taka(r.deliv)} − COD ${taka(r.estCod)}</span></div><div style="margin-top:8px"><button class="cm-btn gold" data-act="mark">✅ টাকা পেয়েছি মার্ক করুন</button></div></div>`;
   }
   function openDr(id) {
     const r = K1.R && K1.R.byId[id]; if (!r) return; K1.open = id; const dr = $('cm-dr'); if (!dr) return;
@@ -29779,7 +29815,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       <div class="cm-sec"><h4>💰 টাকার হিসাব</h4><div class="cm-kv">
         <div class="k">প্রোডাক্ট মোট</div><div class="v">${taka(r.total)}</div><div class="k">ডেলিভারি চার্জ</div><div class="v">${taka(r.deliv)}</div><div class="k">কাস্টমার দেবে</div><div class="v"><b>${taka(r.total + r.deliv)}</b>${r.paid ? ' (অগ্রিম ' + taka(r.paid) + ')' : ''}</div>
         <div class="k">COD চার্জ</div><div class="v">${r.codAmt > 0 ? '<b>' + taka(r.codAmt) + '</b> ' + (r.codSrc === 'stmt' ? '<span class="cm-b g">স্টেটমেন্ট ✓ — আসল কাটা চার্জ</span>' : r.codSrc === 'api' ? '<span class="cm-b g">API ✓ — কুরিয়ারের লাইভ উত্তর</span>' : '<span class="cm-b m">অনুমান</span>') : 'নেই'}</div>
-        <div class="k">আমাদের নেট পাওনা</div><div class="v"><b style="color:var(--green)">${taka(r.net)}</b></div></div>
+        <div class="k">কুরিয়ার থেকে প্রাপ্য</div><div class="v">${r.isCod ? (r.set ? '<b style="color:var(--green)">' + taka(r.set.net) + '</b> <span class="cm-b g">স্টেটমেন্ট ✓ — আসল</span>' : '<b style="color:var(--green)">≈' + taka(r.est) + '</b> <span class="cm-b m">অনুমান</span>') : '—'}</div>
+        <div class="k">শিটের পুরনো "নেট"</div><div class="v cm-mu">${taka(r.net)} <span style="font-size:11px">(কুরিয়ারের ডেলিভারি চার্জ ধরা নেই)</span></div></div>
         ${r.codAmt > 0 && r.codSrc === 'est' ? `<div class="cm-note" style="margin-top:8px">ℹ️ এই COD চার্জ <b>অনুমান</b> — কনফিগ রেট (${r.pct || r.cfg.codPct || 0}%) দিয়ে হিসাব। কুরিয়ার সত্যিই কত কেটেছে তা "💳 টাকার হিসাব" থেকে কুরিয়ারের পেমেন্ট স্টেটমেন্ট ইমপোর্ট করে মেলানো যাবে।</div>` : ''}</div>
       <div class="cm-sec"><h4>🏷️ ট্র্যাকিং</h4><div class="cm-kv">
         <div class="k">ট্র্যাকিং/CN</div><div class="v">${r.tr ? `<span class="cm-mono">${esc(r.tr)}</span> <button class="cm-btn" data-act="copy" data-v="${esc(r.tr)}">⧉ কপি</button>` : '—'}</div>
@@ -29971,12 +30008,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const mism = done.filter(r => r.set.col > 0 && Math.abs(r.set.col - (r.total + r.deliv)) > 1);
     const pays = (B.payments || []).slice().sort((a, b) => b.ts - a.ts || (a.id < b.id ? 1 : -1));
     const bk = { 1: { n: 0, s: 0 }, 2: { n: 0, s: 0 }, 3: { n: 0, s: 0 }, 4: { n: 0, s: 0 } }; let sum = 0;
-    due.forEach(r => { const b = bk[bucket(r.dAge)]; b.n++; b.s += r.net; sum += r.net; });
+    due.forEach(r => { const b = bk[bucket(r.dAge)]; b.n++; b.s += r.est; sum += r.est; });
     const mon = todayStr().slice(0, 7); let recv = 0, recvN = 0; pays.forEach(p => { if (p.st === 'OK' && String(p.date).slice(0, 7) === mon) { recv += p.amount; recvN++; } });
     const by = {}; const names = {};
     K1.R.rows.forEach(r => { names[r.cn] = r.cfg; });
     Object.keys(names).forEach(n => { by[n] = { cfg: names[n], due: 0, n: 0, oldest: 0, last: '', mism: 0 }; });
-    due.forEach(r => { const o = by[r.cn]; o.due += r.net; o.n++; o.oldest = Math.max(o.oldest, r.dAge); });
+    due.forEach(r => { const o = by[r.cn]; o.due += r.est; o.n++; o.oldest = Math.max(o.oldest, r.dAge); });
     done.forEach(r => { const o = by[r.cn]; if (r.set.date > o.last) o.last = r.set.date; });
     mism.forEach(r => { by[r.cn].mism++; });
     return { due, done, mism, pays, b1: { ...bk[1], k: 1 }, b2: { ...bk[2], k: 2 }, b3: { ...bk[3], k: 3 }, b4: { ...bk[4], k: 4 }, sum, recv, recvN, by };
@@ -29986,7 +30023,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if (L.courier) A = A.filter(r => r.cn === L.courier);
     if (L.tab === 'due' && L.age !== 'all') { const m = Number(L.age); A = A.filter(r => r.dAge >= m); }
     const q = key(L.q); if (q) A = A.filter(r => r.search.includes(q) || (r.set && key(r.set.pay).includes(q)));
-    if (L.tab === 'due') A.sort((a, b) => b.dAge - a.dAge || b.net - a.net); else A.sort((a, b) => (b.set.ts - a.set.ts) || (num(b.id) - num(a.id)));
+    if (L.tab === 'due') A.sort((a, b) => b.dAge - a.dAge || b.est - a.est); else A.sort((a, b) => (b.set.ts - a.set.ts) || (num(b.id) - num(a.id)));
     return A;
   }
   function payRows() {
@@ -30003,7 +30040,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const names = Object.keys(D.by).sort((a, b) => D.by[b].due - D.by[a].due || (D.by[a].cfg.sort || 99) - (D.by[b].cfg.sort || 99));
     const chips = names.map(n => { const o = D.by[n], c = o.cfg; return `<button class="cm-cc${L.courier === n ? ' on' : ''}${c.active ? '' : ' off'}" style="--cc:${hexOk(c.color)}" data-act="courier" data-v="${esc(n)}"><div class="h"><span>${esc(c.icon)}</span><span>${esc(n)}</span></div><div class="g"><span>বাকি <b style="color:${o.due ? 'var(--gold)' : 'inherit'}">${taka(o.due)}</b></span><span>(${o.n}টি)</span></div><div class="g"><span>পুরনো <b${o.oldest > 30 ? ' style="color:var(--red)"' : ''}>${o.n ? o.oldest + ' দিন' : '—'}</b></span><span>শেষ পেমেন্ট <b>${esc(o.last || '—')}</b></span>${o.mism ? `<span style="color:var(--red)">গরমিল <b style="color:var(--red)">${o.mism}</b></span>` : ''}</div></button>`; }).join('');
     el.innerHTML = `<div class="cm-kp">
-      ${kt(D.b4.n ? 'red' : 'gold', '💳 মোট বাকি', taka(D.sum), D.due.length + 'টি অর্ডার · অ্যাপের নেট পাওনা', 'all')}
+      ${kt(D.b4.n ? 'red' : 'gold', '💳 মোট বাকি', taka(D.sum), D.due.length + 'টি অর্ডার · কুরিয়ার থেকে প্রাপ্য (অনুমান)', 'all')}
       ${kt('blu', '০–৭ দিন', taka(D.b1.s), D.b1.n + 'টি', '0')}
       ${kt('', '৮–১৪ দিন', taka(D.b2.s), D.b2.n + 'টি', '8')}
       ${kt(D.b3.n ? 'gold' : '', '১৫–৩০ দিন', taka(D.b3.s), D.b3.n + 'টি', '15')}
@@ -30011,7 +30048,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       ${kt('grn', '✅ এই মাসে পেয়েছি', taka(D.recv), D.recvN + 'টি পেমেন্ট', '')}
     </div>
     <div class="cm-cs">${chips || '<div class="cm-mu">কুরিয়ার নেই</div>'}</div>
-    <div class="cm-note" style="margin:0 0 10px">ℹ️ "বাকি" = <b>Delivered + COD</b> অর্ডার যার টাকা এখনো "পেয়েছি" হিসেবে মার্ক হয়নি। পরিমাণ অ্যাপের নেট পাওনা (মোট + ডেলিভারি − COD চার্জ); কুরিয়ার নিজের ডেলিভারি চার্জ কাটলে আসল টাকা কম আসবে — স্টেটমেন্ট ইমপোর্ট করলে আসল সংখ্যা বসবে।</div>
+    <div class="cm-note" style="margin:0 0 10px">ℹ️ "বাকি" = <b>Delivered + COD</b> অর্ডার যার টাকা এখনো "পেয়েছি" হিসেবে মার্ক হয়নি। পরিমাণ <b>অনুমান</b> = কাস্টমার থেকে আদায় − অর্ডারে লেখা ডেলিভারি চার্জ − COD চার্জ। কুরিয়ারের পেমেন্ট স্টেটমেন্ট ইমপোর্ট করলে আসল সংখ্যা বসবে ও এই অনুমান বদলে যাবে।</div>
     <div class="cm-tabs" id="cl-tabs"></div>
     <div class="cm-tool">
       <input class="cm-in" id="cl-q" type="search" placeholder="🔍 নাম, ফোন, অর্ডার ID, ট্র্যাকিং, Pay ID…" value="${esc(L.q)}" autocomplete="off">
@@ -30032,7 +30069,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       const cls = r.dAge > 30 ? 'a2' : r.dAge > 14 ? 'a1' : '';
       return `<div class="cm-lr ${cls}" data-act="open" data-v="${esc(r.id)}"><div><input type="checkbox" data-ck="${esc(r.id)}"${L.sel.has(r.id) ? ' checked' : ''} aria-label="বাছুন"></div>${left}
         <div><span class="cm-b ${r.dAge > 14 ? 'r' : 'o'}" style="margin:0">${r.dAge} দিন বাকি</span><div class="cm-mu">ডেলিভার্ড ${r.dts ? new Date(r.dts + TZ).toISOString().slice(0, 10) : '—'}</div></div>
-        <div style="font-size:13px"><b>${taka(r.net)}</b><div class="cm-mu">COD চার্জ ${taka(r.codAmt)} ${r.codSrc === 'api' ? '(API ✓)' : '(অনুমান)'}</div></div>
+        <div style="font-size:13px"><b>≈${taka(r.est)}</b><div class="cm-mu">COD চার্জ ${taka(r.codAmt)} ${r.codSrc === 'api' ? '(API ✓)' : '(অনুমান)'}</div></div>
         <div class="c5 cm-act"><button class="cm-btn gold" data-act="mark1" data-v="${esc(r.id)}">✅ পেয়েছি</button></div></div>`;
     }
     const dc = s.col > 0 ? s.col - (r.total + r.deliv) : 0;
@@ -30059,8 +30096,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function paintBar() {
     const el = $('cl-bar'); if (!el) return; const R = K1.R; const ids = Array.from(L.sel).filter(id => R && R.byId[id] && R.byId[id].unsettled);
     ids.length !== L.sel.size && (L.sel = new Set(ids));
-    if (!ids.length) { el.innerHTML = ''; return; } const sum = ids.reduce((a, id) => a + R.byId[id].net, 0);
-    el.innerHTML = `<div class="cm-selbar"><div><b>${ids.length}টি</b> বাছাই · অ্যাপের নেট <b>${taka(sum)}</b></div><div style="display:flex;gap:8px"><button class="cm-btn" data-act="clr">বাছাই মুছুন</button><button class="cm-btn gold" data-act="mark">✅ পেয়েছি মার্ক করুন</button></div></div>`;
+    if (!ids.length) { el.innerHTML = ''; return; } const sum = ids.reduce((a, id) => a + R.byId[id].est, 0);
+    el.innerHTML = `<div class="cm-selbar"><div><b>${ids.length}টি</b> বাছাই · প্রাপ্য (অনুমান) <b>${taka(sum)}</b></div><div style="display:flex;gap:8px"><button class="cm-btn" data-act="clr">বাছাই মুছুন</button><button class="cm-btn gold" data-act="mark">✅ পেয়েছি মার্ক করুন</button></div></div>`;
   }
 
   // ───────── ক্লিক ─────────
@@ -30114,14 +30151,14 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if (!ids.length) return toast('বাছাই করা অর্ডার "বাকি" তালিকায় নেই', 'error');
     const rs = ids.map(id => R.byId[id]); const m = ensureModal('cm-mk', 760);
     m.innerHTML = shell('cm-mk', '✅ কুরিয়ার থেকে টাকা পেয়েছি', `
-      <div class="cm-note" style="margin-bottom:10px">যত টাকা আসলে হাতে/অ্যাকাউন্টে এসেছে প্রতি অর্ডারের "পেয়েছি" ঘরে লিখুন (শুরুতে অ্যাপের নেট পাওনা বসানো আছে)। কম এলে বাকিটা "কুরিয়ার কেটেছে" ধরা হবে। আসল COD চার্জের জন্য স্টেটমেন্ট ইমপোর্ট ভালো।</div>
-      <div class="cm-scr"><table class="cm-st-tb"><thead><tr><th>অর্ডার</th><th>অ্যাপের নেট</th><th>পেয়েছি (৳)</th></tr></thead><tbody>${rs.map(r => `<tr><td><b>#${esc(r.id)}</b> ${esc(r.name)}<div class="cm-mu">${esc(r.cn)}${r.tr ? ' · ' + esc(r.tr) : ''} · ${r.dAge} দিন</div></td><td>${taka(r.net)}</td><td><input class="cm-in" type="number" min="0" step="0.01" data-rv="${esc(r.id)}" value="${r.net}" style="width:110px;flex:none"></td></tr>`).join('')}</tbody></table></div>
+      <div class="cm-note" style="margin-bottom:10px">যত টাকা আসলে হাতে/অ্যাকাউন্টে এসেছে প্রতি অর্ডারের "পেয়েছি" ঘরে লিখুন (শুরুতে অনুমানের টাকা বসানো আছে — আসল স্টেটমেন্ট দেখে ঠিক করুন)। কম এলে বাকিটা "কুরিয়ার কেটেছে" ধরা হবে। আসল COD চার্জের জন্য স্টেটমেন্ট ইমপোর্ট ভালো।</div>
+      <div class="cm-scr"><table class="cm-st-tb"><thead><tr><th>অর্ডার</th><th>অনুমান</th><th>পেয়েছি (৳)</th></tr></thead><tbody>${rs.map(r => `<tr><td><b>#${esc(r.id)}</b> ${esc(r.name)}<div class="cm-mu">${esc(r.cn)}${r.tr ? ' · ' + esc(r.tr) : ''} · ${r.dAge} দিন</div></td><td>${taka(r.est)}</td><td><input class="cm-in" type="number" min="0" step="0.01" data-rv="${esc(r.id)}" value="${r.est}" style="width:110px;flex:none"></td></tr>`).join('')}</tbody></table></div>
       <div style="margin:10px 0;font-size:13.5px" id="mk-tot"></div>
       <div class="cm-fm"><div><label>টাকা পাওয়ার তারিখ</label><input id="mk-date" type="date" value="${todayStr()}" max="${todayStr()}"></div><div><label>মাধ্যম</label><select class="cm-sel" id="mk-met" style="width:100%">${METHODS.map(x => `<option>${x}</option>`).join('')}</select></div>
         <div class="w"><label>রেফারেন্স (ট্রানজেকশন ID / স্টেটমেন্ট নম্বর, ঐচ্ছিক)</label><input id="mk-ref" maxlength="60"></div><div class="w"><label>নোট (ঐচ্ছিক)</label><input id="mk-note" maxlength="200"></div></div>
       <div style="margin-top:12px"><button class="cm-btn gold" id="mk-save">💾 সেভ (PIN লাগবে)</button></div>`, 760);
     openModal('cm-mk');
-    const tot = () => { let s = 0, e = 0; m.querySelectorAll('[data-rv]').forEach(i => { s += num(i.value); e += R.byId[i.dataset.rv].net; }); const d = s - e; $('mk-tot').innerHTML = `মোট পেয়েছি: <b>${taka(s)}</b> · অ্যাপের নেট ${taka(e)}${Math.abs(d) > 0.5 ? ` · <span style="color:${d < 0 ? 'var(--red)' : 'var(--gold)'}">ফারাক ${d > 0 ? '+' : ''}${taka(d)}</span>` : ''}`; };
+    const tot = () => { let s = 0, e = 0; m.querySelectorAll('[data-rv]').forEach(i => { s += num(i.value); e += R.byId[i.dataset.rv].est; }); const d = s - e; $('mk-tot').innerHTML = `মোট পেয়েছি: <b>${taka(s)}</b> · অনুমান ${taka(e)}${Math.abs(d) > 0.5 ? ` · <span style="color:${d < 0 ? 'var(--red)' : 'var(--gold)'}">ফারাক ${d > 0 ? '+' : ''}${taka(d)}</span>` : ''}`; };
     m.addEventListener('input', e => { if (e.target.dataset.rv !== undefined) tot(); }); tot();
     $('mk-save').onclick = async () => {
       const lines = []; let bad = '';
@@ -30165,106 +30202,216 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
   function amt(v) { const s0 = (csvLib().bn2en || (x => x))(String(v == null ? '' : v)).trim(); if (s0 === '') return null; const neg = /^\(.*\)$/.test(s0) || /^-/.test(s0); const s = s0.replace(/[৳,\s()]|tk|bdt|taka/gi, '').replace(/^-/, ''); if (!/^\d*\.?\d+$/.test(s)) return NaN; const n = Math.round(parseFloat(s) * 100) / 100; return neg ? -n : n; }
   const nk = v => String(v == null ? '' : v).trim().replace(/^#+/, '').replace(/\s+/g, '').toLowerCase();
-  const ST = { courier: '', rows: [], hi: 0, map: {}, fname: '', res: null, sel: {}, step: 1, busy: false, report: null };
-  function stOpen() { Object.assign(ST, { courier: L.courier || '', rows: [], hi: 0, map: {}, fname: '', res: null, sel: {}, step: 1, busy: false, report: null }); stPaint(); openModal('cm-st'); }
+  const ST = { courier: '', rows: [], hi: 0, map: {}, fname: '', res: null, sel: {}, step: 1, busy: false, report: null, fmt: '', fileRows: null, exp: '', absorb: true, keep: null, fdate: '', ref: '' };
+  const R2 = x => Math.round(x * 100) / 100;
+  function stOpen() { Object.assign(ST, { courier: L.courier || '', rows: [], hi: 0, map: {}, fname: '', res: null, sel: {}, step: 1, busy: false, report: null, fmt: '', fileRows: null, exp: '', absorb: true, keep: null, fdate: '', ref: '' }); stPaint(); openModal('cm-st'); }
+  // ── Excel (.xlsx) পড়া ──
+  function loadXlsx() { return new Promise(res => { if (window.XLSX) return res(true); const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; sc.onload = () => res(!!window.XLSX); sc.onerror = () => res(false); document.head.appendChild(sc); setTimeout(() => res(!!window.XLSX), 15000); }); }
+  async function readXlsx(f) { if (!(await loadXlsx())) throw new Error('lib'); const wb = window.XLSX.read(await f.arrayBuffer(), { type: 'array' }); const ws = wb.Sheets[wb.SheetNames[0]]; return window.XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '', blankrows: false }).map(r => r.map(c => c == null ? '' : String(c))); }
+  // ── কুরিয়ারের নিজস্ব স্টেটমেন্ট ফরম্যাট চেনা ──
+  function fmtOf(rows) {
+    for (let i = 0; i < Math.min(rows.length, 8); i++) {
+      const h = rows[i].map(norm), has = (...a) => a.every(x => h.includes(x));
+      if (has('tracking code', 'shipping charge', 'delivery status', 'cod charge')) return { f: 'sf', hi: i, h };
+      if (has('consignment id', 'invoice type', 'delivery fee', 'payout')) return { f: 'pt', hi: i, h };
+    }
+    return null;
+  }
+  const PFX = /^[a-z]{2}(?=\d{6}[a-z0-9]{6}$)/;            // Pathao: DI/RE/RI/EI + ১২ অক্ষরের মূল কোড
+  const spx = v => String(v || '').toLowerCase().replace(PFX, '');
+  const CANON = ['Order ID', 'Tracking Code', 'COD Amount', 'Delivery Charge', 'COD Charge', 'Other', 'Net', 'Date', 'স্টেটমেন্টে অবস্থা', 'ধরন', 'বাদের কারণ'];
+  // স্টেটমেন্টের সারি → অ্যাপের সাধারণ কলামে (ধরন: D=Delivered, X=Cancelled/Returned চার্জ-ওনলি, P=Pathao, S=বাদ)
+  function toCanon(rows, F) {
+    const ix = n => F.h.indexOf(n), body = rows.slice(F.hi + 1).filter(r => r.some(c => String(c).trim() !== '')), out = [CANON.slice()];
+    const N = v => { const a = amt(v); return a === null || Number.isNaN(a) ? 0 : a; };
+    if (F.f === 'sf') {
+      const iT = ix('tracking code'), iS = ix('delivery status'), iC = ix('cod amount'), iD = ix('shipping charge'), iF = ix('cod charge'), iP = ix('payment status'), iO = ix('order id');
+      body.forEach(r => {
+        const trk = String(r[iT] || '').trim(), s = String(r[iS] || '').trim(), sl = s.toLowerCase(), ps = iP >= 0 ? String(r[iP] || '').trim().toLowerCase() : 'paid';
+        const col = N(r[iC]), del = N(r[iD]), cod = N(r[iF]);
+        if (ps && ps !== 'paid') out.push(['', trk, '', '', '', '', '', '', s, 'S', 'Payment Status "' + (r[iP] || '') + '" — এখনো টাকা আসেনি, এটা পেমেন্ট স্টেটমেন্ট নয়']);
+        else if (sl === 'delivered') out.push(['', trk, col, del, cod, 0, R2(col - del - cod), '', s, 'D', '']);
+        else if (/^(cancel|return)/.test(sl)) out.push(['', trk, 0, del, 0, 0, R2(-del), '', s, 'X', '']);
+        else out.push(['', trk, '', '', '', '', '', '', s, 'S', 'স্ট্যাটাস "' + (s || '?') + '" — স্টেটমেন্টের পার্সেল নয় / ফরম্যাট দেখা নেই, বাদ']);
+      });
+    } else {
+      const iI = ix('consignment id'), iCol = ix('collected amount'), iCod = ix('cod fee'), iDel = ix('delivery fee'), iPay = ix('payout'), iDt = ix('created date'), iM = ix('merchant order id'), iTy = ix('invoice type');
+      const g = new Map();
+      body.forEach(r => {
+        const raw = String(r[iI] || '').trim(), base = raw.replace(/^[A-Za-z]{2}(?=\d{6}[A-Za-z0-9]{6}$)/, ''); if (!base) return;
+        const o = g.get(base) || { base, col: 0, del: 0, cod: 0, net: 0, date: '', ty: [], mo: '' }; g.set(base, o);
+        o.col += N(r[iCol]); o.del += N(r[iDel]); o.cod += N(r[iCod]); o.net += N(r[iPay]);
+        const d = String(r[iDt] || '').slice(0, 10); if (d > o.date) o.date = d; const t = String(r[iTy] || '').trim().toLowerCase(); if (t && o.ty.indexOf(t) < 0) o.ty.push(t);
+        const m = iM >= 0 ? String(r[iM] || '').trim() : ''; if (m && !/^n\/?a$/i.test(m)) o.mo = m;
+      });
+      g.forEach(o => out.push([o.mo, o.base, R2(o.col), R2(o.del), R2(o.cod), R2(o.col - o.del - o.cod - o.net), R2(o.net), o.date, o.ty.join('+'), 'P', '']));
+    }
+    return out;
+  }
+  const FMT_NAME = { sf: 'Steadfast স্টেটমেন্ট (Excel)', pt: 'Pathao পেমেন্ট ইনভয়েস (CSV)' };
   function evalRows() {
-    const R = K1.R, rows = ST.rows.slice(ST.hi + 1), M = ST.map, out = [], seen = {};
-    const idx = { id: {}, tr: {}, cid: {} }; R.rows.forEach(r => { if (ST.courier && r.cn !== ST.courier) return; idx.id[nk(C1.nid(r.id))] = r; if (r.tr) idx.tr[nk(r.tr)] = r; if (r.cid) idx.cid[nk(r.cid)] = r; });
+    const R = K1.R, rows = ST.rows.slice(ST.hi + 1), M = ST.map, out = [], seen = {}, pt = ST.fmt === 'pt';
+    const idx = { id: {}, tr: {}, cid: {}, pb: {} }; R.rows.forEach(r => { if (ST.courier && r.cn !== ST.courier) return; idx.id[nk(C1.nid(r.id))] = r; if (r.tr) { idx.tr[nk(r.tr)] = r; idx.pb[spx(nk(r.tr))] = r; } if (r.cid) { idx.cid[nk(r.cid)] = r; idx.pb[spx(nk(r.cid))] = r; } });
     const get = (row, f) => M[f] === undefined || M[f] === '' ? '' : row[M[f]];
+    const isCR = r => r.st === 'Cancelled' || r.st === 'Returned';
     rows.forEach((row, i) => {
       if (!row.some(c => String(c).trim() !== '')) return;
-      const idv = nk(get(row, 'oid')), trv = nk(get(row, 'trk')); let r = null;
+      const fl = ST.fmt ? String(row[9] || '') : '', idv = nk(get(row, 'oid')), trv = nk(get(row, 'trk')); let r = null, viaPfx = false;
       [idv, trv].forEach(v => { if (!r && v) r = idx.id[nk(C1.nid(v))] || idx.id[v.replace(/^[a-z\-_]+/i, '')] || idx.tr[v] || idx.cid[v] || null; });
+      if (!r && pt) [idv, trv].forEach(v => { if (!r && v) { r = idx.pb[spx(v)] || null; viaPfx = !!r; } });
       const col = amt(get(row, 'col')), del = amt(get(row, 'del')), cod = amt(get(row, 'cod')), oth = amt(get(row, 'oth')), netv = amt(get(row, 'net'));
-      const o = { i: i + ST.hi + 2, row, r, col: col || 0, del: del || 0, cod: cod || 0, oth: oth || 0, net: null, st: '', msg: '', ok: false, diff: false, date: csvLib().parseDateAny ? csvLib().parseDateAny(String(get(row, 'date'))) : '' };
+      const o = { i: i + ST.hi + 2, row, r, col: col || 0, del: del || 0, cod: cod || 0, oth: oth || 0, net: null, st: '', msg: '', ok: false, diff: false, co: false, fl, stm: String(row[8] || ''), date: ST.fmt === 'pt' ? String(row[7] || '') : (csvLib().parseDateAny ? csvLib().parseDateAny(String(get(row, 'date'))) : '') };
+      if (fl === 'S') { o.st = 'skip'; o.msg = String(row[10] || 'বাদ'); out.push(o); return; }
       const bad = [col, del, cod, oth, netv].some(x => Number.isNaN(x));
       if (bad) { o.st = 'bad'; o.msg = 'সংখ্যা পড়া যায়নি'; }
-      else if (netv !== null) o.net = netv; else if (M.col !== undefined && M.col !== '' && col !== null) o.net = Math.round((o.col - o.del - o.cod - o.oth) * 100) / 100;
+      else if (netv !== null) o.net = netv; else if (M.col !== undefined && M.col !== '' && col !== null) o.net = R2(o.col - o.del - o.cod - o.oth);
       if (!o.st && o.net === null) { o.st = 'bad'; o.msg = 'নেট টাকা নেই (নেট কলাম বা আদায়কৃত টাকা মেলান)'; }
       if (!o.st) {
         if (!r) { o.st = 'nomatch'; o.msg = 'অর্ডার পাওয়া যায়নি' + (ST.courier ? ' (' + ST.courier + ' এর মধ্যে)' : ''); }
         else if (seen[r.id]) { o.st = 'dupfile'; o.msg = 'ফাইলে একই অর্ডার আবার'; }
         else if (r.set) { o.st = 'dup'; o.msg = 'আগেই সেটেল করা আছে'; }
+        else if (fl === 'X' && !isCR(r)) { o.st = 'notdel'; o.msg = 'স্টেটমেন্টে ' + o.stm + ', কিন্তু অ্যাপে ' + r.st + ' — অ্যাপের স্ট্যাটাস মিলিয়ে নিন'; }
+        else if (fl === 'X' || (fl === 'P' && o.col === 0 && isCR(r))) {
+          if (o.del <= 0 && o.net >= 0) { o.st = 'bad'; o.msg = 'কোনো চার্জ নেই — বাদ'; }
+          else { o.ok = true; o.co = true; o.st = 'ok'; seen[r.id] = 1; o.msg = 'চার্জ-ওনলি (' + r.st + ')'; }
+        }
         else if (r.st !== 'Delivered') { o.st = 'notdel'; o.msg = 'অ্যাপে Delivered নয় (' + r.st + ') — লাইভ রিফ্রেশ করুন'; }
-        else { o.ok = true; o.st = 'ok'; seen[r.id] = 1; if (o.col > 0 && Math.abs(o.col - (r.total + r.deliv)) > 1) { o.diff = true; o.msg = 'আদায় ' + taka(o.col) + ' ≠ অর্ডার ' + taka(r.total + r.deliv); } }
+        else { o.ok = true; o.st = 'ok'; seen[r.id] = 1; if (o.col > 0 && Math.abs(o.col - (r.total + r.deliv - r.paid)) > 1) { o.diff = true; o.msg = 'আদায় ' + taka(o.col) + ' ≠ অর্ডার ' + taka(r.total + r.deliv - r.paid); } else if (viaPfx) o.msg = 'প্রিফিক্স (DI/RE…) বাদ দিয়ে মিলেছে'; }
       }
       out.push(o);
     });
     return out;
   }
+  const netTxt = n => n < 0 ? `<span style="color:var(--red)">−${taka(-n).replace('-', '')}</span>` : taka(n);
+  function stKeep(m) { const q = s => m.querySelector(s); if (!q('#st-date')) return; ST.keep = { d: q('#st-date').value, m: q('#st-met').value, r: q('#st-ref').value, n: q('#st-note').value, a: q('#st-apply').checked }; if (q('#st-exp')) ST.exp = q('#st-exp').value; }
+  // স্টেটমেন্টের "আপনি পাবেন" টাকার সাথে অ্যাপের হিসাব মিলানো (শুধু এই বাক্সটুকু নতুন করে আঁকা হয় — টাইপ করার সময় ফোকাস হারায় না)
+  function chkBlock() {
+    const C = ST.calc || { sNet: 0, fileNet: 0, full: false, n: 0 }, expN = String(ST.exp).trim() === '' ? null : amt(ST.exp); let h = ''; ST.bigDiff = false; ST.absorbOn = false;
+    if (expN !== null && Number.isNaN(expN)) return '<div class="cm-mu" style="color:var(--red)">টাকার সংখ্যা ঠিক নয়</div>';
+    if (expN === null) return '';
+    const cmp = C.full ? C.sNet : C.fileNet, dval = R2(expN - cmp), cap = Math.min(30, 1.5 * Math.max(1, C.n));
+    if (Math.abs(dval) < 0.005) h = `<div class="cm-b g" style="display:inline-block">✅ স্টেটমেন্টের মোট ${taka(expN)} এর সাথে হুবহু মিলেছে</div>`;
+    else if (C.full && Math.abs(dval) <= cap) { ST.absorbOn = ST.absorb; h = `<div class="cm-b o" style="display:inline-block">⚠️ ছোট পার্থক্য ${dval > 0 ? '+' : ''}${taka(dval)}</div><label style="display:block;margin-top:4px;font-size:12.5px"><input type="checkbox" id="st-abs"${ST.absorb ? ' checked' : ''} style="width:auto"> রাউন্ডিংয়ের এই পার্থক্য সবচেয়ে বড় লাইনে মিলিয়ে নাও (যাতে মোট ঠিক ${taka(expN)} হয়)</label>`; }
+    else { ST.bigDiff = true; h = `<div class="cm-note" style="border-color:var(--red);margin:0">❌ <b>বড় গরমিল ${dval > 0 ? '+' : ''}${taka(dval)}</b> — ${C.full ? 'আপনার দেওয়া ' + taka(expN) + ' বনাম অ্যাপের হিসাব ' + taka(C.sNet) : 'ফাইলের মোট ' + taka(C.fileNet) + ' বনাম আপনার ' + taka(expN)}। ফাইল/কুরিয়ার ঠিক আছে কিনা দেখুন; তবুও সেভ করলে নিশ্চিত করতে হবে।</div>`; }
+    if (!C.full && Math.abs(R2(C.fileNet - C.sNet)) > 0.005) h += `<div class="cm-mu" style="margin-top:4px">ইমপোর্ট হচ্ছে না এমন সারির নেট ${taka(R2(C.fileNet - C.sNet))} — সেটা মোটে ধরা নেই।</div>`;
+    return h;
+  }
+  function chkWire(m) { const a = m.querySelector('#st-abs'); if (a) a.onchange = () => { ST.absorb = a.checked; ST.absorbOn = a.checked; }; }
   function stPaint() {
     const m = ensureModal('cm-st', 900); const R = K1.R; let body = '';
     if (ST.step === 1) {
       const names = Array.from(new Set(R ? R.rows.map(r => r.cn) : []));
-      body = `<div class="cm-note" style="margin-bottom:12px">কুরিয়ারের পেমেন্ট/স্টেটমেন্ট রিপোর্ট <b>CSV</b> হিসেবে নামিয়ে এখানে দিন (Excel হলে: File → Save As → CSV)। অ্যাপ কলাম নিজে চিনে নেবে, ভুল হলে পরের ধাপে হাতে ঠিক করা যাবে। সেভ করার আগে সব দেখে নিতে পারবেন।</div>
-        <div class="cm-fm"><div class="w"><label>কোন কুরিয়ারের স্টেটমেন্ট?</label><select class="cm-sel" id="st-co" style="width:100%"><option value="">— বাছুন —</option>${names.map(n => `<option value="${esc(n)}"${ST.courier === n ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></div>
-        <div class="w"><div class="cm-drop"><input type="file" id="st-file" accept=".csv,.txt,.tsv,text/csv"><div style="margin-top:8px">অথবা স্টেটমেন্টের লেখা সরাসরি পেস্ট করুন:</div><textarea id="st-txt" rows="5" placeholder="Invoice,Tracking Code,COD Amount,Delivery Charge,COD Charge,Payable…" style="width:100%;box-sizing:border-box;margin-top:6px;background:var(--bg,#000);color:var(--text,#eee);border:1px solid var(--border,#262626);border-radius:8px;padding:8px;font-family:monospace;font-size:12px"></textarea></div></div></div>
+      body = `<div class="cm-note" style="margin-bottom:12px">কুরিয়ারের <b>পেমেন্ট স্টেটমেন্ট</b> ফাইল দিন — <b>Steadfast:</b> Payments → স্টেটমেন্টের Excel (.xlsx) · <b>Pathao:</b> paid invoice CSV। অ্যাপ ফরম্যাট নিজে চিনে কুরিয়ার বেছে নেবে। অন্য কুরিয়ারের CSV হলে কলাম পরের ধাপে মেলানো যাবে। <b>সেভের আগে কিছুই বদলায় না</b>, আর সেভের পর ভুল হলে এক ক্লিকে "ফেরত নিন" করা যায়।</div>
+        <div class="cm-fm"><div class="w"><label>কোন কুরিয়ারের স্টেটমেন্ট?</label><select class="cm-sel" id="st-co" style="width:100%"><option value="">— বাছুন (ফাইল চিনলে নিজেই বসবে) —</option>${names.map(n => `<option value="${esc(n)}"${ST.courier === n ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></div>
+        <div class="w"><div class="cm-drop"><input type="file" id="st-file" accept=".xlsx,.xls,.csv,.txt,.tsv,text/csv"><div id="st-fn" class="cm-mu" style="margin-top:6px">${ST.fname ? '📄 ' + esc(ST.fname) + (ST.fmt ? ' — ' + FMT_NAME[ST.fmt] : '') : ''}</div><div style="margin-top:8px">অথবা CSV-র লেখা সরাসরি পেস্ট করুন:</div><textarea id="st-txt" rows="4" placeholder="Consignment_ID,Invoice type,Collected_Amount,…" style="width:100%;box-sizing:border-box;margin-top:6px;background:var(--bg,#000);color:var(--text,#eee);border:1px solid var(--border,#262626);border-radius:8px;padding:8px;font-family:monospace;font-size:12px"></textarea></div></div></div>
         <div style="margin-top:12px"><button class="cm-btn gold" id="st-go">পরের ধাপ →</button></div>`;
     } else if (ST.step === 2) {
       const hdr = ST.rows[ST.hi] || [], res = evalRows(); ST.res = res;
-      const cnt = { ok: 0, diff: 0, dup: 0, bad: 0, nomatch: 0, notdel: 0, dupfile: 0 }; res.forEach(o => { if (o.ok) { cnt.ok++; if (o.diff) cnt.diff++; } else if (cnt[o.st] !== undefined) cnt[o.st]++; });
+      const cnt = { ok: 0, diff: 0, co: 0, dup: 0, bad: 0, nomatch: 0, notdel: 0, dupfile: 0, skip: 0 }; res.forEach(o => { if (o.ok) { cnt.ok++; if (o.diff) cnt.diff++; if (o.co) cnt.co++; } else if (cnt[o.st] !== undefined) cnt[o.st]++; });
       res.forEach(o => { if (o.ok && ST.sel[o.i] === undefined) ST.sel[o.i] = true; if (!o.ok) delete ST.sel[o.i]; });
-      const chk = res.filter(o => o.ok && ST.sel[o.i]); const sNet = chk.reduce((a, o) => a + o.net, 0), sCod = chk.reduce((a, o) => a + o.cod, 0), sDel = chk.reduce((a, o) => a + o.del, 0);
+      const chk = res.filter(o => o.ok && ST.sel[o.i]), sNet = R2(chk.reduce((a, o) => a + o.net, 0)), sCod = chk.reduce((a, o) => a + o.cod, 0), sDel = chk.reduce((a, o) => a + o.del, 0), sCol = chk.reduce((a, o) => a + o.col, 0);
+      const stm = res.filter(o => o.st !== 'skip' && o.st !== 'bad' && o.net !== null), fileNet = R2(stm.reduce((a, o) => a + o.net, 0)), full = chk.length > 0 && chk.length === stm.length;
+      const kp = ST.keep || {};
+      ST.calc = { sNet, fileNet, full, n: chk.length };
       const opts = sel => '<option value="">— নেই —</option>' + hdr.map((h, i) => `<option value="${i}"${String(sel) === String(i) ? ' selected' : ''}>${esc(String.fromCharCode(65 + (i % 26)))}: ${esc(h || '(খালি)')}</option>`).join('');
-      const dates = res.filter(o => o.ok && o.date).map(o => o.date).sort(), dd = dates.length ? dates[dates.length - 1] : todayStr();
-      body = `<div style="font-size:13px;margin-bottom:8px">${esc(ST.fname || 'পেস্ট করা লেখা')} · ${ST.rows.length - ST.hi - 1}টি সারি · কুরিয়ার: <b>${esc(ST.courier)}</b></div>
-        <details ${cnt.ok ? '' : 'open'} style="margin-bottom:10px"><summary style="cursor:pointer;font-weight:700">🧭 কলাম মেলানো ${cnt.ok ? '(ঠিকঠাক চিনেছে ✅)' : '— একটু ঠিক করতে হবে'}</summary><div class="cm-mapg" style="margin-top:8px">${Object.keys(FIELDS).map(f => `<div><label>${FIELDS[f].l}</label><select class="cm-sel" data-map="${f}">${opts(ST.map[f])}</select></div>`).join('')}</div>
-          <div class="cm-mu" style="margin-top:6px">অর্ডার ID বা ট্র্যাকিং — যেকোনো একটি মেলালেই চলবে। "নেট পেমেন্ট" না থাকলে আদায় − ডেলিভারি − COD চার্জ − অন্যান্য থেকে হিসাব হবে।</div></details>
-        <div class="cm-chips"><span class="cm-chip" style="border-color:var(--green);color:var(--green)">✅ মিলেছে ${cnt.ok}</span>${cnt.diff ? `<span class="cm-chip" style="border-color:var(--orange);color:var(--orange)">⚠️ আদায়ে গরমিল ${cnt.diff}</span>` : ''}${cnt.dup ? `<span class="cm-chip">⏭️ আগেই সেটেল ${cnt.dup}</span>` : ''}${cnt.notdel ? `<span class="cm-chip" style="border-color:var(--orange);color:var(--orange)">⏳ Delivered নয় ${cnt.notdel}</span>` : ''}${cnt.nomatch ? `<span class="cm-chip" style="border-color:var(--red);color:var(--red)">❌ অর্ডার নেই ${cnt.nomatch}</span>` : ''}${cnt.bad ? `<span class="cm-chip" style="border-color:var(--red);color:var(--red)">❌ সংখ্যা ভুল ${cnt.bad}</span>` : ''}${cnt.dupfile ? `<span class="cm-chip">দুবার ${cnt.dupfile}</span>` : ''}</div>
-        <div class="cm-scr"><table class="cm-st-tb"><thead><tr><th></th><th>লাইন</th><th>অর্ডার</th><th>আদায়</th><th>ডেলিভারি</th><th>COD</th><th>অন্যান্য</th><th>নেট</th><th>অবস্থা</th></tr></thead><tbody>${res.slice(0, 400).map(o => `<tr style="${o.ok ? '' : 'opacity:.75'}"><td>${o.ok ? `<input type="checkbox" data-sk="${o.i}"${ST.sel[o.i] ? ' checked' : ''}>` : ''}</td><td>${o.i}</td><td>${o.r ? '<b>#' + esc(o.r.id) + '</b> ' + esc(o.r.name) : '<span class="cm-mu">' + esc(String(o.row[ST.map.oid] != null ? o.row[ST.map.oid] : (o.row[ST.map.trk] || '—'))) + '</span>'}</td><td>${taka(o.col)}</td><td>${taka(o.del)}</td><td>${taka(o.cod)}${o.ok && o.r.codSrc === 'est' && Math.abs(o.r.codAmt - o.cod) > 0.01 ? `<div class="cm-mu">অনুমান ${taka(o.r.codAmt)}</div>` : ''}</td><td>${o.oth ? taka(o.oth) : '—'}</td><td><b>${o.net === null ? '—' : taka(o.net)}</b></td><td>${o.ok ? (o.diff ? '<span class="cm-b o">⚠️ ' + esc(o.msg) + '</span>' : '<span class="cm-b g">✅</span>') : '<span class="cm-b r">' + esc(o.msg) + '</span>'}</td></tr>`).join('')}</tbody></table></div>${res.length > 400 ? '<div class="cm-mu">প্রথম ৪০০টি সারি দেখানো হচ্ছে (সবগুলো ইমপোর্ট হবে)।</div>' : ''}
-        <div style="margin:10px 0;font-size:13.5px">ইমপোর্ট হবে <b>${chk.length}টি</b> · নেট <b>${taka(sNet)}</b> · আসল COD চার্জ <b>${taka(sCod)}</b> · কুরিয়ারের ডেলিভারি চার্জ <b>${taka(sDel)}</b></div>
-        <div class="cm-fm"><div><label>টাকা পাওয়ার তারিখ</label><input id="st-date" type="date" value="${dd > todayStr() ? todayStr() : dd}" max="${todayStr()}"></div><div><label>মাধ্যম</label><select class="cm-sel" id="st-met" style="width:100%">${METHODS.map(x => `<option>${x}</option>`).join('')}</select></div>
-          <div><label>রেফারেন্স (ঐচ্ছিক)</label><input id="st-ref" maxlength="60" value="${esc((ST.fname || '').replace(/\.[^.]+$/, '').slice(0, 50))}"></div><div><label>নোট (ঐচ্ছিক)</label><input id="st-note" maxlength="200"></div>
-          <div class="w"><label style="color:var(--text,#eee);font-size:13px"><input type="checkbox" id="st-apply" checked style="width:auto"> আসল COD চার্জ অর্ডারে বসাও (অনুমানের জায়গায়; অডিটে থাকবে, বাতিল করলে আগের মান ফেরে)</label></div></div>
+      const dates = res.filter(o => o.ok && o.date).map(o => o.date).sort(), dd = ST.fdate || (dates.length ? dates[dates.length - 1] : todayStr());
+      const cc = chk.filter(o => !o.co && o.cod > 0 && o.r.st === 'Delivered' && Math.abs(o.r.codAmt - o.cod) > 0.005);
+      const un = res.filter(o => o.st === 'nomatch'), unSum = R2(un.reduce((a, o) => a + (o.net || 0), 0));
+      body = `<div style="font-size:13px;margin-bottom:8px">${esc(ST.fname || 'পেস্ট করা লেখা')}${ST.fmt ? ' · <b>' + FMT_NAME[ST.fmt] + '</b> চিনেছে ✅' : ''} · ${ST.rows.length - ST.hi - 1}টি ${ST.fmt === 'pt' ? 'অর্ডার (কনসাইনমেন্ট একত্র করে)' : 'সারি'} · কুরিয়ার: <b>${esc(ST.courier)}</b></div>
+        ${ST.fmt ? '' : `<details ${cnt.ok ? '' : 'open'} style="margin-bottom:10px"><summary style="cursor:pointer;font-weight:700">🧭 কলাম মেলানো ${cnt.ok ? '(ঠিকঠাক চিনেছে ✅)' : '— একটু ঠিক করতে হবে'}</summary><div class="cm-mapg" style="margin-top:8px">${Object.keys(FIELDS).map(f => `<div><label>${FIELDS[f].l}</label><select class="cm-sel" data-map="${f}">${opts(ST.map[f])}</select></div>`).join('')}</div>
+          <div class="cm-mu" style="margin-top:6px">অর্ডার ID বা ট্র্যাকিং — যেকোনো একটি মেলালেই চলবে। "নেট পেমেন্ট" না থাকলে আদায় − ডেলিভারি − COD চার্জ − অন্যান্য থেকে হিসাব হবে।</div></details>`}
+        <div class="cm-chips"><span class="cm-chip" style="border-color:var(--green);color:var(--green)">✅ মিলেছে ${cnt.ok}</span>${cnt.co ? `<span class="cm-chip" style="border-color:var(--orange);color:var(--orange)">🧾 চার্জ-ওনলি ${cnt.co}</span>` : ''}${cnt.diff ? `<span class="cm-chip" style="border-color:var(--orange);color:var(--orange)">⚠️ আদায়ে গরমিল ${cnt.diff}</span>` : ''}${cnt.dup ? `<span class="cm-chip">⏭️ আগেই সেটেল ${cnt.dup}</span>` : ''}${cnt.skip ? `<span class="cm-chip">⏭️ স্টেটমেন্টের নয় ${cnt.skip}</span>` : ''}${cnt.notdel ? `<span class="cm-chip" style="border-color:var(--orange);color:var(--orange)">⏳ স্ট্যাটাস মেলেনি ${cnt.notdel}</span>` : ''}${cnt.nomatch ? `<span class="cm-chip" style="border-color:var(--red);color:var(--red)">❌ অর্ডার নেই ${cnt.nomatch}</span>` : ''}${cnt.bad ? `<span class="cm-chip" style="border-color:var(--red);color:var(--red)">❌ সংখ্যা ভুল ${cnt.bad}</span>` : ''}${cnt.dupfile ? `<span class="cm-chip">দুবার ${cnt.dupfile}</span>` : ''}</div>
+        ${cnt.skip ? `<div class="cm-note" style="margin:8px 0">ℹ️ <b>${cnt.skip}টি সারি বাদ</b> — পেমেন্ট স্টেটমেন্টে যেসব পার্সেল আসেনি (Pending / "No Defined" / Unpaid) সেগুলো কখনো চার্জ হিসেবে ধরা হয় না।</div>` : ''}
+        ${un.length ? `<div class="cm-note" style="margin:8px 0;border-color:var(--red)"><b>❌ মেলেনি ${un.length}টি${unSum ? ' (নেট ' + taka(unSum) + ')' : ''}</b> — এগুলোর টাকা স্টেটমেন্টে আছে কিন্তু অ্যাপের অর্ডারের সাথে মেলেনি, তাই সেভ হবে না: ${un.slice(0, 12).map(o => esc(String(o.row[ST.map.trk] || o.row[ST.map.oid] || '—'))).join(', ')}${un.length > 12 ? ' …' : ''}${ST.fmt === 'pt' ? '<br><span class="cm-mu">Pathao কোড অ্যাপে কীভাবে লেখা আছে মিলিয়ে দেখুন (প্রথম ২ অক্ষর DI/RE… বাদ দিয়ে মেলানো হয়)।</span>' : ''}</div>` : ''}
+        <div class="cm-scr"><table class="cm-st-tb"><thead><tr><th></th><th>লাইন</th><th>অর্ডার</th><th>আদায়</th><th>ডেলিভারি</th><th>COD</th><th>অন্যান্য</th><th>নেট</th><th>অবস্থা</th></tr></thead><tbody>${res.slice(0, 400).map(o => `<tr style="${o.ok ? '' : 'opacity:.75'}"><td>${o.ok ? `<input type="checkbox" data-sk="${o.i}"${ST.sel[o.i] ? ' checked' : ''}>` : ''}</td><td>${o.i}</td><td>${o.r ? '<b>#' + esc(o.r.id) + '</b> ' + esc(o.r.name) : '<span class="cm-mu">' + esc(String(o.row[ST.map.oid] ? o.row[ST.map.oid] : (o.row[ST.map.trk] || '—'))) + '</span>'}${o.stm ? `<div class="cm-mu">${esc(o.stm)}</div>` : ''}</td><td>${o.st === 'skip' ? '—' : taka(o.col)}</td><td>${o.st === 'skip' ? '—' : taka(o.del)}</td><td>${o.st === 'skip' ? '—' : taka(o.cod)}${o.ok && !o.co && o.r.codSrc === 'est' && Math.abs(o.r.codAmt - o.cod) > 0.01 ? `<div class="cm-mu">অনুমান ${taka(o.r.codAmt)}</div>` : ''}</td><td>${o.oth ? taka(o.oth) : '—'}</td><td><b>${o.net === null ? '—' : netTxt(o.net)}</b></td><td>${o.ok ? (o.diff ? '<span class="cm-b o">⚠️ ' + esc(o.msg) + '</span>' : o.co ? '<span class="cm-b o">🧾 ' + esc(o.msg) + '</span>' : o.msg ? '<span class="cm-b g">✅ ' + esc(o.msg) + '</span>' : '<span class="cm-b g">✅</span>') : '<span class="cm-b ' + (o.st === 'skip' || o.st === 'dup' ? 'm' : 'r') + '">' + esc(o.msg) + '</span>'}</td></tr>`).join('')}</tbody></table></div>${res.length > 400 ? '<div class="cm-mu">প্রথম ৪০০টি সারি দেখানো হচ্ছে (সবগুলো ইমপোর্ট হবে)।</div>' : ''}
+        <div style="margin:10px 0;font-size:13.5px;line-height:1.7">ইমপোর্ট হবে <b>${chk.length}টি</b>${cnt.co ? ' (চার্জ-ওনলি ' + chk.filter(o => o.co).length + 'টি সহ)' : ''} · আদায় ${taka(sCol)} − ডেলিভারি চার্জ ${taka(sDel)} − COD চার্জ ${taka(sCod)}<br>${sNet >= 0 ? '💰 কুরিয়ার আপনাকে দেবে' : '⚠️ কুরিয়ারকে আপনার দিতে হবে'} <b style="font-size:16px;color:${sNet >= 0 ? 'var(--green)' : 'var(--red)'}">${taka(Math.abs(sNet))}</b> <span class="cm-mu">(নেট ${sNet < 0 ? '−' : ''}${taka(Math.abs(sNet))})</span></div>
+        <div class="cm-fm"><div class="w"><label>স্টেটমেন্টে লেখা "আপনি পাবেন / Payable" টাকা (ঐচ্ছিক — অ্যাপের হিসাব মিলিয়ে দেখতে; Pathao-তে মাইনাস হলে − দিয়ে লিখুন)</label><input id="st-exp" inputmode="decimal" placeholder="যেমন 473 বা -481" value="${esc(ST.exp)}"><div id="st-chk" style="margin-top:6px">${chkBlock()}</div></div>
+          <div><label>টাকা পাওয়ার তারিখ</label><input id="st-date" type="date" value="${kp.d || (dd > todayStr() ? todayStr() : dd)}" max="${todayStr()}"></div><div><label>মাধ্যম</label><select class="cm-sel" id="st-met" style="width:100%">${METHODS.map(x => `<option${kp.m === x ? ' selected' : ''}>${x}</option>`).join('')}</select></div>
+          <div><label>রেফারেন্স (ঐচ্ছিক)</label><input id="st-ref" maxlength="60" value="${esc(kp.r != null ? kp.r : (ST.ref || (ST.fname || '').replace(/\.[^.]+$/, '').slice(0, 50)))}"></div><div><label>নোট (ঐচ্ছিক)</label><input id="st-note" maxlength="200" value="${esc(kp.n || '')}"></div>
+          <div class="w"><label style="color:var(--text,#eee);font-size:13px"><input type="checkbox" id="st-apply"${kp.a ? ' checked' : ''} style="width:auto"> আসল COD চার্জ অর্ডারের শিটেও বসাও <span class="cm-mu">(ঐচ্ছিক। না বসালেও টাকার হিসাব ঠিক থাকে; বসালে অর্ডারের COD/নেট কলাম বদলাবে, বাতিলে আগের মান ফেরে)</span></label>
+            <details style="margin-top:4px"><summary class="cm-mu" style="cursor:pointer">${cc.length ? 'বসালে ' + cc.length + 'টি অর্ডারের COD চার্জ বদলাবে — দেখুন' : 'বসালে কোনো অর্ডারের COD চার্জ বদলাবে না'}</summary>${cc.slice(0, 10).map(o => `<div class="cm-mu">#${esc(o.r.id)}: ${taka(o.r.codAmt)} → <b>${taka(o.cod)}</b></div>`).join('')}${cc.length > 10 ? '<div class="cm-mu">…আরও ' + (cc.length - 10) + 'টি</div>' : ''}</details></div></div>
         <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="cm-btn" id="st-back">← আবার ফাইল</button><button class="cm-btn gold" id="st-save"${chk.length && !ST.busy ? '' : ' disabled'}>💾 ${chk.length}টি ইমপোর্ট করুন (PIN লাগবে)</button></div>`;
     } else if (ST.step === 3) {
-      const rp = ST.report; body = `<div style="font-size:15px;margin-bottom:10px">${rp.fail ? '⚠️' : '✅'} <b>${rp.accepted}টি অর্ডার সেটেল হয়েছে</b> — মোট <b>${taka(rp.amount)}</b>${rp.codChanged ? ` · ${rp.codChanged}টি অর্ডারে আসল COD চার্জ বসেছে` : ''}</div>${rp.payIds.length ? `<div class="cm-mu">পেমেন্ট ID: ${rp.payIds.map(esc).join(', ')}</div>` : ''}
+      const rp = ST.report; body = `<div style="font-size:15px;margin-bottom:10px">${rp.fail ? '⚠️' : '✅'} <b>${rp.accepted}টি অর্ডার সেটেল হয়েছে</b> — নেট <b style="color:${rp.amount < 0 ? 'var(--red)' : 'inherit'}">${rp.amount < 0 ? '−' : ''}${taka(Math.abs(rp.amount))}</b>${rp.amount < 0 ? ' (কুরিয়ারকে দিতে হবে)' : ''}${rp.codChanged ? ` · ${rp.codChanged}টি অর্ডারে আসল COD চার্জ বসেছে` : ''}</div>${rp.payIds.length ? `<div class="cm-mu">পেমেন্ট ID: ${rp.payIds.map(esc).join(', ')}</div>` : ''}
+        ${rp.undone ? `<div class="cm-note" style="margin:10px 0;border-color:var(--green)">↩️ <b>এই ইমপোর্ট ফেরত নেওয়া হয়েছে</b> (${rp.undone}টি পেমেন্ট) — অর্ডারগুলো আবার আগের অবস্থায়।${rp.undoNotes && rp.undoNotes.length ? '<br>' + rp.undoNotes.map(esc).join('<br>') : ''}</div>` : ''}${rp.undoFail ? `<div class="cm-note" style="border-color:var(--red)">❌ ${esc(rp.undoFail)}</div>` : ''}
         ${rp.skipped.length ? `<div class="cm-note" style="margin:10px 0"><b>${rp.skipped.length}টি বাদ গেছে:</b><br>${rp.skipped.slice(0, 40).map(s => '#' + esc(s.orderId) + ' — ' + esc(s.reason)).join('<br>')}</div>` : ''}${rp.fail ? `<div class="cm-note" style="border-color:var(--red)">❌ ${esc(rp.fail)} — যা সেভ হয়েছে তা "পেমেন্ট ইতিহাস"-এ আছে; বাকিটা আবার ইমপোর্ট করুন (আগের গুলো নিজে বাদ পড়বে)।</div>` : ''}
-        <div style="margin-top:12px"><button class="cm-btn gold" onclick="closeModal('cm-st')">বন্ধ করুন</button></div>`;
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="cm-btn gold" onclick="closeModal('cm-st')">বন্ধ করুন</button>${rp.payIds.length && !rp.undone ? '<button class="cm-btn" id="st-undo">↩️ এই ইমপোর্ট ফেরত নিন</button>' : ''}</div>
+        ${rp.payIds.length && !rp.undone ? '<div class="cm-mu" style="margin-top:8px">ভুল মনে হলে "ফেরত নিন" চাপুন — এই ইমপোর্টের সব অর্ডার আবার "বাকি" হবে, বসানো COD চার্জ আগের মানে ফিরবে (PIN ও কারণ লাগবে, অডিটে থাকবে)। পরে নিজে বদলানো অর্ডারের COD অক্ষত থাকবে।</div>' : ''}`;
     }
     m.innerHTML = shell('cm-st', '📥 কুরিয়ার স্টেটমেন্ট ইমপোর্ট', body, 900);
     // ইভেন্ট
     const $m = s => m.querySelector(s);
     if (ST.step === 1) {
       $m('#st-co').onchange = e => { ST.courier = e.target.value; };
-      $m('#st-file').onchange = e => { const f = e.target.files[0]; if (!f) return; if (/\.xlsx?$/i.test(f.name)) { toast('Excel নয় — CSV হিসেবে Save As করে দিন', 'error'); e.target.value = ''; return; } const fr = new FileReader(); fr.onload = () => { $m('#st-txt').value = String(fr.result); ST.fname = f.name; }; fr.readAsText(f, 'utf-8'); };
+      $m('#st-file').onchange = async e => {
+        const f = e.target.files[0]; if (!f) return; ST.fname = f.name; ST.fileRows = null; ST.fmt = '';
+        const dm = f.name.match(/(\d{4}-\d{2}-\d{2})/), sm = f.name.match(/SFC-?\d+/i); ST.fdate = dm && dm[1] <= todayStr() ? dm[1] : ''; ST.ref = sm ? sm[0].toUpperCase().replace(/^SFC(?=\d)/, 'SFC-') : '';
+        if (/\.xlsx?$/i.test(f.name)) { toast('Excel পড়া হচ্ছে…'); try { ST.fileRows = await readXlsx(f); $m('#st-txt').value = ''; } catch (er) { ST.fname = ''; toast('Excel পড়া যায়নি (ইন্টারনেট লাগে) — Save As → CSV করে দিন', 'error'); e.target.value = ''; return; } }
+        else { const fr = new FileReader(); fr.onload = () => { $m('#st-txt').value = String(fr.result); }; fr.readAsText(f, 'utf-8'); }
+        const fn = $m('#st-fn'); if (fn) fn.textContent = '📄 ' + f.name;
+      };
       $m('#st-go').onclick = () => {
-        if (!ST.courier) return toast('কোন কুরিয়ারের স্টেটমেন্ট তা বাছুন', 'error'); const txt = $m('#st-txt').value; if (!txt.trim()) return toast('ফাইল দিন বা লেখা পেস্ট করুন', 'error');
-        let rows = []; try { rows = csvLib().parseCSV(txt); } catch (e) {} if (rows.length < 2) return toast('কমপক্ষে একটি হেডার ও একটি সারি লাগবে', 'error');
-        const d = detect(rows); ST.rows = rows; ST.hi = d.hi; ST.map = d.map;
-        try { const sv = JSON.parse(lsGet('ig_cm_map_' + ST.courier, 'null')); if (sv && rows[d.hi]) { const h = rows[d.hi].map(norm); Object.keys(sv).forEach(f => { const ci = h.indexOf(norm(sv[f])); if (ci >= 0) ST.map[f] = ci; }); } } catch (e) {}
-        ST.sel = {}; ST.step = 2; stPaint();
+        let rows = ST.fileRows || []; const txt = $m('#st-txt').value;
+        if (!rows.length) { if (!txt.trim()) return toast('ফাইল দিন বা লেখা পেস্ট করুন', 'error'); try { rows = csvLib().parseCSV(txt); } catch (e) {} }
+        if (rows.length < 2) return toast('কমপক্ষে একটি হেডার ও একটি সারি লাগবে', 'error');
+        const F = fmtOf(rows), names = Array.from(new Set(R ? R.rows.map(r => r.cn) : []));
+        if (F) {
+          const want = F.f === 'sf' ? 'steadfast' : 'pathao', found = names.find(n => key(n).includes(want));
+          if (!found) return toast('এই ফাইল ' + (F.f === 'sf' ? 'Steadfast' : 'Pathao') + '-এর, কিন্তু অ্যাপে ওই কুরিয়ারের কোনো অর্ডার নেই', 'error');
+          if (ST.courier && ST.courier !== found) toast('ফাইল দেখে কুরিয়ার "' + found + '" ধরা হয়েছে'); ST.courier = found;
+          ST.fmt = F.f; ST.rows = toCanon(rows, F); ST.hi = 0; ST.map = { oid: 0, trk: 1, col: 2, del: 3, cod: 4, oth: 5, net: 6, date: 7 };
+          if (F.f === 'pt' && !ST.fdate) { const ds = ST.rows.slice(1).map(r => r[7]).filter(Boolean).sort(); ST.fdate = ''; }
+        } else {
+          if (!ST.courier) return toast('কোন কুরিয়ারের স্টেটমেন্ট তা বাছুন', 'error');
+          ST.fmt = ''; const d = detect(rows); ST.rows = rows; ST.hi = d.hi; ST.map = d.map;
+          try { const sv = JSON.parse(lsGet('ig_cm_map_' + ST.courier, 'null')); if (sv && rows[d.hi]) { const h = rows[d.hi].map(norm); Object.keys(sv).forEach(f => { const ci = h.indexOf(norm(sv[f])); if (ci >= 0) ST.map[f] = ci; }); } } catch (e) {}
+        }
+        ST.sel = {}; ST.keep = null; ST.exp = ''; ST.step = 2; stPaint();
       };
     } else if (ST.step === 2) {
-      m.querySelectorAll('[data-map]').forEach(s => s.onchange = () => { ST.map[s.dataset.map] = s.value === '' ? undefined : Number(s.value); ST.sel = {}; stPaint(); });
-      m.querySelectorAll('[data-sk]').forEach(c => c.onchange = () => { ST.sel[c.dataset.sk] = c.checked; const keep = { d: $m('#st-date').value, m: $m('#st-met').value, r: $m('#st-ref').value, n: $m('#st-note').value, a: $m('#st-apply').checked }; stPaint(); $m('#st-date').value = keep.d; $m('#st-met').value = keep.m; $m('#st-ref').value = keep.r; $m('#st-note').value = keep.n; $m('#st-apply').checked = keep.a; });
+      m.querySelectorAll('[data-map]').forEach(s => s.onchange = () => { ST.map[s.dataset.map] = s.value === '' ? undefined : Number(s.value); ST.sel = {}; stKeep(m); stPaint(); });
+      m.querySelectorAll('[data-sk]').forEach(c => c.onchange = () => { ST.sel[c.dataset.sk] = c.checked; stKeep(m); stPaint(); });
+      const ex = $m('#st-exp'), upd = () => { ST.exp = ex.value; $m('#st-chk').innerHTML = chkBlock(); chkWire(m); }; ex.oninput = upd; ex.onchange = upd; chkWire(m);
       $m('#st-back').onclick = () => { ST.step = 1; stPaint(); };
       $m('#st-save').onclick = stSave;
-    }
+    } else if (ST.step === 3 && $m('#st-undo')) $m('#st-undo').onclick = undoBatch;
   }
   async function stSave() {
-    const m = $('modal-cm-st'), date = m.querySelector('#st-date').value, method = m.querySelector('#st-met').value, ref = m.querySelector('#st-ref').value.trim(), note = m.querySelector('#st-note').value.trim(), applyCod = m.querySelector('#st-apply').checked;
+    const m = $('modal-cm-st'); stKeep(m); chkBlock(); const kp = ST.keep, date = kp.d, method = kp.m, ref = kp.r.trim(), note = kp.n.trim(), applyCod = kp.a;
     const chk = (ST.res || []).filter(o => o.ok && ST.sel[o.i]); if (!chk.length) return; if (!date) return toast('তারিখ দিন', 'error');
+    if (ST.bigDiff && !window.confirm('স্টেটমেন্টের টাকার সাথে অ্যাপের হিসাবে বড় গরমিল আছে।\nতবুও ' + chk.length + 'টি অর্ডার সেটেল করবেন? (পরে "ফেরত নিন" করা যাবে)')) return;
     const pin = await _askPartnerPin(chk.length + 'টি অর্ডারের টাকা-পাওয়া সেভ করতে'); if (!pin) return;
     ST.busy = true; m.querySelector('#st-save').disabled = true; m.querySelector('#st-save').textContent = '⏳ সেভ হচ্ছে…';
-    const lines = chk.map(o => ({ orderId: o.r.id, tracking: o.r.tr, collected: o.col, delivery: o.del, cod: o.cod, other: o.oth, net: o.net })), CH = 300, n = Math.ceil(lines.length / CH);
+    const lines = chk.map(o => ({ orderId: o.r.id, tracking: o.r.tr, collected: o.col, delivery: o.del, cod: o.cod, other: o.oth, net: o.net, chargeOnly: !!o.co }));
+    if (ST.absorbOn && lines.length) { const exp = amt(ST.exp), d = R2(exp - R2(lines.reduce((a, l) => a + l.net, 0))); if (Math.abs(d) >= 0.005) { let b = lines[0]; lines.forEach(l => { if (l.collected > b.collected) b = l; }); b.net = R2(b.net + d); b.other = R2(b.other - d); } }
+    const CH = 300, n = Math.ceil(lines.length / CH);
     const rp = { accepted: 0, amount: 0, codChanged: 0, skipped: [], payIds: [], fail: '' }; let last = null; const batch = 'st' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     for (let k = 0; k < n; k++) {
       const x = await postToAPI({ action: 'courSettle', by: partner(), pin, source: 'STATEMENT', applyCod, cid: batch + '-' + k, payment: { date, method, ref: n > 1 ? (ref ? ref + ' ' : '') + '(' + (k + 1) + '/' + n + ')' : ref, note, courier: ST.courier }, lines: lines.slice(k * CH, (k + 1) * CH) });
       if (x && x.status === 'success') { rp.accepted += x.accepted || 0; rp.amount += x.amount || 0; rp.codChanged += (x.codChanged || []).length; rp.skipped = rp.skipped.concat(x.skipped || []); if (x.payId) rp.payIds.push(x.payId); last = x; }
       else { rp.fail = (x && x.message) || 'সার্ভারের উত্তর পাওয়া যায়নি'; if (x && x.skipped) rp.skipped = rp.skipped.concat(x.skipped); break; }
     }
-    ST.busy = false; rp.amount = Math.round(rp.amount * 100) / 100;
-    if (last) { try { const hdr = ST.rows[ST.hi]; const sv = {}; Object.keys(ST.map).forEach(f => { if (ST.map[f] !== undefined) sv[f] = hdr[ST.map[f]]; }); lsSet('ig_cm_map_' + ST.courier, JSON.stringify(sv)); } catch (e) {} apply(last); }
+    ST.busy = false; rp.amount = R2(rp.amount);
+    if (last) { if (!ST.fmt) { try { const hdr = ST.rows[ST.hi]; const sv = {}; Object.keys(ST.map).forEach(f => { if (ST.map[f] !== undefined) sv[f] = hdr[ST.map[f]]; }); lsSet('ig_cm_map_' + ST.courier, JSON.stringify(sv)); } catch (e) {} } apply(last); }
     if (!rp.accepted && rp.fail) { ST.step = 2; stPaint(); return; }   // কিছুই সেভ হয়নি (যেমন PIN ভুল) — প্রিভিউতেই থাকুন; কারণ আগেই টোস্টে দেখানো হয়েছে
     ST.report = rp; ST.step = 3; stPaint();
+  }
+  // ↩️ এই ইমপোর্টের সব পেমেন্ট একসাথে ফেরত নেওয়া (একবার কারণ + একবার PIN)
+  async function undoBatch() {
+    const rp = ST.report; if (!rp || !rp.payIds.length || rp.undone) return;
+    const reason = await askReason('এই ইমপোর্ট ফেরত নিন (' + rp.payIds.join(', ') + ') — সব অর্ডার আবার "বাকি" হবে'); if (!reason) return;
+    const pin = await _askPartnerPin('ইমপোর্ট ফেরত নিতে'); if (!pin) return;
+    let ok = 0, notes = [], last = null; rp.undoFail = '';
+    for (const id of rp.payIds) { const x = await postToAPI({ action: 'courSettleVoid', by: partner(), pin, reason, payId: id }); if (x && x.status === 'success') { ok++; last = x; notes = notes.concat(x.notes || []); } else { rp.undoFail = ((x && x.message) || 'ফেরত নেওয়া যায়নি') + (ok ? ' (আগের ' + ok + 'টি ফেরত হয়েছে, বাকিটা আবার চেষ্টা করুন)' : ''); break; } }
+    if (last) apply(last); if (ok === rp.payIds.length) { rp.undone = ok; rp.undoNotes = notes; } else if (ok) { rp.payIds = rp.payIds.slice(ok); }
+    stPaint();
   }
 
   // ───────── CSV ─────────
   function exportCsv() {
     const f = csvLib().downloadCSV; if (!f) return toast('CSV ফাংশন নেই', 'error'); let rows;
     if (L.tab === 'pay') rows = [['Pay ID', 'তারিখ', 'কুরিয়ার', 'মাধ্যম', 'রেফারেন্স', 'অর্ডার', 'মোট', 'অবস্থা', 'নোট']].concat(payRows().map(p => [p.id, p.date, p.courier, p.method, p.ref, p.lines, p.amount, p.st, p.note]));
-    else if (L.tab === 'due') rows = [['অর্ডার', 'কাস্টমার', 'ফোন', 'কুরিয়ার', 'ট্র্যাকিং', 'ডেলিভার্ড', 'বাকি (দিন)', 'অ্যাপের নেট', 'COD চার্জ', 'COD উৎস']].concat(listRows().map(r => ['#' + r.id, r.name, r.phone, r.cn, r.tr, r.dts ? new Date(r.dts + TZ).toISOString().slice(0, 10) : '', r.dAge, r.net, r.codAmt, r.codSrc]));
+    else if (L.tab === 'due') rows = [['অর্ডার', 'কাস্টমার', 'ফোন', 'কুরিয়ার', 'ট্র্যাকিং', 'ডেলিভার্ড', 'বাকি (দিন)', 'প্রাপ্য (অনুমান)', 'শিটের পুরনো নেট', 'COD চার্জ', 'COD উৎস']].concat(listRows().map(r => ['#' + r.id, r.name, r.phone, r.cn, r.tr, r.dts ? new Date(r.dts + TZ).toISOString().slice(0, 10) : '', r.dAge, r.est, r.net, r.codAmt, r.codSrc]));
     else rows = [['অর্ডার', 'কাস্টমার', 'কুরিয়ার', 'ট্র্যাকিং', 'পাওয়ার তারিখ', 'Pay ID', 'আদায়', 'ডেলিভারি চার্জ', 'COD চার্জ', 'অন্যান্য', 'নেট পেয়েছি']].concat(listRows().map(r => ['#' + r.id, r.name, r.cn, r.set.tr || r.tr, r.set.date, r.set.pay, r.set.col, r.set.del, r.set.cod, r.set.oth, r.set.net]));
     f(rows, 'courier_' + L.tab + '_' + todayStr() + '.csv');
   }
@@ -30845,6 +30992,197 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   window.__cr4 = { S, paint, report, hint, agg, recommend, wil, outc, scData, distIndex, startTs, delDays, setDays, dkey, MIN_SC, MIN_D, TIE };
 })();
 
+</script>
+<script id="da5-js">
+/* ═══ DELIVERY ANALYTICS v2 — ডেলিভারি লাভ/ক্ষতি মডেল
+   • গ্রাহক থেকে আদায় (অর্ডারে লেখা চার্জ) বনাম কুরিয়ারের আসল চার্জ (পেমেন্ট স্টেটমেন্ট থেকে, source = STATEMENT)
+   • নেট ফল = আদায় − কুরিয়ারের ডেলিভারি − COD ফি − অন্যান্য কাটা; ফেরত/ক্যানসেলের চার্জও খরচে ধরা
+   • স্টেটমেন্ট না আসা অর্ডারে কোনো অনুমান-লাভ ধরা হয় না — আলাদা "স্টেটমেন্ট বাকি" গোনা হয়
+   • অর্ডার একবারই গোনা (বহু-পণ্য অর্ডারের সারি আলাদা গোনা হয় না); ডেটা: কুরিয়ার মডিউলের একই সারি-মডেল
+   • পুরনো পেজ "📋 পুরনো রিপোর্ট" ভিউতে অক্ষত; কোনো ত্রুটিতে পুরনোটাই চলে */
+(function () {
+  'use strict';
+  const old = window.renderDeliveryAnalytics; if (typeof old !== 'function') return;
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const num = v => Number(v) || 0, R2 = x => Math.round(x * 100) / 100;
+  const taka = n => (num(n) < 0 ? '−' : '') + '৳' + Math.round(Math.abs(num(n))).toLocaleString('en-US');
+  const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+  const toast = (m, t) => { try { showToast(m, t || 'success'); } catch (e) {} };
+  const TZ = 6 * 36e5, MON = ['জানু', 'ফেব্রু', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টে', 'অক্টো', 'নভে', 'ডিসে'];
+  const D = { view: lsGet('ig_da_view', 'sum'), per: lsGet('ig_da_per', 'm0'), courier: '', q: '', filt: 'all', page: 1, size: 25, busy: false, dom: false, at: 0 };
+  const PERS = [['m0', 'এই মাস'], ['m1', 'গত মাস'], ['q3', 'শেষ ৩ মাস'], ['y', 'এই বছর'], ['all', 'সব সময়']];
+  const VIEWS = [['sum', '📊 সারসংক্ষেপ'], ['cour', '🏍️ কুরিয়ার তুলনা'], ['area', '📍 এলাকা'], ['list', '🔍 অর্ডার তালিকা'], ['old', '📋 পুরনো রিপোর্ট']];
+  const mIdx = ts => { const d = new Date(ts + TZ); return d.getUTCFullYear() * 12 + d.getUTCMonth(); };
+  const C1 = () => window.__cr1, K1 = () => (window.__cr1 && window.__cr1.K1) || null;
+
+  // ───────── ডেটা ─────────
+  function recs() {
+    const k = K1(); if (!k || !k.R) return [];
+    return k.R.rows.filter(r => r.cat === 'done' || r.cat === 'ret').map(r => {
+      const s = r.set, act = !!s && String(s.src || '').toUpperCase() === 'STATEMENT', done = r.cat === 'done', ts = r.dts || r.ts || 0;
+      const g = r.g || {};
+      return { r, id: r.id, ts, mi: ts ? mIdx(ts) : -1, cn: r.cn, st: r.st, done, entered: r.deliv, chg: done ? r.deliv : 0, has: !!s, man: !!s && !act, act,
+        del: act ? num(s.del) : 0, cod: act ? num(s.cod) : 0, oth: act ? num(s.oth) : 0, col: act ? num(s.col) : 0,
+        dist: String(g.dist || g.district || '').trim(), free: done && r.deliv === 0 };
+    });
+  }
+  function inPer(rc, per) {
+    if (per === 'all') return true; if (rc.mi < 0) return false; const cur = mIdx(Date.now());
+    if (per === 'm0') return rc.mi === cur; if (per === 'm1') return rc.mi === cur - 1; if (per === 'q3') return rc.mi >= cur - 2 && rc.mi <= cur;
+    if (per === 'y') return Math.floor(rc.mi / 12) === Math.floor(cur / 12); return true;
+  }
+  const cost = x => x.del + x.cod + x.oth, fall = x => R2(x.chg - cost(x));
+  function agg(L) {
+    const o = { n: L.length, nDone: 0, nRet: 0, nAct: 0, nMan: 0, nNo: 0, chgAll: 0, income: 0, del: 0, cod: 0, oth: 0, retCost: 0, retN: 0, margin: 0, free: 0, freeN: 0, freeNo: 0, loss: 0, delDone: 0, chgDone: 0, nActDone: 0 };
+    L.forEach(x => {
+      if (x.done) { o.nDone++; o.chgAll += x.chg; if (x.free) o.freeN++; } else o.nRet++;
+      if (x.act) {
+        o.nAct++; o.del += x.del; o.cod += x.cod; o.oth += x.oth; o.income += x.chg; o.margin += fall(x);
+        if (x.done) { o.nActDone++; o.delDone += x.del; o.chgDone += x.chg; if (x.chg < x.del) o.loss++; if (x.free) o.free += x.del; } else { o.retCost += x.del; o.retN++; }
+      } else if (x.man) o.nMan++; else o.nNo++;
+    });
+    o.margin = R2(o.margin); return o;
+  }
+  function scope() { const all = recs(); return all.filter(x => inPer(x, D.per) && (!D.courier || x.cn === D.courier)); }
+  const covPct = a => a.n ? Math.round(a.nAct / a.n * 100) : 0;
+
+  // ───────── কাঠামো ─────────
+  function ensure() {
+    const page = $('page-delivery-analytics'); if (!page) return false; if (D.dom && $('da-root')) return true;
+    const head = page.querySelector('.section-head'); if (!head) return false;
+    const root = document.createElement('div'); root.id = 'da-root'; const oldBox = document.createElement('div'); oldBox.id = 'da-old'; oldBox.style.display = 'none';
+    const kids = Array.from(page.children).filter(c => c !== head && c.id !== 'da-root' && !c.classList.contains('breadcrumb')); kids.forEach(c => oldBox.appendChild(c));
+    const ctl = head.children[1]; if (ctl) { oldBox.insertBefore(ctl, oldBox.firstChild); }
+    const p = head.querySelector('p'); if (p) p.textContent = 'ডেলিভারি লাভ/ক্ষতি — গ্রাহক থেকে আদায় বনাম কুরিয়ারের আসল চার্জ';
+    head.insertAdjacentElement('afterend', root); root.insertAdjacentElement('afterend', oldBox); D.dom = true;
+    root.addEventListener('click', onClick); root.addEventListener('input', onInput); root.addEventListener('change', onInput); return true;
+  }
+  function onInput(e) {
+    const t = e.target;
+    if (t.id === 'da-co') { D.courier = t.value; D.page = 1; render(); }
+    else if (t.id === 'da-per') { D.per = t.value; lsSet('ig_da_per', D.per); D.page = 1; render(); }
+    else if (t.id === 'da-q' && e.type === 'input') { D.q = t.value; D.page = 1; clearTimeout(onInput.t); onInput.t = setTimeout(() => { paintView(true); }, 180); }
+  }
+  function onClick(e) {
+    const t = e.target.closest('[data-da]'); if (!t) return; const a = t.dataset.da, v = t.dataset.v;
+    if (a === 'view') { D.view = v; lsSet('ig_da_view', v); D.page = 1; render(); }
+    else if (a === 'filt') { D.view = 'list'; D.filt = v; D.page = 1; render(); }
+    else if (a === 'pg') { D.page = Math.max(1, D.page + Number(v)); paintView(true); }
+    else if (a === 'f') { D.filt = v; D.page = 1; paintView(true); }
+    else if (a === 'csv') exportCsv();
+    else if (a === 'imp') { try { showPage('courier-hub', document.querySelector('.nav-item[onclick*=courier-hub]')); setTimeout(() => { try { window.__cr2.setView('led'); window.__cr2.stOpen(); } catch (er) {} }, 700); } catch (er) {} }
+    else if (a === 'open') { try { showPage('courier-hub', document.querySelector('.nav-item[onclick*=courier-hub]')); setTimeout(() => { try { C1().openDr(v); } catch (er) {} }, 700); } catch (er) {} }
+  }
+
+  // ───────── রেন্ডার ─────────
+  function render() {
+    if (!ensure()) return old();
+    const k = K1();
+    if (!k || !k.R || Date.now() - D.at > 60000) {
+      if (!k) { try { return old(); } catch (e) { return; } }
+      if (!D.busy) { D.busy = true; $('da-root').innerHTML = '<div class="cm-note">⏳ কুরিয়ারের হিসাব লোড হচ্ছে…</div>';
+        Promise.resolve(C1().load(false)).catch(() => {}).then(() => { try { C1().build(); D.at = Date.now(); } catch (e) { console.error('da5 build', e); } D.busy = false; render(); }); }
+      return;
+    }
+    if (D.view === 'old') { $('da-root').innerHTML = viewBar(); $('da-old').style.display = ''; try { old(); } catch (e) {} return; }
+    $('da-old').style.display = 'none';
+    const names = Array.from(new Set(k.R.rows.map(r => r.cn))), all = recs();
+    const L = scope(), A = agg(L), nBar = { sum: '', cour: '', area: '', list: A.n, old: '' };
+    $('da-root').innerHTML = `${viewBar(nBar)}
+      <div class="cm-tool" style="margin-bottom:12px"><select class="cm-sel" id="da-per">${PERS.map(([v, l]) => `<option value="${v}"${D.per === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
+        <select class="cm-sel" id="da-co"><option value="">সব কুরিয়ার</option>${names.map(n => `<option value="${esc(n)}"${D.courier === n ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select>
+        <span class="cm-mu" style="font-size:12px">${A.n}টি চূড়ান্ত অর্ডার (ডেলিভার্ড ${A.nDone} · ফেরত/বাতিল ${A.nRet}) · স্টেটমেন্টে আসল চার্জ আছে ${A.nAct}টির (${covPct(A)}%)</span></div>
+      <div id="da-view"></div>`;
+    paintView();
+  }
+  function viewBar(n) {
+    n = n || {}; return `<div class="cm-tabs" style="margin-bottom:10px">${VIEWS.map(([k, l]) => `<button class="cm-tab${D.view === k ? ' on' : ''}" data-da="view" data-v="${k}">${l}${n[k] ? ' <b>' + n[k] + '</b>' : ''}</button>`).join('')}</div>`;
+  }
+  function paintView(keepScroll) {
+    const el = $('da-view'); if (!el) return; const L = scope(), A = agg(L);
+    el.innerHTML = D.view === 'sum' ? vSum(L, A) : D.view === 'cour' ? vCour(L) : D.view === 'area' ? vArea(L) : vList(L, A);
+  }
+  const kt = (cls, l, v, s, act) => `<button class="cm-k ${cls}${act ? '' : ' nc'}" ${act ? `data-da="filt" data-v="${act}"` : ''}><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></button>`;
+  function vSum(L, A) {
+    const perOrd = A.nAct ? R2(A.margin / A.nAct) : 0, ok = A.nAct >= 5, avgC = A.nActDone ? R2(A.chgDone / A.nActDone) : 0, avgD = A.nActDone ? R2(A.delDone / A.nActDone) : 0;
+    const ins = [];
+    if (ok && A.nActDone) ins.push(`ডেলিভার্ড ${A.nActDone}টি অর্ডারে আপনি গ্রাহকের কাছ থেকে গড়ে <b>${taka(avgC)}</b> নিয়েছেন, কুরিয়ার কেটেছে গড়ে <b>${taka(avgD)}</b> — প্রতি ডেলিভারিতে <b style="color:${avgC - avgD >= 0 ? 'var(--green)' : 'var(--red)'}">${taka(Math.abs(avgC - avgD))} ${avgC - avgD >= 0 ? 'বেশি' : 'কম'}</b>।`);
+    if (A.retN) ins.push(`ফেরত/বাতিল ${A.retN}টি পার্সেলে কুরিয়ার মোট <b style="color:var(--red)">${taka(A.retCost)}</b> কেটেছে — গ্রাহকের কাছ থেকে এর বিপরীতে কিছু আদায় হয়নি।`);
+    if (A.freeN) ins.push(`ফ্রি-ডেলিভারি দেওয়া ${A.freeN}টি অর্ডার${A.free ? ' — আসল স্টেটমেন্টে যেগুলোর আছে তাতে খরচ <b>' + taka(A.free) + '</b>' : ''}।`);
+    if (A.loss) ins.push(`${A.loss}টি ডেলিভার্ড অর্ডারে গ্রাহক থেকে নেওয়া চার্জ কুরিয়ারের চার্জের চেয়ে কম ছিল।`);
+    if (A.nNo + A.nMan) ins.push(`<b>${A.nNo}টি</b> অর্ডারের কুরিয়ার-স্টেটমেন্ট এখনো ইমপোর্ট হয়নি${A.nMan ? ' (আরও ' + A.nMan + 'টি শুধু হাতে "টাকা পেয়েছি" মার্ক করা — আসল চার্জ জানা নেই)' : ''}; ইমপোর্ট করলে হিসাব আরও পূর্ণ হবে।`);
+    return `<div class="cm-kp">
+      ${kt('blu', '🧾 গ্রাহক থেকে ডেলিভারি আদায়', taka(A.chgAll), A.nDone + 'টি ডেলিভার্ড · গড় ' + taka(A.nDone ? A.chgAll / A.nDone : 0) + (A.freeN ? ' · ফ্রি ' + A.freeN : ''), '')}
+      ${kt('gold', '🏍️ কুরিয়ারের ডেলিভারি চার্জ', taka(A.del), 'আসল স্টেটমেন্ট · ' + A.nAct + 'টি অর্ডার', '')}
+      ${kt('', '💸 COD ফি', taka(A.cod), A.oth ? 'অন্যান্য কাটা ' + taka(A.oth) : 'কুরিয়ার কাটা', '')}
+      ${kt(A.retCost ? 'red' : '', '↩️ ফেরত/বাতিলে চার্জ', taka(A.retCost), A.retN + 'টি পার্সেল', 'ret')}
+      ${kt(A.margin >= 0 ? 'grn' : 'red', '📈 নেট ডেলিভারি ফল', taka(A.margin), A.nAct ? 'প্রতি অর্ডারে ' + taka(perOrd) + ' · আসল ভিত্তিক' : 'আসল স্টেটমেন্ট নেই', 'act')}
+      ${kt(A.nNo ? 'gold' : 'grn', '⏳ স্টেটমেন্ট বাকি', String(A.nNo), A.nNo ? 'আসল চার্জ জানা নেই — দেখুন' : 'সব অর্ডারের আসল চার্জ আছে', A.nNo ? 'noact' : '')}
+    </div>
+    <div class="cm-note" style="margin-bottom:12px">ℹ️ <b>নেট ফল</b> = (গ্রাহক থেকে আদায় − কুরিয়ারের ডেলিভারি − COD ফি − অন্যান্য কাটা), শুধু যেসব অর্ডারের <b>আসল স্টেটমেন্ট</b> ইমপোর্ট হয়েছে সেগুলো থেকে; ফেরত/বাতিলের চার্জও খরচ হিসেবে ধরা। পণ্যের দাম/মুনাফা এতে নেই। স্টেটমেন্ট ছাড়া অর্ডারে কোনো অনুমান-লাভ ধরা হয় না।
+      <div style="margin-top:6px"><div style="background:var(--bg,#000);border-radius:4px;height:8px;overflow:hidden;max-width:420px;display:inline-block;width:100%;vertical-align:middle"><div style="height:100%;width:${covPct(A)}%;background:var(--green,#3FB97F)"></div></div> <b>${covPct(A)}%</b> অর্ডারের আসল চার্জ জানা আছে ${A.nNo ? ' <button class="cm-btn gold" data-da="imp" style="margin-left:8px">📥 স্টেটমেন্ট ইমপোর্ট</button>' : ''}</div></div>
+    ${ins.length ? `<div class="cm-sec" style="border:1px solid var(--border,#262626);border-radius:12px;padding:12px 14px;margin-bottom:14px"><div style="font-weight:700;margin-bottom:6px">💡 কী বোঝা যাচ্ছে</div><ul style="margin:0;padding-left:18px;line-height:1.8;font-size:13px">${ins.map(x => '<li>' + x + '</li>').join('')}</ul>${ok ? '' : '<div class="cm-mu" style="margin-top:6px;font-size:12px">আসল স্টেটমেন্টের নমুনা ৫টির কম — সিদ্ধান্ত নেওয়ার আগে আরও স্টেটমেন্ট ইমপোর্ট করুন।</div>'}</div>` : ''}
+    ${chart()}`;
+  }
+  // মাসভিত্তিক চার্ট: শুধু আসল স্টেটমেন্ট-ওয়ালা অর্ডার; দুটি সিরিজ (আদায় / কুরিয়ার খরচ) + নিচে টেবিল
+  function chart() {
+    const cur = mIdx(Date.now()), all = recs().filter(x => (!D.courier || x.cn === D.courier) && x.act), M = [];
+    for (let i = 11; i >= 0; i--) M.push(cur - i);
+    const rows = M.map(m => { const l = all.filter(x => x.mi === m), a = agg(l); return { m, inc: a.income, cost: a.del + a.cod + a.oth, mar: a.margin, n: a.nAct }; });
+    const mx = Math.max(1, ...rows.map(r => Math.max(r.inc, r.cost))), W = 720, H = 200, pl = 8, bw = (W - pl * 2) / 12, bar = Math.min(22, bw / 2 - 3);
+    if (!rows.some(r => r.n)) return `<div class="cm-note">📊 মাসভিত্তিক চার্ট দেখাতে আসল কুরিয়ার-স্টেটমেন্ট ইমপোর্ট করুন (এখনো কোনোটা নেই)।</div>`;
+    const svg = rows.map((r, i) => { const x0 = pl + i * bw + bw / 2, h1 = r.inc / mx * (H - 30), h2 = r.cost / mx * (H - 30), yb = H - 20;
+      return `<g><title>${MON[(r.m % 12 + 12) % 12]} ${Math.floor(r.m / 12)}: আদায় ${taka(r.inc)} · কুরিয়ার খরচ ${taka(r.cost)} · ফল ${taka(r.mar)} (${r.n}টি)</title>
+        <rect x="${x0 - bar - 1}" y="${yb - h1}" width="${bar}" height="${Math.max(h1, r.inc ? 2 : 0)}" rx="3" style="fill:var(--green,#3FB97F)"/><rect x="${x0 + 1}" y="${yb - h2}" width="${bar}" height="${Math.max(h2, r.cost ? 2 : 0)}" rx="3" style="fill:var(--gold,#CDA935)"/>
+        <text x="${x0}" y="${H - 5}" text-anchor="middle" style="fill:var(--text3,#888);font-size:11px">${MON[(r.m % 12 + 12) % 12]}</text></g>`; }).join('');
+    return `<div class="cm-sec" style="border:1px solid var(--border,#262626);border-radius:12px;padding:12px 14px"><div style="font-weight:700;margin-bottom:4px">📅 মাসভিত্তিক — আদায় বনাম কুরিয়ার খরচ <span class="cm-mu" style="font-weight:400;font-size:12px">(শুধু আসল স্টেটমেন্ট-ওয়ালা অর্ডার)</span></div>
+      <div style="display:flex;gap:14px;font-size:12px;margin-bottom:6px"><span><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--green,#3FB97F);margin-right:5px"></i>গ্রাহক থেকে আদায়</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--gold,#CDA935);margin-right:5px"></i>কুরিয়ার খরচ (ডেলিভারি + COD + অন্যান্য)</span></div>
+      <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;max-height:230px" role="img" aria-label="মাসভিত্তিক ডেলিভারি আদায় ও কুরিয়ার খরচ">${svg}</svg>
+      <details style="margin-top:6px"><summary class="cm-mu" style="cursor:pointer;font-size:12.5px">📋 টেবিল দেখুন</summary><div class="cm-scr"><table class="cm-st-tb"><thead><tr><th>মাস</th><th>অর্ডার</th><th>আদায়</th><th>কুরিয়ার খরচ</th><th>নেট ফল</th></tr></thead><tbody>${rows.filter(r => r.n).map(r => `<tr><td>${MON[(r.m % 12 + 12) % 12]} ${Math.floor(r.m / 12)}</td><td>${r.n}</td><td>${taka(r.inc)}</td><td>${taka(r.cost)}</td><td><b style="color:${r.mar >= 0 ? 'var(--green)' : 'var(--red)'}">${taka(r.mar)}</b></td></tr>`).join('')}</tbody></table></div></details></div>`;
+  }
+  function vCour(L) {
+    const g = {}; L.forEach(x => { (g[x.cn] = g[x.cn] || []).push(x); });
+    const rows = Object.keys(g).map(n => { const l = g[n], a = agg(l); return { n, a, ret: (a.nDone + a.nRet) ? Math.round(a.nRet / (a.nDone + a.nRet) * 100) : 0, avgC: a.nActDone ? a.chgDone / a.nActDone : null, avgD: a.nActDone ? a.delDone / a.nActDone : null, avgCod: a.nAct ? a.cod / a.nAct : null }; }).sort((x, y) => y.a.n - x.a.n);
+    if (!rows.length) return '<div class="cm-note">এই সময়ে কোনো চূড়ান্ত অর্ডার নেই।</div>';
+    return `<div class="cm-scr" style="max-height:none"><table class="cm-st-tb"><thead><tr><th>কুরিয়ার</th><th>ডেলিভার্ড</th><th>ফেরত/বাতিল</th><th>ফেরত %</th><th>গড় নেওয়া চার্জ*</th><th>গড় কুরিয়ার চার্জ*</th><th>গড় COD ফি*</th><th>ফেরত চার্জ*</th><th>নেট ফল*</th><th>আসল আছে</th></tr></thead><tbody>${rows.map(r => `<tr><td><b>${esc(r.n)}</b></td><td>${r.a.nDone}</td><td>${r.a.nRet}</td><td>${r.ret}%</td><td>${r.avgC == null ? '—' : taka(r.avgC)}</td><td>${r.avgD == null ? '—' : taka(r.avgD)}</td><td>${r.avgCod == null ? '—' : taka(r.avgCod)}</td><td>${r.a.retN ? taka(r.a.retCost) : '—'}</td><td><b style="color:${r.a.margin >= 0 ? 'var(--green)' : 'var(--red)'}">${r.a.nAct ? taka(r.a.margin) : '—'}</b></td><td>${r.a.nAct}/${r.a.n} <span class="cm-mu">(${covPct(r.a)}%)</span></td></tr>`).join('')}</tbody></table></div>
+      <div class="cm-note" style="margin-top:8px">* তারকা-চিহ্নিত ঘর শুধু আসল স্টেটমেন্ট-ওয়ালা অর্ডার থেকে। "ফেরত %" = ফেরত/বাতিল ÷ সব চূড়ান্ত অর্ডার। সফলতার আরও বিশ্লেষণ "📦 কুরিয়ার → 📊 স্কোরকার্ড"-এ আছে।</div>`;
+  }
+  function vArea(L) {
+    const A = L.filter(x => x.act && x.done), g = {}; A.forEach(x => { const d = x.dist || '(জেলা লেখা নেই)'; (g[d] = g[d] || []).push(x); });
+    const rows = Object.keys(g).map(d => { const l = g[d], n = l.length, c = l.reduce((s, x) => s + x.chg, 0) / n, k = l.reduce((s, x) => s + x.del, 0) / n; return { d, n, c, k, gap: c - k, loss: l.filter(x => x.chg < x.del).length, fee: l.reduce((s, x) => s + x.cod, 0) / n }; }).sort((a, b) => b.n - a.n);
+    if (!rows.length) return '<div class="cm-note">📍 জেলাভিত্তিক হিসাব দেখাতে আসল কুরিয়ার-স্টেটমেন্ট লাগবে (ডেলিভার্ড অর্ডার, এই সময়ে)। স্টেটমেন্ট ইমপোর্ট করলে এখানে আসবে।</div>';
+    const warn = rows.filter(r => r.n >= 3 && r.gap < -0.5);
+    return `${warn.length ? `<div class="cm-note" style="margin-bottom:10px;border-color:var(--red)">⚠️ <b>এই এলাকাগুলোতে কুরিয়ারের চার্জ আপনার নেওয়া চার্জের চেয়ে বেশি</b> (ন্যূনতম ৩টি আসল নমুনা): ${warn.map(r => `${esc(r.d)} (গড়ে ${taka(-r.gap)} কম)`).join(', ')} — চার্জ বাড়ানো বিবেচনা করতে পারেন।</div>` : ''}
+      <div class="cm-scr" style="max-height:none"><table class="cm-st-tb"><thead><tr><th>জেলা</th><th>ডেলিভার্ড (আসল আছে)</th><th>গড় নেওয়া চার্জ</th><th>গড় কুরিয়ার চার্জ</th><th>ফারাক / অর্ডার</th><th>গড় COD ফি</th><th>কম নেওয়া অর্ডার</th></tr></thead><tbody>${rows.map(r => `<tr><td><b>${esc(r.d)}</b>${r.n < 3 ? ' <span class="cm-b m">নমুনা কম</span>' : ''}</td><td>${r.n}</td><td>${taka(r.c)}</td><td>${taka(r.k)}</td><td><b style="color:${r.gap >= 0 ? 'var(--green)' : 'var(--red)'}">${r.gap >= 0 ? '+' : ''}${taka(r.gap)}</b></td><td>${taka(r.fee)}</td><td>${r.loss ? r.loss + 'টি' : '—'}</td></tr>`).join('')}</tbody></table></div>
+      <div class="cm-note" style="margin-top:8px">শুধু আসল স্টেটমেন্ট-ওয়ালা ডেলিভার্ড অর্ডার। ৩টির কম নমুনায় সতর্কতা দেখানো হয় না। ফ্রি-ডেলিভারি অর্ডার (নেওয়া চার্জ ৳০) গড় কমিয়ে দেয়।</div>`;
+  }
+  function filtList(L) {
+    let A = L.slice(); const f = D.filt, q = String(D.q || '').trim().toLowerCase();
+    if (f === 'act') A = A.filter(x => x.act); else if (f === 'noact') A = A.filter(x => !x.has); else if (f === 'man') A = A.filter(x => x.man); else if (f === 'ret') A = A.filter(x => !x.done); else if (f === 'free') A = A.filter(x => x.free);
+    else if (f === 'loss') A = A.filter(x => x.act && fall(x) < 0);
+    if (q) A = A.filter(x => x.r.search.includes(q));
+    return A.sort((a, b) => b.ts - a.ts);
+  }
+  function vList(L, Ag) {
+    const A = filtList(L), pages = Math.max(1, Math.ceil(A.length / D.size)); if (D.page > pages) D.page = pages; const from = (D.page - 1) * D.size, sl = A.slice(from, from + D.size);
+    const F = [['all', 'সব'], ['act', '✅ আসল আছে'], ['noact', '⏳ স্টেটমেন্ট বাকি'], ['man', '✋ হাতে মার্ক'], ['loss', '🔻 ক্ষতির'], ['free', '🆓 ফ্রি ডেলিভারি'], ['ret', '↩️ ফেরত/বাতিল']];
+    return `<div class="cm-tool" style="margin-bottom:8px"><input class="cm-in" id="da-q" type="search" placeholder="🔍 নাম, ফোন, অর্ডার ID, ট্র্যাকিং…" value="${esc(D.q)}" autocomplete="off"><button class="cm-btn" data-da="csv">⬇️ CSV</button></div>
+      <div class="cm-tabs" style="margin-bottom:8px">${F.map(([k, l]) => `<button class="cm-tab${D.filt === k ? ' on' : ''}" data-da="f" data-v="${k}">${l}</button>`).join('')}</div>
+      ${sl.length ? `<div class="cm-scr" style="max-height:none"><table class="cm-st-tb"><thead><tr><th>অর্ডার</th><th>তারিখ</th><th>কুরিয়ার</th><th>অবস্থা</th><th>গ্রাহক থেকে নেওয়া</th><th>কুরিয়ার ডেলিভারি</th><th>COD ফি</th><th>নেট ফল</th><th></th></tr></thead><tbody>${sl.map(x => `<tr><td><b>#${esc(x.id)}</b> ${esc(x.r.name || '')}<div class="cm-mu">${esc(x.dist)}</div></td><td>${x.ts ? new Date(x.ts + TZ).toISOString().slice(0, 10) : '—'}</td><td>${esc(x.cn)}</td><td>${x.done ? 'ডেলিভার্ড' : esc(x.st)}</td><td>${taka(x.entered)}${x.free ? ' <span class="cm-b o">ফ্রি</span>' : ''}${!x.done && x.entered ? '<div class="cm-mu">আদায় হয়নি</div>' : ''}</td><td>${x.act ? taka(x.del) + ' <span class="cm-b g">আসল</span>' : x.man ? '<span class="cm-b m">হাতে মার্ক</span>' : '<span class="cm-b o">স্টেটমেন্ট বাকি</span>'}</td><td>${x.act ? taka(x.cod) : '—'}</td><td>${x.act ? `<b style="color:${fall(x) >= 0 ? 'var(--green)' : 'var(--red)'}">${taka(fall(x))}</b>` : '—'}</td><td><button class="cm-btn" data-da="open" data-v="${esc(x.id)}" title="কুরিয়ার পেজে খুলুন">↗</button></td></tr>`).join('')}</tbody></table></div>
+        <div class="cm-pg"><span>${from + 1}–${from + sl.length} / ${A.length}টি</span><span style="display:flex;gap:6px;align-items:center"><button class="cm-btn" data-da="pg" data-v="-1"${D.page <= 1 ? ' disabled' : ''}>← আগের</button>পাতা ${D.page}/${pages}<button class="cm-btn" data-da="pg" data-v="1"${D.page >= pages ? ' disabled' : ''}>পরের →</button></span></div>` : '<div class="cm-note">এই ফিল্টারে কোনো অর্ডার নেই।</div>'}`;
+  }
+  function exportCsv() {
+    const A = filtList(scope()); if (!A.length) return toast('এক্সপোর্ট করার মতো অর্ডার নেই', 'error');
+    const rows = [['অর্ডার', 'কাস্টমার', 'তারিখ', 'জেলা', 'কুরিয়ার', 'অবস্থা', 'গ্রাহক থেকে নেওয়া চার্জ', 'কুরিয়ার ডেলিভারি চার্জ', 'COD ফি', 'অন্যান্য কাটা', 'নেট ফল', 'তথ্যের উৎস']]
+      .concat(A.map(x => [x.id, x.r.name || '', x.ts ? new Date(x.ts + TZ).toISOString().slice(0, 10) : '', x.dist, x.cn, x.st, x.entered, x.act ? x.del : '', x.act ? x.cod : '', x.act ? x.oth : '', x.act ? fall(x) : '', x.act ? 'আসল স্টেটমেন্ট' : x.man ? 'হাতে মার্ক' : 'স্টেটমেন্ট বাকি']));
+    const csv = '﻿' + rows.map(r => r.map(c => { const s = String(c == null ? '' : c); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(',')).join('\r\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'delivery-analysis-' + new Date().toISOString().slice(0, 10) + '.csv'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  window.renderDeliveryAnalytics = function () { try { render(); } catch (e) { console.error('da5', e); try { old(); } catch (e2) {} } };
+  window.__da5 = { D, recs, agg, scope, render, covPct };
+})();
 </script>
 </body>
 </html>
