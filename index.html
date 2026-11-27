@@ -7365,7 +7365,7 @@ body.light #page-expense{--x-cyan:#52525B;--x-blue:#52525B}
 // ═══════════════════════════════════════════════════════════════
 
 // ⚠️ এখানে আপনার Google Apps Script Web App URL বসান (Deploy > New Deployment > Web App)
-      const API_URL = "https://script.google.com/macros/s/AKfycbwQW28LT2noXb_emFKJPbc3yfxoWs8feYH1Iw-rhnxq2zKZZPO76V3w93TvztHQX531/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
+      const API_URL = "https://script.google.com/macros/s/AKfycbxaqXMqi1jxbWNhCXGPCk7DAB6B5Kwfhr5G1QfAN9_7rLOqa1yACqzGHYcYJber_kwQ/exec"; // ← এই URL পরিবর্তন করুন // ← এখানে আপনার Google Apps Script URL বসান
 
 // ─── CONNECTION STATE ────────────────────────────────────────
 let apiConnected = false;
@@ -7416,6 +7416,30 @@ async function _loadBDLocations() {
   _populateDivisionDropdowns();
 }
 
+// ─── SERVER SESSION (ধাপ ২): প্রতিটি অনুরোধে টোকেন ─────────────────────
+// সার্ভার এখন প্রতিটি অনুরোধে (পাবলিক স্থির ডেটা ছাড়া) টোকেন যাচাই করে।
+// লগইনের আগে করা অনুরোধ লক স্ক্রিনের পেছনে অপেক্ষা করে, লগইন হলে নিজে চলে।
+const IG_PUBLIC_ACTIONS = ['locations','settings','divisions','districts','thanas','login','login2','logout'];
+window.__igxToken = window.__igxToken || ''; window.__igxTokPartner = window.__igxTokPartner || '';
+window.__igAuthWaiters = [];
+function igSetToken(t, partner) {
+  window.__igxToken = t || '';
+  window.__igxTokPartner = t ? (partner || window.__igxTokPartner || '') : '';
+  if (t) { const w = window.__igAuthWaiters; window.__igAuthWaiters = []; w.forEach(f => { try { f(); } catch (e) {} }); }
+}
+function igAuthFields() { return window.__igxToken ? { _tk: window.__igxToken, _ap: window.__igxTokPartner || currentPartner || selectedPartner || '' } : {}; }
+function igIsPublic(action) { return IG_PUBLIC_ACTIONS.indexOf(String(action || '')) > -1; }
+function igAuthReady() { return window.__igxToken ? Promise.resolve() : new Promise(res => window.__igAuthWaiters.push(res)); }
+function igOnAuthError(d) {
+  // সেশন মেয়াদোত্তীর্ণ/বাতিল/অ্যাকাউন্ট বন্ধ → লক করে আবার লগইন করাও
+  if (!d || d.code !== 'AUTH') return;
+  igSetToken('');
+  if (typeof isLocked !== 'undefined' && !isLocked && currentPartner) {
+    showToast('🔒 ' + (d.message || 'সেশন শেষ — আবার লগইন করুন'), 'error');
+    lockApp();
+  }
+}
+window.__igPendingGets = {};
 // ─── SMART FETCH (CORS-safe) ────────────────────────────────
 function jsonpFetch(url) {
   return new Promise((resolve, reject) => {
@@ -7455,7 +7479,17 @@ function safeJSONParse(text) {
   }
 }
 async function smartFetch(url) {
-  return location.protocol === 'file:' ? await jsonpFetch(url) : await regularFetch(url);
+  const m = String(url).match(/[?&]action=([^&]*)/); const action = m ? decodeURIComponent(m[1]) : 'dashboard';
+  const go = async () => {
+    const af = igAuthFields(), u = igIsPublic(action) ? url : url + (af._tk ? '&_tk=' + af._tk + '&_ap=' + encodeURIComponent(af._ap) : '');
+    const d = location.protocol === 'file:' ? await jsonpFetch(u) : await regularFetch(u);
+    if (d && d.code === 'AUTH') igOnAuthError(d);
+    return d;
+  };
+  if (igIsPublic(action) || window.__igxToken) return go();
+  // লগইনের আগে: একই URL-এর অনুরোধ একটাই অপেক্ষায় থাকে (লগইনের পর ঝাঁকে ঝাঁকে চলবে না)
+  if (!window.__igPendingGets[url]) window.__igPendingGets[url] = (async () => { try { await igAuthReady(); return await go(); } finally { delete window.__igPendingGets[url]; } })();
+  return window.__igPendingGets[url];
 }
 async function fetchFromAPI(action, params = {}) {
   if (!API_URL || !API_URL.includes('script.google.com')) return null;
@@ -7565,6 +7599,12 @@ async function postToAPI(payload) {
     showToast('Google Sheets URL সেট নেই — Setup Guide দেখুন', 'error'); return false;
   }
   window.__lastAPIErrorMsg = null; window.__lastAPIErrorReason = null; // v65 FIX: clear any stale reason from a previous call
+  // ধাপ ২: সেশন টোকেন যোগ করো (লগইনের আগে হলে লগইন পর্যন্ত অপেক্ষা)
+  if (!igIsPublic(payload.action)) {
+    let _af = igAuthFields();
+    if (!_af._tk) { await igAuthReady(); _af = igAuthFields(); }
+    payload = Object.assign({}, payload, _af);
+  } else if (payload.action === 'logout') { payload = Object.assign({}, payload, igAuthFields()); }
   const jsonStr = JSON.stringify(payload);
 
   // v43 FIX: helper — base64-GET+JSONP fallback (already proven to work for
@@ -7587,7 +7627,7 @@ async function postToAPI(payload) {
     try {
       const result = await jsonpFetch(url);
       if (!result) return false;
-      if (result.status === 'error') { window.__lastAPIErrorMsg = result.message || ''; if (payload.action === 'login') return result; showToast('Backend error: '+(result.message||'অজানা সমস্যা'),'error'); return false; }
+      if (result.status === 'error') { window.__lastAPIErrorMsg = result.message || ''; igOnAuthError(result); if (payload.action === 'login' || payload.action === 'login2') return result; showToast('Backend error: '+(result.message||'অজানা সমস্যা'),'error'); return false; }
       return (result.status === 'success' || result.status === 'ok') ? result : false;
     } catch(fbErr) {
       console.error('postToAPI fallbackViaGet failed:', fbErr.message);
@@ -7676,7 +7716,7 @@ async function postToAPI(payload) {
       showToast('Apps Script থেকে সঠিক response আসেনি — Deploy settings চেক করুন','error');
       return false;
     }
-    if (data.status === 'error') { window.__lastAPIErrorMsg = data.message || ''; if (payload.action === 'login') return data; showToast('Backend error: '+(data.message||'অজানা সমস্যা'),'error'); return false; }
+    if (data.status === 'error') { window.__lastAPIErrorMsg = data.message || ''; igOnAuthError(data); if (payload.action === 'login') return data; showToast('Backend error: '+(data.message||'অজানা সমস্যা'),'error'); return false; }
     // ✅ BUG 1 FIX: Return full data object (not just boolean) so addOrder gets row number
     return (data.status === 'success' || data.status === 'ok') ? data : false;
   } catch(e) {
@@ -7718,7 +7758,7 @@ function isInLockout() {
   return Date.now() < lockoutUntil;
 }
 function startLockout(sec) {
-  const until = Date.now() + Math.max(1, Math.min(1800, Number(sec) || LOCKOUT_DURATION)) * 1000;
+  const until = Date.now() + Math.max(1, Math.min(3600, Number(sec) || LOCKOUT_DURATION)) * 1000;
   sessionStorage.setItem('innogix_lockout_until', until);
   failedAttempts = 0;
   clearInterval(lockoutTimer);
@@ -8009,6 +8049,14 @@ function igDevId() {
     return d;
   } catch (e) { return 'f'.repeat(32); }
 }
+function igUaLabel() {
+  try {
+    const u = navigator.userAgent || '';
+    const b = /Edg\//.test(u) ? 'Edge' : /OPR\//.test(u) ? 'Opera' : /Firefox\//.test(u) ? 'Firefox' : /Chrome\//.test(u) ? 'Chrome' : /Safari\//.test(u) ? 'Safari' : 'Browser';
+    const o = /Android/.test(u) ? 'Android' : /iPhone|iPad|iPod/.test(u) ? 'iOS' : /Windows/.test(u) ? 'Windows' : /Mac OS X/.test(u) ? 'Mac' : /Linux/.test(u) ? 'Linux' : '';
+    return (b + (o ? ' · ' + o : '')).slice(0, 40);
+  } catch (e) { return ''; }
+}
 function igPinLenHint(partner) { try { const n = parseInt(localStorage.getItem('ig_pl_' + partner) || 0); return n >= 4 && n <= 8 ? n : 0; } catch (e) { return 0; } }
 function igSetPinLenHint(partner, n) { try { localStorage.setItem('ig_pl_' + partner, String(n)); } catch (e) {} }
 function pinPress(d) {
@@ -8039,8 +8087,6 @@ function updatePinDots() {
   }
 }
 let pinSubmitting = false;
-window.__igxToken = '';
-function igSetToken(t) { window.__igxToken = t || ''; try { if (t) sessionStorage.setItem('innogix_token', t); else sessionStorage.removeItem('innogix_token'); } catch (e) {} }
 
 async function pinSubmit() {
   if (!selectedPartner) {
@@ -8059,7 +8105,7 @@ async function pinSubmit() {
   pinSubmitting = true;
   errEl.textContent = '⏳ যাচাই করা হচ্ছে...';
   let result;
-  try { result = await postToAPI({ action: 'login', partner: partnerAtSubmit, pin: enteredPin, device: igDevId() }); }
+  try { result = await postToAPI({ action: 'login', partner: partnerAtSubmit, pin: enteredPin, device: igDevId(), ua: igUaLabel() }); }
   finally { pinSubmitting = false; }
 
   // সার্ভার লক (ধাপে ধাপে বিলম্ব বা গ্লোবাল সীমা)
@@ -8076,16 +8122,16 @@ async function pinSubmit() {
     setTimeout(() => { errEl.textContent = ''; }, 2500);
     return;
   }
-  if (result.valid) {
-    errEl.textContent = '';
-    failedAttempts = 0;
-    sessionStorage.removeItem('innogix_lockout_until');
-    igSetPinLenHint(partnerAtSubmit, enteredPin.length);
-    igSetToken(result.token);
-    unlockApp(partnerAtSubmit);
-    if (result.mustChange) igForcePinChange(enteredPin, partnerAtSubmit);
+  if (result.valid && result.need2fa) {            // ২-ধাপ চালু: PIN ঠিক — এবার Authenticator-এর কোড
+    errEl.textContent = ''; pinBuffer = ''; updatePinDots();
+    const r2 = await igTwoStep(result, partnerAtSubmit);
+    if (r2 && r2.valid) { igLoginSuccess(r2, partnerAtSubmit, enteredPin); return; }
+    pinBuffer = ''; updatePinDots();
+    if (r2 && r2.code === 'LOCKED') { startLockout(r2.wait || 30); return; }
+    if (r2 && r2.msg) { errEl.textContent = '⚠️ ' + r2.msg; setTimeout(() => { errEl.textContent = ''; }, 3500); }
     return;
   }
+  if (result.valid) { igLoginSuccess(result, partnerAtSubmit, enteredPin); return; }
 
   // ভুল PIN
   for (let i=0; i<8; i++) {
@@ -8096,6 +8142,54 @@ async function pinSubmit() {
   const left = Number(result.left);
   errEl.textContent = '❌ ভুল PIN' + (left > 0 ? ` — আর ${left} বার সুযোগ বাকি` : '');
   setTimeout(() => { pinBuffer = ''; updatePinDots(); errEl.textContent = ''; }, 1200);
+}
+
+function igLoginSuccess(result, partner, pin) {
+  const errEl = document.getElementById('pin-error'); if (errEl) errEl.textContent = '';
+  failedAttempts = 0;
+  sessionStorage.removeItem('innogix_lockout_until');
+  igSetPinLenHint(partner, pin.length);
+  igSetToken(result.token, partner);
+  unlockApp(partner);
+  if (result.mustChange) igForcePinChange(pin, partner);
+}
+// ── ২-ধাপ যাচাই (TOTP): PIN ঠিক হলে Authenticator-এর ৬ অঙ্কের কোড (বা রিকভারি কোড) চায় ──
+function igTwoStep(first, partner) {
+  if (document.getElementById('ig-2fa')) return Promise.resolve(null);
+  return new Promise(resolve => {
+    const ov = document.createElement('div'); ov.id = 'ig-2fa';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100001;display:flex;align-items:center;justify-content:center;padding:16px;';
+    ov.innerHTML = '<div role="dialog" aria-modal="true" style="background:var(--bg2,#080808);border:1px solid var(--border,#262626);border-radius:14px;padding:22px;width:100%;max-width:360px;text-align:center;color:var(--text,#F2F2F2)">'
+      + '<div style="font-size:15px;font-weight:800;margin-bottom:6px">🔐 ২-ধাপ যাচাই</div>'
+      + '<div style="font-size:12.5px;color:var(--text3,#8A8A8A);line-height:1.6;margin-bottom:12px">PIN ঠিক আছে। এবার ফোনের Authenticator অ্যাপের <b>৬ অঙ্কের কোড</b> দিন। ফোন না থাকলে রিকভারি কোড (XXXXX-XXXXX) চলবে।</div>'
+      + '<input id="ig-2fa-code" type="text" autocomplete="one-time-code" inputmode="text" maxlength="11" aria-label="২-ধাপ কোড" style="width:100%;text-align:center;letter-spacing:8px;font-size:24px;padding:10px;border-radius:10px;border:1px solid var(--border,#262626);background:var(--bg3,#101010);color:var(--text,#F2F2F2);box-sizing:border-box">'
+      + '<div id="ig-2fa-err" style="min-height:20px;font-size:12.5px;color:var(--red,#E5655E);margin-top:8px"></div>'
+      + '<div style="display:flex;gap:10px;margin-top:8px"><button class="btn" style="flex:1" data-x="0">বাতিল</button><button class="btn btn-gold" style="flex:1" data-x="1">নিশ্চিত</button></div></div>';
+    document.body.appendChild(ov);
+    const inp = ov.querySelector('#ig-2fa-code'), err = ov.querySelector('#ig-2fa-err'); let busy = false; inp.focus();
+    const done = v => { ov.remove(); resolve(v); };
+    const go = async () => {
+      if (busy) return; const code = inp.value.trim();
+      if (!/^(\d{6}|[A-Za-z2-9]{5}-?[A-Za-z2-9]{5})$/.test(code)) { err.textContent = 'কোড ৬ অঙ্কের হতে হবে'; return; }
+      busy = true; err.textContent = '⏳ যাচাই হচ্ছে...';
+      const r = await postToAPI({ action: 'login2', challenge: first.challenge, code, device: igDevId(), ua: igUaLabel() });
+      busy = false;
+      if (!r) { err.textContent = 'সার্ভারের সাথে যোগাযোগ করা যায়নি — আবার চেষ্টা করুন'; return; }
+      if (r.status === 'error') {
+        if (r.code === 'LOCKED') return done({ code: 'LOCKED', wait: r.wait });
+        if (r.code === 'CH_EXPIRED') return done({ msg: 'সময় শেষ — আবার PIN দিয়ে শুরু করুন' });
+        err.textContent = r.message || 'যাচাই করা যায়নি'; return;
+      }
+      if (r.valid) return done(r);
+      if (r.wait > 0) return done({ code: 'LOCKED', wait: r.wait });
+      if (r.expired) return done({ msg: 'কোড বারবার ভুল — আবার PIN দিয়ে শুরু করুন' });
+      err.textContent = '❌ কোড ভুল' + (r.left > 0 ? ' — আর ' + r.left + ' বার সুযোগ' : ''); inp.value = ''; inp.focus();
+    };
+    ov.querySelector('[data-x="0"]').onclick = () => done(null);
+    ov.querySelector('[data-x="1"]').onclick = go;
+    inp.onkeydown = e => { if (e.key === 'Enter') go(); if (e.key === 'Escape') done(null); };
+    setTimeout(() => { if (document.body.contains(ov)) done({ msg: 'সময় শেষ (৫ মিনিট) — আবার PIN দিন' }); }, 300000);
+  });
 }
 
 // ── প্রথম লগইনে (ডিফল্ট/পুরনো ৪ সংখ্যার PIN) নতুন শক্ত PIN বসাতে বাধ্য করা ──
@@ -8151,6 +8245,13 @@ function igIdleCheck() {
   }
 }
 setInterval(igIdleCheck, 10000);
+// ট্যাব বন্ধ/রিফ্রেশে সার্ভার-সেশনও বাতিল (সর্বোচ্চ চেষ্টা)
+window.addEventListener('pagehide', () => {
+  try {
+    if (window.__igxToken && navigator.sendBeacon && API_URL && API_URL.includes('script.google.com'))
+      navigator.sendBeacon(API_URL + '?action=logout', JSON.stringify({ action: 'logout', partner: window.__igxTokPartner || currentPartner || '', token: window.__igxToken }));
+  } catch (e) {}
+});
 document.addEventListener('visibilitychange', () => { if (!document.hidden) igIdleCheck(); });
 document.addEventListener('DOMContentLoaded', igAutoLockLabel);
 
@@ -8270,13 +8371,23 @@ async function changePin() {
   // বর্তমান ও নতুন PIN সার্ভারে পাঠিয়ে যাচাই ও আপডেট করা হয় —
   // ব্যাকএন্ড শুধু hash সেভ করে, PIN কোথাও প্লেইন টেক্সটে থাকে না।
   window.__lastAPIErrorMsg = null;
-  const result = await postToAPI({ action: 'changePin', partner, currentPin: curPin, newPin, device: igDevId() });
+  // লক স্ক্রিন থেকে PIN বদলালে আগে সাধারণ লগইন (ধাপে ধাপে লকআউট সহ) — তারপর বদল
+  if (!window.__igxToken) {
+    const lr = await postToAPI({ action: 'login', partner, pin: curPin, device: igDevId(), ua: igUaLabel() });
+    if (lr && lr.status === 'error' && lr.code === 'LOCKED') { errEl.textContent = '🔒 অনেকবার ভুল চেষ্টা — ' + (lr.wait || 30) + ' সেকেন্ড পরে আবার চেষ্টা করুন'; return; }
+    if (lr && lr.status === 'error') { errEl.textContent = '❌ ' + (lr.message || 'লগইন করা যায়নি'); return; }
+    if (!lr) { errEl.textContent = '⚠️ সার্ভারের সাথে যোগাযোগ করা যায়নি'; return; }
+    if (lr.valid && lr.need2fa) { errEl.textContent = '🔐 আপনার ২-ধাপ যাচাই চালু আছে — লগইন স্ক্রিন থেকে PIN + কোড দিয়ে ঢুকে তারপর PIN বদলান'; return; }
+    if (!lr.valid) { errEl.textContent = '❌ বর্তমান PIN ভুল' + (Number(lr.wait) > 0 ? ' — ' + lr.wait + ' সেকেন্ড অপেক্ষা করুন' : ''); return; }
+    igSetToken(lr.token, partner);
+  }
+  const result = await postToAPI({ action: 'changePin', partner, currentPin: curPin, newPin, device: igDevId(), ua: igUaLabel() });
   errEl.textContent = '';
 
   if (!result) { errEl.textContent = '❌ ' + (window.__lastAPIErrorMsg || 'PIN পরিবর্তন ব্যর্থ হয়েছে — বর্তমান PIN ঠিক আছে কিনা চেক করুন'); return; }
 
   igSetPinLenHint(partner, newPin.length);
-  if (result.token) igSetToken(result.token);
+  if (result.token) igSetToken(result.token, partner);
   const wasForced = !!window.__forcePin;
   if (wasForced) igEndForcePin();
 
@@ -18634,6 +18745,7 @@ async function _gasRawCall(payload) {
   if (!API_URL || !API_URL.includes('script.google.com')) {
     return { status:'error', message:'API URL সেট নেই — Setup করুন' };
   }
+  { let _af = igAuthFields(); if (!_af._tk) { await igAuthReady(); _af = igAuthFields(); } payload = Object.assign({}, payload, _af); }
   const jsonStr = JSON.stringify(payload);
   const encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(jsonStr))));
   const url     = `${API_URL}?action=${encodeURIComponent(payload.action||'')}&data=${encoded}`;
@@ -18645,6 +18757,7 @@ async function _gasRawCall(payload) {
     if (!res.ok) return { status:'error', message:'HTTP ' + res.status };
     const data = safeJSONParse(await res.text());
     if (!data) return { status:'error', message:'Response parse ব্যর্থ' };
+    igOnAuthError(data);
     return data;
   } catch(e) {
     return { status:'error', message: (e.name === 'AbortError') ? 'Timeout' : e.message };
@@ -18907,6 +19020,7 @@ async function bookWithPathao(order) {
  */
 async function _gasBookCourier(payload) {
   if (!API_URL || !API_URL.includes('script.google.com')) return null;
+  { let _af = igAuthFields(); if (!_af._tk) { await igAuthReady(); _af = igAuthFields(); } payload = Object.assign({}, payload, _af); }
   // postToAPI-এর মতো same base64 encoding — GAS এর p.data path
   const jsonStr = JSON.stringify(payload);
   const encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(jsonStr))));
@@ -18919,6 +19033,7 @@ async function _gasBookCourier(payload) {
     if (!res.ok) return null;
     const data = safeJSONParse(await res.text());
     if (!data) return null;
+    igOnAuthError(data);
     if (data.status === 'success' && data.tracking_code) {
       return { tracking_code: data.tracking_code, status: data.order_status || 'Pending' };
     }
@@ -28805,7 +28920,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const o = i.order, n = i.orders.length, prod = i.orders.map(x => (x.items || []).map(p => p.product).join(', ')).join(' · ');
     const since = i.rule.anchor === 'warranty' ? 'ওয়ারেন্টি শেষ ' + fmtDay(dayIdx(i.tasks[0].baseTs)) : (i.approx ? '~' : '') + fmtDay(dayIdx(i.tasks[0].baseTs)) + ' থেকে';
     const id = i.gk, openI = C1.open === id;
-    return `<div class="fu-it${openI ? ' open' : ''}" data-gk="${esc(id)}"><div class="fu-top"><div><span class="fu-nm">${esc(i.customer)}</span>${ruleBadge(i.rule)}${i.retry ? `<span class="fu-b o">📵 ${i.attempt}ম চেষ্টা হয়েছে</span>` : ''}${i.snoozed ? '<span class="fu-b">⏰ পিছানো</span>' : ''}<div class="fu-mu">${n > 1 ? '#' + i.orders.map(x => x.id).join(' + #') + ` (${n}টি একসাথে)` : '#' + esc(o.id)} · ${esc(prod).slice(0, 80)} · ${since}${i.approx ? ' <span title="ডেলিভারির তারিখ রেকর্ড নেই — অর্ডারের তারিখ ধরা হয়েছে">(আনুমানিক)</span>' : ''}</div></div>${dueTxt(i)}</div>
+    return `<div class="fu-it${openI ? ' open' : ''}" data-gk="${esc(id)}"${C1.busy && C1.busy[id] ? ' style="opacity:.45;pointer-events:none" title="সেভ হচ্ছে…"' : ''}><div class="fu-top"><div><span class="fu-nm">${esc(i.customer)}</span>${ruleBadge(i.rule)}${i.retry ? `<span class="fu-b o">📵 ${i.attempt}ম চেষ্টা হয়েছে</span>` : ''}${i.snoozed ? '<span class="fu-b">⏰ পিছানো</span>' : ''}<div class="fu-mu">${n > 1 ? '#' + i.orders.map(x => x.id).join(' + #') + ` (${n}টি একসাথে)` : '#' + esc(o.id)} · ${esc(prod).slice(0, 80)} · ${since}${i.approx ? ' <span title="ডেলিভারির তারিখ রেকর্ড নেই — অর্ডারের তারিখ ধরা হয়েছে">(আনুমানিক)</span>' : ''}</div></div>${dueTxt(i)}</div>
       <div class="fu-act"><a class="fu-btn gold" href="tel:${esc(String(i.phone || '').replace(/\s/g, ''))}">📞 ${esc(i.phone)}</a>${waNum(i.phone) ? '<button class="fu-btn" data-a="wa">💬 WhatsApp</button>' : ''}<button class="fu-btn" data-a="open">✅ ${openI ? 'বন্ধ' : 'ফলাফল লিখুন'}</button><button class="fu-btn" data-a="snz">⏰ পরে</button><button class="fu-btn" data-a="skip">⏭️ বাদ</button></div>${openI ? formHtml(i) : ''}</div>`;
   }
   function formHtml(i) {
@@ -28875,10 +28990,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   // ───────── ইভেন্ট ─────────
   const findItem = gk => { const R = C1.S; if (!R) return null; return [].concat(R.now, R.soon, R.expired).find(i => i.gk === gk); };
   const cidNew = () => 'fu_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-  async function logIt(i, act, extra) {
+  async function logIt(i, act, extra, bg) {
     const p = Object.assign({ action: 'fuLog', keys: i.keys, orders: i.orders.map(o => o.id).join(','), pk: i.pk, customer: i.customer, rule: i.rule.id, ruleName: i.rule.name, act, by: partner(), cid: cidNew() }, extra || {});
     const r = await postToAPI(p); if (!r || r.status === 'error') return false;
-    C1.open = null; C1.sel = { out: '', rating: 0 }; await load(true); state(); render(); refreshBadges(); return true;
+    if (!bg) { C1.open = null; C1.sel = { out: '', rating: 0 }; } await load(true); state(); render(); refreshBadges(); return true;
   }
   async function onClick(e) {
     const t = e.target;
@@ -28891,11 +29006,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     else if (act === 'wa' && it) { const T = window.__s4 && window.__s4.tplAll(), tp = T && (T.find(x => x.k === it.rule.template) || T.find(x => x.k === 'feedback')); if (!tp) { toast('টেমপ্লেট পাওয়া যায়নি', 'error'); return; } window.open('https://wa.me/' + waNum(it.phone) + '?text=' + encodeURIComponent(window.__s4.fill(tp.text, it.order)), '_blank', 'noopener'); }
     else if (act === 'save' && it) {
       const s = C1.sel; if (!s.out) { toast('আগে ফলাফল বাছুন', 'error'); return; }
-      const cm = ($('fu-cm') || {}).value || ''; a.disabled = true;
-      let ok;
-      if (s.out === 'noanswer') ok = await logIt(it, 'ATTEMPT', { outcome: 'noanswer', comment: cm, attempt: it.attempt + 1, until: idxYmd(dayIdx(Date.now()) + C1.b.settings.retryDays) });
-      else ok = await logIt(it, 'DONE', { outcome: s.out, rating: s.rating, comment: cm });
-      if (ok) toast(s.out === 'noanswer' ? '📵 ' + C1.b.settings.retryDays + ' দিন পরে আবার আসবে' : '✅ সংরক্ষিত'); else a.disabled = false;
+      const cm = ($('fu-cm') || {}).value || '', gk = it.gk, keep = { out: s.out, rating: s.rating };
+      C1.open = null; C1.sel = { out: '', rating: 0 }; (C1.busy = C1.busy || {})[gk] = 1; render();     // সাথে সাথে বন্ধ — ব্যাকগ্রাউন্ডে সেভ
+      toast('💾 সেভ হচ্ছে…');
+      const ok = s.out === 'noanswer' ? await logIt(it, 'ATTEMPT', { outcome: 'noanswer', comment: cm, attempt: it.attempt + 1, until: idxYmd(dayIdx(Date.now()) + C1.b.settings.retryDays) }, true) : await logIt(it, 'DONE', { outcome: s.out, rating: s.rating, comment: cm }, true);
+      delete C1.busy[gk];
+      if (ok) toast(s.out === 'noanswer' ? '📵 ' + C1.b.settings.retryDays + ' দিন পরে আবার আসবে' : '✅ সংরক্ষিত');
+      else { C1.open = gk; C1.sel = keep; render(); if ($('fu-cm')) $('fu-cm').value = cm; toast('❌ সেভ হয়নি — লেখা ফিরিয়ে দিলাম, আবার সেভ চাপুন', 'error'); }
     }
     else if (act === 'snz' && it) {
       const v = prompt('কত দিন পরে মনে করিয়ে দেব? (যেমন 1, 3, 7, 30)', '3'); if (v == null) return; const d = Math.round(Number(v)); if (!(d >= 1 && d <= 365)) { toast('১ থেকে ৩৬৫ এর মধ্যে সংখ্যা দিন', 'error'); return; }
@@ -28943,8 +29060,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const r = await postToAPI({ action: 'custDigestSave', enabled: en, email, hour, onlyIfAny: any, by: partner(), pin }); if (!r || r.status === 'error') return;
     await load(true); render(); toast(r.trigger === 'need-auth' ? '⚠️ সেভ হয়েছে, কিন্তু ট্রিগার বসেনি — Apps Script মেনু থেকে "কাস্টমার ডাইজেস্ট চালু" একবার চালান' : (r.message || '💾 সেভ হয়েছে'), r.trigger === 'need-auth' ? 'error' : 'success');
   }
-  function ruleModal(rid) {
-    const r = rid ? C1.b.rules.find(x => x.id === rid) : { id: '', name: '', days: 30, anchor: 'delivered', enabled: true, minAmount: 0, products: '', template: 'feedback' };
+  function ruleModal(rid, draft) {
+    const r = Object.assign({}, rid ? C1.b.rules.find(x => x.id === rid) : { id: '', name: '', days: 30, anchor: 'delivered', enabled: true, minAmount: 0, products: '', template: 'feedback' }, draft || {});
     let m = $('modal-c1-rule'); if (!m) { m = document.createElement('div'); m.className = 'modal-overlay'; m.id = 'modal-c1-rule'; m.onclick = e => { if (e.target === m) closeModal('c1-rule'); }; document.body.appendChild(m); }
     const tpls = (window.__s4 && window.__s4.tplAll()) || [];
     m.innerHTML = `<div class="modal-box" style="max-width:520px;width:96vw"><div class="modal-header"><span class="modal-title">${rid ? '✏️ নিয়ম এডিট' : '＋ নতুন ফলো-আপ নিয়ম'}</span><button class="modal-close" onclick="closeModal('c1-rule')">✕</button></div><div class="modal-body" style="display:grid;gap:10px">
@@ -28957,7 +29074,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       <label class="fu-mu">WhatsApp টেমপ্লেট<select class="fu-in" id="cr-tpl">${['feedback', 'repeat', 'warranty'].map(k => { const t = tpls.find(x => x.k === k); return `<option value="${k}"${r.template === k ? ' selected' : ''}>${t ? esc(t.t) : k}</option>`; }).join('')}</select></label>
       </div><div class="modal-footer">${rid ? '<button class="btn danger" id="cr-del">🗑️ মুছুন (PIN)</button>' : ''}<button class="btn gold" id="cr-save" style="background:var(--gold);color:#000;border-color:var(--gold);font-weight:700">💾 সেভ</button><button class="btn" onclick="closeModal('c1-rule')">বন্ধ</button></div></div>`;
     m.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { $('cr-days').value = b.dataset.q; });
-    $('cr-save').onclick = async () => { const ok = await saveRule({ id: r.id, name: $('cr-name').value, days: Number($('cr-days').value), anchor: $('cr-anchor').value, enabled: r.enabled, minAmount: Number($('cr-min').value) || 0, products: $('cr-prod').value, template: $('cr-tpl').value }); if (ok) closeModal('c1-rule'); };
+    $('cr-save').onclick = () => {
+      const rule = { id: r.id, name: $('cr-name').value.trim(), days: Number($('cr-days').value), anchor: $('cr-anchor').value, enabled: r.enabled, minAmount: Number($('cr-min').value) || 0, products: $('cr-prod').value, template: $('cr-tpl').value };
+      if (!rule.name) { toast('নিয়মের একটা নাম দিন', 'error'); return; } if (!(rule.days >= 1 && rule.days <= 3650)) { toast('দিন ১ থেকে ৩৬৫০ এর মধ্যে দিন', 'error'); return; }
+      closeModal('c1-rule');                         // সাথে সাথে বন্ধ — ব্যাকগ্রাউন্ডে সেভ; ব্যর্থ হলে লেখাসহ ফিরে আসে
+      saveRule(rule).then(ok => { if (!ok) { toast('❌ নিয়ম সেভ হয়নি — লেখাসহ আবার খুলে দিলাম', 'error'); ruleModal(rid, rule); } });
+    };
     if (rid) $('cr-del').onclick = async () => { const pin = await _askPartnerPin('নিয়ম মুছতে'); if (!pin) return; const x = await postToAPI({ action: 'fuRuleDelete', id: rid, by: partner(), pin }); if (x && x.status !== 'error') { closeModal('c1-rule'); await load(true); state(); render(); refreshBadges(); toast('🗑️ নিয়ম মুছে গেছে'); } };
     openModal('c1-rule');
   }
@@ -29175,9 +29297,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const d = document.createElement('div'); d.id = 'cx-dr'; d.onclick = drClick; d.onkeydown = drKey; document.body.appendChild(d);
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('cx-dr') && $('cx-dr').classList.contains('on')) closeDr(); });
   }
-  function openDr(pk) {
+  function openDr(pk, draft) {
     const c = X.by[pk]; if (!c) return; ensureDr();
-    X.dr = { pk, tags: c.tags.slice(), dirty: false }; drRender();
+    X.dr = { pk, tags: draft && draft.tags ? draft.tags.slice() : c.tags.slice(), dirty: false, fresh: true, draft: draft || null }; drRender();
     $('cx-ov').style.display = 'block'; requestAnimationFrame(() => $('cx-dr').classList.add('on'));
     try { if (window.__s3) window.__s3.load(false).then(() => { if (X.dr && X.dr.pk === pk) drRender(true); }); } catch (e) {}
   }
@@ -29191,7 +29313,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const d = $('cx-dr'), s = X.dr; if (!d || !s) return; const c = X.by[s.pk]; if (!c) return;
     const B = C1().b, p = c.profile || {}, keepScroll = d.scrollTop;
     // ইনপুটের অসেভড মান ধরে রাখা
-    const cur = { name: ($('cxp-name') || {}).value, alt: ($('cxp-alt') || {}).value, notes: ($('cxp-notes') || {}).value, dnc: ($('cxp-dnc') || {}).checked };
+    // শুধু একই কাস্টমারের চলমান (অসেভড) লেখা ধরে রাখা — নতুন করে খুললে/অন্য কাস্টমারে আগের ঘরের মান আসবে না
+    const same = d.dataset.pk === String(s.pk) && !s.fresh && !!$('cxp-notes');
+    const cur = s.draft ? { name: s.draft.name, alt: s.draft.alt, notes: s.draft.notes, dnc: s.draft.dnc } : same ? { name: ($('cxp-name') || {}).value, alt: ($('cxp-alt') || {}).value, notes: ($('cxp-notes') || {}).value, dnc: ($('cxp-dnc') || {}).checked } : {};
+    s.fresh = false; s.draft = null;
     const allTags = {}; DEF_TAGS.forEach(t => allTags[t] = 1); X.list.forEach(x => x.tags.forEach(t => allTags[t] = 1)); s.tags.forEach(t => delete allTags[t]);
     const items = X.fu && X.fu[c.pk]; const pend = []; const R = C1().S; if (R) [].concat(R.now, R.soon, R.expired).forEach(i => { if (i.pk === c.pk) pend.push(i); });
     const wr = warrantyRows(c), nowT = Date.now();
@@ -29222,7 +29347,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       ${wr.length ? `<div class="sec"><h4>🛡️ সিরিয়াল ও ওয়ারেন্টি</h4><table class="cx-w"><tr><th>অর্ডার</th><th>সিরিয়াল</th><th>প্রোডাক্ট</th><th>ওয়ারেন্টি</th></tr>${wr.map(r => { const t = (() => { try { return window.__s2.tsOf({ date: r.wu, time: '' }) || 0; } catch (e) { return 0; } })(); const st = !r.wu ? '—' : t && t < nowT ? `<span style="color:var(--red)">শেষ (${esc(r.wu)})</span>` : `<span style="color:var(--green)">চলমান — ${esc(r.wu)}</span>`; return `<tr><td>#${esc(r.id)}</td><td>${esc(r.serial)}</td><td>${esc(r.product)}</td><td>${st}</td></tr>`; }).join('')}</table></div>` : ''}
       ${addrs.length ? `<div class="sec"><h4>📍 ঠিকানা</h4>${addrs.slice(0, 4).map(a => `<div style="font-size:12.5px;padding:2px 0">${esc(a)}</div>`).join('')}</div>` : ''}
       <div class="sec"><h4>🕘 টাইমলাইন</h4><div class="cx-tl">${tl.slice(0, 60).map(x => x.k === 'o' ? `<div class="cx-ev${x.o._st === 'Returned' ? ' r' : ''}"><b>অর্ডার #${esc(x.o.id)}</b> · ${esc(x.o._st)} · ${taka(x.o.total)}<div class="cx-mu">${fmtTs(x.ts)} · ${(x.o.items || []).map(i => esc(i.product) + '×' + i.qty).join(', ')}${x.o.salesman ? ' · ' + esc(x.o.salesman) : ''}</div></div>` : `<div class="cx-ev f"><b>📞 ${esc(x.e.ruleName || 'ফলো-আপ')}</b> · ${esc(OUTL[x.e.outcome] || x.e.act)}${x.e.rating ? ' · ' + '★'.repeat(x.e.rating) : ''}<div class="cx-mu">${esc(x.e.time)} · ${esc(x.e.by)}${x.e.comment ? ' · "' + esc(x.e.comment) + '"' : ''}</div></div>`).join('') || '<span class="cx-mu">কিছু নেই</span>'}</div></div>`;
-    d.scrollTop = keepScroll; if (keep) { /* ওয়ারেন্টি লোডের পর আবার আঁকা */ }
+    d.dataset.pk = String(s.pk); d.scrollTop = keepScroll; if (keep) { /* ওয়ারেন্টি লোডের পর আবার আঁকা */ }
   }
   function addTag(t) { const s = X.dr; t = String(t || '').trim().replace(/,/g, ' ').slice(0, 24); if (!t) return; if (s.tags.some(x => key(x) === key(t))) return; if (s.tags.length >= 12) { toast('সর্বোচ্চ ১২টি ট্যাগ', 'error'); return; } s.tags.push(t); drRender(); const i = $('cxp-tin'); if (i) i.focus(); }
   function drKey(e) { if (e.target.id === 'cxp-tin' && (e.key === 'Enter' || e.key === ',')) { e.preventDefault(); addTag(e.target.value); } }
@@ -29237,11 +29362,22 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     else if (act === 'reorder') reorder(c);
     else if (act === 'saveprof') {
       const tin = $('cxp-tin'); if (tin && tin.value.trim()) addTag(tin.value);
-      a.disabled = true;
-      const r = await postToAPI({ action: 'custProfileSave', phoneKey: c.pk, phone: c.phone, name: $('cxp-name').value.trim(), alt: $('cxp-alt').value.trim(), tags: s.tags.join(','), notes: $('cxp-notes').value, dnc: $('cxp-dnc').checked, by: partner() });
-      a.disabled = false;
-      if (r && r.status !== 'error') { await window.__c1.load(true); window.__c1.state(); const pk = s.pk, keepTags = s.tags.slice(); build(); render(); X.dr = { pk, tags: keepTags, dirty: false }; drRender(); window.__c1.render && window.__c1.render(); toast('💾 প্রোফাইল সেভ হয়েছে'); }
+      const draft = { name: $('cxp-name').value.trim(), alt: $('cxp-alt').value.trim(), notes: $('cxp-notes').value, dnc: $('cxp-dnc').checked, tags: s.tags.slice() };
+      closeDr();                                   // উইন্ডো সাথে সাথে বন্ধ — সেভ চলবে ব্যাকগ্রাউন্ডে
+      saveProfileBg(c, draft);
     }
+  }
+  // 💾 প্রোফাইল সেভ (ব্যাকগ্রাউন্ডে): আগে লোকালে দেখিয়ে দেয়; সার্ভারে ব্যর্থ হলে সব লেখাসহ উইন্ডো ফিরিয়ে দেয় — কিছু হারায় না
+  async function saveProfileBg(c, d) {
+    const c1 = window.__c1, B = c1 && c1.C1 && c1.C1.b;
+    try {
+      if (B) { let pr = B.profiles.find(x => x.pk === c.pk); if (!pr) { pr = { cid: '', pk: c.pk, name: '', phone: c.phone, alt: '', tags: '', notes: '', dnc: false, updated: '' }; B.profiles.push(pr); } Object.assign(pr, { name: d.name, alt: d.alt, tags: d.tags.join(','), notes: d.notes, dnc: d.dnc, updated: 'এইমাত্র' }); c1.state(); build(); render(); }
+    } catch (e) { console.error('c2 optimistic', e); }
+    toast('💾 ' + (c.name || 'কাস্টমার') + '-এর প্রোফাইল সেভ হচ্ছে…');
+    const r = await postToAPI({ action: 'custProfileSave', phoneKey: c.pk, phone: c.phone, name: d.name, alt: d.alt, tags: d.tags.join(','), notes: d.notes, dnc: d.dnc, by: partner() });
+    try { await c1.load(true); c1.state(); build(); render(); } catch (e) { console.error('c2 reload', e); }
+    if (r && r.status !== 'error') { toast('✅ ' + (c.name || 'কাস্টমার') + '-এর প্রোফাইল সেভ হয়েছে'); if (X.dr && X.dr.pk === c.pk && $('cx-dr') && $('cx-dr').classList.contains('on')) drRender(); }
+    else { toast('❌ সেভ হয়নি' + (window.__lastAPIErrorMsg ? ' (' + window.__lastAPIErrorMsg + ')' : '') + ' — আপনার লেখা সহ উইন্ডো ফিরিয়ে দিলাম, আবার সেভ চাপুন', 'error'); openDr(c.pk, d); }
   }
   function reorder(c) {
     const o = c.deliv[0] || c.last; if (!o) return;
@@ -29257,7 +29393,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     } catch (e) { console.error('c2 reorder', e); toast('অর্ডার ফর্ম খোলা যায়নি', 'error'); }
   }
 
-  window.__c2 = { X, build, render, refresh, openDr, closeDr, applyFilters };
+  window.__c2 = { X, build, render, refresh, openDr, closeDr, drRender, applyFilters };
 })();
 
 </script>
@@ -29329,7 +29465,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       ${show.length ? show.slice(0, 40).map(pairHtml).join('') + (show.length > 40 ? `<div class="cx-mu">আরও ${show.length - 40}টি — আগেরগুলো নিষ্পত্তি করলে দেখা যাবে</div>` : '') : '<div style="padding:18px;text-align:center;color:var(--green)">✅ কোনো সম্ভাব্য ডুপ্লিকেট পাওয়া যায়নি</div>'}
       ${merged ? `<div style="margin-top:14px"><b>এখন মার্জ করা আছে (${Object.keys(mg).length})</b>${merged}</div>` : ''}</div><div class="modal-footer"><button class="btn" onclick="closeModal('c3')">বন্ধ</button></div>`, 760);
   }
-  async function reload() { const c1 = window.__c1; await c1.load(true); c1.state(); window.__c2.build(); window.__c2.render(); const dr = $('cx-dr'); if (dr && dr.classList.contains('on') && X().dr) { if (!X().by[X().dr.pk]) window.__c2.closeDr(); else window.__c2.openDr(X().dr.pk); } }
+  async function reload() { const c1 = window.__c1; await c1.load(true); c1.state(); window.__c2.build(); window.__c2.render(); const dr = $('cx-dr'); if (dr && dr.classList.contains('on') && X().dr) { if (!X().by[X().dr.pk]) window.__c2.closeDr(); else window.__c2.drRender(); } }
   async function doMerge(from, to) {
     const x = X(), a = x.by[from], b = x.by[to]; if (!a || !b) { toast('কাস্টমার পাওয়া যায়নি', 'error'); return false; }
     if (!confirm('"' + a.name + '" (' + a.phone + ') কে "' + b.name + '" (' + b.phone + ')-এর সাথে মার্জ করবেন?\n\nঅর্ডার অপরিবর্তিত থাকবে; পরে আলাদা করা যাবে।')) return false;
@@ -31183,6 +31319,276 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   window.renderDeliveryAnalytics = function () { try { render(); } catch (e) { console.error('da5', e); try { old(); } catch (e2) {} } };
   window.__da5 = { D, recs, agg, scope, render, covPct };
 })();
+</script>
+<script id="sc1-js">
+/* ═══════════════════════════════════════════════════════════════
+   🛡️ নিরাপত্তা কেন্দ্র (Security Center) — ধাপ ৩
+   • সেশন তালিকা ও বন্ধ করা • লগইন/নিরাপত্তা ইতিহাস • চেকআপ স্কোর
+   • জরুরি প্যানিক • ইমেইল সতর্কতা • দুই-পার্টনারের ২৪ ঘণ্টা-দেরির PIN রিসেট
+   সব সংবেদনশীল কাজে PIN লাগে; সার্ভার আবার যাচাই করে (শুধু Owner)।
+   ═══════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const S = { d: null, tab: 'ov', lf: 'all', lp: '', loading: false, err: '', temp: null };
+  const NAME = { Ismail: 'MD ISMAIL HOSEN', Ashik: 'ASHIKUR RAHMAN' };
+  const EV = {
+    LOGIN_OK: ['✅', 'সফল লগইন', 'ok'], LOGIN_OK_MUSTCHANGE: ['✅', 'সফল লগইন (PIN বদলাতে হবে)', 'ok'], LOGIN_FAIL: ['❌', 'ভুল PIN', 'bad'],
+    LOGIN_NEWDEV: ['🆕', 'নতুন ডিভাইস থেকে লগইন', 'sec'], LOGIN_BLOCKED: ['🚫', 'বন্ধ অ্যাকাউন্টে লগইন চেষ্টা', 'bad'], LOGOUT: ['🔒', 'লগআউট', 'ok'],
+    PIN_CHANGE: ['🔑', 'PIN বদল', 'sec'], SESSION_REVOKE: ['🛑', 'সেশন বন্ধ করা হয়েছে', 'sec'], PANIC: ['🚨', 'জরুরি প্যানিক', 'sec'], PANIC_CLEAR: ['🟢', 'লকডাউন তোলা হয়েছে', 'sec'],
+    CFG_SAVE: ['⚙️', 'সেটিংস সেভ', 'sec'], RESET_REQ: ['📨', 'PIN রিসেটের অনুরোধ', 'sec'], RESET_CANCEL: ['↩️', 'রিসেট অনুরোধ বাতিল', 'sec'], RESET_AUTOCANCEL: ['↩️', 'রিসেট নিজে বাতিল (মালিক লগইন করেছেন)', 'sec'],
+    RESET_APPLY: ['🔁', 'PIN রিসেট কার্যকর', 'sec'], EMERGENCY_RESET: ['🆘', 'জরুরি PIN রিসেট', 'sec'], REVOKE_ALL: ['🛑', 'সব সেশন বাতিল', 'sec'], ROLES_RESET: ['👥', 'ভূমিকা ডিফল্টে ফেরানো', 'sec'],
+    LOGIN_2FA_WAIT: ['🔐', 'PIN ঠিক — ২-ধাপ কোডের অপেক্ষা', 'ok'], LOGIN_2FA_FAIL: ['❌', '২-ধাপ কোড ভুল', 'bad'], TOTP_ON: ['🔐', '২-ধাপ যাচাই চালু', 'sec'], TOTP_OFF: ['⚠️', '২-ধাপ যাচাই বন্ধ', 'sec'], TOTP_RC_NEW: ['🧾', 'নতুন রিকভারি কোড', 'sec'], TOTP_RECOVERY_USED: ['🆘', 'রিকভারি কোড দিয়ে লগইন', 'sec'], TOTP_EDITOR_RESET: ['🆘', '২-ধাপ জরুরি রিসেট (এডিটর)', 'sec'], LOG_VERIFY_FAIL: ['🔗', 'লগ-যাচাইয়ে অসঙ্গতি', 'bad'], LOG_ACK: ['🔗', 'লগ-অসঙ্গতি জানা চিহ্নিত', 'sec'],
+    ENFORCE_ON: ['🛡️', 'সেশন-যাচাই চালু', 'sec'], ENFORCE_OFF: ['⚠️', 'সেশন-যাচাই বন্ধ', 'bad'], ENFORCE_LOG: ['📝', 'সেশন-যাচাই শুধু লগ', 'sec']
+  };
+  function evInfo(ev) {
+    if (EV[ev]) return EV[ev];
+    if (ev.indexOf('AUTH_') === 0) return ['⛔', 'অনুরোধ প্রত্যাখ্যাত (' + ev.slice(5) + ')', 'bad'];
+    return ['•', ev, 'sec'];
+  }
+  const fmt = ts => ts ? new Date(ts).toLocaleString('en-GB', { timeZone: 'Asia/Dhaka', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true }) : '—';
+  const ago = ts => { if (!ts) return '—'; const m = Math.floor((Date.now() - ts) / 60000); if (m < 1) return 'এইমাত্র'; if (m < 60) return m + ' মি আগে'; const h = Math.floor(m / 60); return h < 24 ? h + ' ঘ আগে' : Math.floor(h / 24) + ' দিন আগে'; };
+  const left = ts => { const m = Math.max(0, Math.ceil((ts - Date.now()) / 60000)); return m >= 60 ? Math.floor(m / 60) + ' ঘ ' + (m % 60) + ' মি' : m + ' মি'; };
+  const isOwner = () => S.d && S.d.me && S.d.me.role === 'Owner';
+
+  // ── চেকআপ স্কোর (সেটিংস যাচাই — কোনো অভেদ্যতার গ্যারান্টি নয়) ──
+  function checkup() {
+    const d = S.d, items = [], add = (w, got, title, ok, hint) => items.push({ w, got, title, ok, hint });
+    const mode = d.mode;
+    add(20, mode === 'on' ? 20 : mode === 'log' ? 8 : 0, 'সার্ভার প্রতিটি অনুরোধে সেশন যাচাই করছে', mode === 'on' ? 2 : mode === 'log' ? 1 : 0, mode === 'on' ? '' : 'এখন "' + mode + '" মোড। Apps Script এডিটরে securityEnforceOn চালান।');
+    const P = d.pins; const names = Object.keys(P);
+    names.forEach(n => { const ok = P[n].state === 'v2' && !P[n].must; add(10, ok ? 10 : 0, n + '-এর PIN নিরাপদ (ডিফল্ট/পুরনো নয়)', ok ? 2 : 0, ok ? '' : n + ' এখনো ডিফল্ট বা পুরনো PIN ব্যবহার করছেন — নতুন ৬+ সংখ্যার PIN বসাতে হবে।'); });
+    names.forEach(n => { const age = P[n].at ? (Date.now() - P[n].at) / 86400000 : 9999; const ok = age <= 180; add(5, ok ? 5 : 0, n + '-এর PIN ১৮০ দিনের মধ্যে বদলানো', ok ? 2 : 1, ok ? '' : P[n].at ? n + '-এর PIN ' + Math.floor(age) + ' দিন আগের — বদলানো ভালো।' : n + '-এর PIN-বদলের তারিখ জানা নেই।'); });
+    add(10, d.cfg.owner ? 10 : 0, 'সতর্কতা ইমেইল চালু (মালিকের Gmail)', d.cfg.owner ? 2 : 0, d.cfg.owner ? '' : 'মালিকের ইমেইল পাওয়া যায়নি — সতর্কতা যাবে না।');
+    add(5, d.cfg.newDev ? 5 : 0, 'নতুন ডিভাইসে লগইনের সতর্কতা চালু', d.cfg.newDev ? 2 : 1, d.cfg.newDev ? '' : 'সেটিংস থেকে চালু করুন।');
+    const f = d.stats.fail; add(10, f < 3 ? 10 : f < 10 ? 5 : 0, 'গত ২৪ ঘণ্টায় ভুল-PIN চেষ্টা কম (' + f + 'টি)', f < 3 ? 2 : f < 10 ? 1 : 0, f < 3 ? '' : 'ভুল চেষ্টা বেশি — ইতিহাস দেখুন; সন্দেহ হলে PIN বদলান ও সেশন বন্ধ করুন।');
+    const sc = d.sessions.length; add(10, sc <= 4 ? 10 : sc <= 6 ? 5 : 0, 'চলমান সেশন সীমিত (' + sc + 'টি)', sc <= 4 ? 2 : sc <= 6 ? 1 : 0, sc <= 4 ? '' : 'অনেক সেশন খোলা — অচেনা/পুরনোগুলো বন্ধ করুন।');
+    const al = (typeof igAutoLockMin === 'function') ? igAutoLockMin() : 10; add(5, al <= 10 ? 5 : 2, 'অটো-লক ১০ মিনিট বা কম (এই ডিভাইসে ' + al + ' মি)', al <= 10 ? 2 : 1, al <= 10 ? '' : 'সাইডবারের "অটো-লক" থেকে কমান।');
+    add(5, d.reset ? 0 : 5, 'কোনো ঝুলন্ত PIN-রিসেট অনুরোধ নেই', d.reset ? 1 : 2, d.reset ? 'একটি রিসেট অনুরোধ ঝুলছে — আপনি না করে থাকলে বাতিল করুন।' : '');
+    add(5, d.panicUntil ? 0 : 5, 'জরুরি লকডাউন চলছে না', d.panicUntil ? 1 : 2, d.panicUntil ? 'লকডাউন চলছে — ' + left(d.panicUntil) + ' বাকি।' : '');
+    const mt = d.totp && d.totp[d.me.partner], tOn = !!(mt && mt.on), lowRc = tOn && mt.rc <= 2;
+    add(10, tOn ? (lowRc ? 7 : 10) : 0, 'আপনার ২-ধাপ যাচাই (Authenticator) চালু', tOn ? (lowRc ? 1 : 2) : 0, tOn ? (lowRc ? 'রিকভারি কোড মাত্র ' + mt.rc + 'টি বাকি — নতুন কোড নিন।' : '') : 'ঐচ্ছিক কিন্তু সবচেয়ে বড় সুরক্ষা — PIN ফাঁস হলেও কোড ছাড়া ঢোকা যাবে না। ⚙️ সেটিংসে চালু করুন।');
+    const lc = d.logChk;
+    add(5, lc ? (lc.ok ? 5 : 0) : 3, lc ? (lc.ok ? 'নিরাপত্তা লগ অক্ষত (সর্বশেষ যাচাই)' : 'নিরাপত্তা লগে অসঙ্গতি ধরা পড়েছে') : 'নিরাপত্তা লগ এখনো যাচাই করা হয়নি', lc ? (lc.ok ? 2 : 0) : 1, lc ? (lc.ok ? '' : '📜 ইতিহাস ট্যাবে বিস্তারিত দেখুন; আপনি লগ শিট হাতে না বদলালে PIN বদলে সব সেশন বন্ধ করুন।') : '📜 ইতিহাস ট্যাবে "লগ যাচাই" চালান।');
+    const score = items.reduce((a, i) => a + i.got, 0), max = items.reduce((a, i) => a + i.w, 0);
+    return { items, score: Math.round(score * 100 / max) };
+  }
+  const grade = s => s >= 90 ? ['চমৎকার', 'var(--green)'] : s >= 70 ? ['ভালো', 'var(--gold)'] : s >= 50 ? ['মধ্যম — উন্নতি দরকার', 'var(--orange)'] : ['ঝুঁকিপূর্ণ', 'var(--red)'];
+
+  // ── PIN চেয়ে সার্ভারে কাজ ──
+  async function act(label, payload, okMsg) {
+    const pin = await _askPartnerPin(label); if (!pin) return null;
+    const r = await postToAPI(Object.assign({}, payload, { pin }));
+    if (r && r.status === 'success') { if (okMsg) showToast(okMsg, 'success'); await load(true); }
+    return r;
+  }
+  async function load(quiet) {
+    S.loading = true; if (!quiet) render();
+    const r = await postToAPI({ action: 'secBundle' });
+    S.loading = false;
+    if (r && r.status === 'success') { S.d = r; S.err = ''; } else S.err = (window.__lastAPIErrorMsg || 'ডেটা আনা যায়নি');
+    render();
+  }
+
+  // ── রেন্ডার ──
+  const TABS = [['ov', '🏠 সারসংক্ষেপ'], ['se', '💻 সেশন'], ['hi', '📜 ইতিহাস'], ['cf', '⚙️ সেটিংস'], ['rs', '🔑 PIN রিসেট']];
+  function render() {
+    const root = $('sc-root'); if (!root) return;
+    let h = '<div class="sc-tabs">' + TABS.map(t => `<button class="sc-tab${S.tab === t[0] ? ' on' : ''}" data-sc-tab="${t[0]}">${t[1]}</button>`).join('') + `<span style="flex:1"></span><button class="btn" data-sc="refresh">🔄 রিফ্রেশ</button></div>`;
+    if (S.loading && !S.d) h += '<div class="sc-empty">⏳ লোড হচ্ছে…</div>';
+    else if (!S.d) h += `<div class="sc-empty">⚠️ ${esc(S.err || 'ডেটা নেই')}<br><button class="btn" data-sc="refresh" style="margin-top:10px">আবার চেষ্টা</button></div>`;
+    else h += ({ ov: vOv, se: vSe, hi: vHi, cf: vCf, rs: vRs })[S.tab]();
+    root.innerHTML = h;
+  }
+  function vOv() {
+    const d = S.d, c = checkup(), g = grade(c.score), R = 52, C = 2 * Math.PI * R, off = C * (1 - c.score / 100);
+    const bad = c.items.filter(i => i.ok !== 2);
+    let h = `<div class="sc-grid"><div class="sc-card sc-score"><svg viewBox="0 0 130 130" width="130" height="130" role="img" aria-label="নিরাপত্তা স্কোর ${c.score}"><circle cx="65" cy="65" r="${R}" fill="none" stroke="var(--border)" stroke-width="10"/><circle cx="65" cy="65" r="${R}" fill="none" stroke="${g[1]}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 65 65)"/><text x="65" y="63" text-anchor="middle" font-size="30" font-weight="800" fill="var(--text)" id="sc-score-num">${c.score}</text><text x="65" y="84" text-anchor="middle" font-size="11" fill="var(--text3)">/ ১০০</text></svg>
+      <div><div style="font-size:12px;color:var(--text3)">নিরাপত্তা চেকআপ</div><div style="font-size:20px;font-weight:800;color:${g[1]}" id="sc-grade">${g[0]}</div><div style="font-size:11.5px;color:var(--text3);margin-top:6px;max-width:260px;line-height:1.5">এটি আপনার সেটিংসের যাচাই — কোনো সিস্টেমই ১০০% অভেদ্য নয়। সন্দেহ হলে PIN বদলান ও সব সেশন বন্ধ করুন।</div></div></div>
+    <div class="sc-card"><div class="sc-h">গত ২৪ ঘণ্টা</div><div class="sc-stats"><div><b style="color:var(--green)">${d.stats.ok}</b><span>সফল লগইন</span></div><div><b style="color:${d.stats.fail ? 'var(--red)' : 'var(--text)'}">${d.stats.fail}</b><span>ভুল PIN</span></div><div><b style="color:${d.stats.newdev ? 'var(--orange)' : 'var(--text)'}">${d.stats.newdev}</b><span>নতুন ডিভাইস</span></div><div><b>${d.stats.deny}</b><span>প্রত্যাখ্যাত অনুরোধ</span></div></div></div></div>`;
+    h += `<div class="sc-card"><div class="sc-h">চেকলিস্ট ${bad.length ? `<span class="sc-pill bad">${bad.length}টি দেখার আছে</span>` : '<span class="sc-pill ok">সব ঠিক</span>'}</div>` + c.items.map(i => `<div class="sc-ck ${i.ok === 2 ? 'ok' : i.ok === 1 ? 'warn' : 'bad'}"><span>${i.ok === 2 ? '✅' : i.ok === 1 ? '⚠️' : '❌'}</span><div><div>${esc(i.title)}</div>${i.hint ? `<div class="sc-hint">${esc(i.hint)}</div>` : ''}</div></div>`).join('') + '</div>';
+    h += `<div class="sc-card sc-panic"><div class="sc-h">🚨 জরুরি ব্যবস্থা</div><p class="sc-p">ফোন হারালে বা কেউ ঢুকেছে সন্দেহ হলে। ${isOwner() ? '' : '<b>(শুধু Owner পারবেন)</b>'}</p><div class="sc-row"><button class="btn" data-sc="panic-others" ${isOwner() ? '' : 'disabled'}>অন্য সব সেশন বন্ধ করুন</button><button class="btn danger" data-sc="panic-lock" ${isOwner() ? '' : 'disabled'}>🔒 লকডাউন (সবার সেশন বন্ধ + লগইন বন্ধ)</button></div>${d.panicUntil ? `<p class="sc-p" style="color:var(--red)">⛔ লকডাউন চলছে — আরও ${left(d.panicUntil)}। এডিটরে <code>securityPanicClear</code> চালালে এখনই তোলা যায়।</p>` : ''}</div>`;
+    return h;
+  }
+  function vSe() {
+    const d = S.d;
+    return `<div class="sc-card"><div class="sc-h">চলমান সেশন <span class="sc-pill">${d.sessions.length}টি</span></div><div class="sc-scroll"><table class="sc-t"><thead><tr><th>পার্টনার</th><th>ডিভাইস</th><th>শুরু</th><th>শেষ দেখা</th><th>মেয়াদ</th><th></th></tr></thead><tbody>` + (d.sessions.length ? d.sessions.map(s => `<tr${s.cur ? ' class="cur"' : ''}><td><b>${esc(NAME[s.p] || s.p)}</b></td><td>${esc(s.u || 'অজানা ডিভাইস')}<div class="sc-hint">কোড ${esc(s.d)} ${s.cur ? '<span class="sc-pill ok">এই ডিভাইস</span>' : ''}</div></td><td>${fmt(s.c)}</td><td>${ago(s.l)}</td><td>${left(s.e)} বাকি</td><td>${isOwner() ? `<button class="btn" data-sc="revoke" data-sid="${esc(s.id)}">${s.cur ? 'আমার সেশন শেষ' : '🛑 বন্ধ'}</button>` : ''}</td></tr>`).join('') : '<tr><td colspan="6" class="sc-empty">কোনো সেশন নেই</td></tr>') + `</tbody></table></div><p class="sc-hint" style="margin-top:8px">"শেষ দেখা" প্রায় ১০ মিনিট পর পর হালনাগাদ হয়। সেশন ১২ ঘণ্টা পর নিজে শেষ হয়। সার্ভার ডিভাইসের IP জানতে পারে না — ডিভাইস শনাক্ত হয় ব্রাউজারের কোড ও নাম দিয়ে।</p></div>`;
+  }
+  function logRows() {
+    const d = S.d; return d.log.filter(e => {
+      const k = evInfo(e.ev)[2];
+      if (S.lf === 'bad' && k !== 'bad') return false; if (S.lf === 'ok' && k !== 'ok') return false; if (S.lf === 'sec' && k !== 'sec') return false;
+      if (S.lp && e.p !== S.lp) return false; return true;
+    });
+  }
+  function vHi() {
+    const rows = logRows(), F = [['all', 'সব'], ['bad', '❌ ব্যর্থ/প্রত্যাখ্যাত'], ['ok', '✅ সফল'], ['sec', '🛡️ নিরাপত্তা-কাজ']];
+    const lc = S.d.logChk, vr = S.vr;
+    const vbox = vr ? (vr.ok ? `<div class="sc-box ok">✅ <b>লগ অক্ষত</b> — ${vr.chained}টি সারি hash-chain-এ মিলেছে${vr.legacy ? `, ${vr.legacy}টি পুরনো সারি (hash চালুর আগের — যাচাই-অযোগ্য)` : ''}${vr.acked ? `, ${vr.acked}টি "জানা" চিহ্নিত` : ''}।</div>` : `<div class="sc-box" style="border-color:var(--red);background:var(--red2)">⚠️ <b>অসঙ্গতি ধরা পড়েছে</b>${vr.sticky ? ' (আগে ধরা পড়েছিল, এখনো "জানা" করা হয়নি)' : ''}<br>${vr.bad && vr.bad.length ? 'সন্দেহজনক সারি নং (শিটে): ' + vr.bad.map(b => esc(b.row) + ' — ' + esc(b.why)).join('; ') + '<br>' : ''}${esc(vr.note || '')}<div class="sc-hint" style="margin-top:6px">আপনি নিজে শিট বদলে থাকলে Apps Script এডিটরে <code>securityLogAcknowledge</code> চালিয়ে "জানা" করুন। না করে থাকলে PIN বদলে সব সেশন বন্ধ করুন।</div></div>`) : '';
+    return `<div class="sc-card"><div class="sc-h">🔗 লগ-অখণ্ডতা যাচাই <button class="btn" data-sc="logverify" style="margin-left:auto">${S.vbusy ? '⏳ যাচাই চলছে…' : 'এখনই যাচাই করুন'}</button></div><p class="sc-hint" style="margin:0">প্রতিটি লগ-সারি আগের সারির সাথে গোপন-চাবির (HMAC) hash দিয়ে বাঁধা। Google Sheet-এ কেউ হাতে সারি বদলালে/মুছলে/শেষের সারি সরালে এখানে ধরা পড়ে।${lc ? ' সর্বশেষ যাচাই: ' + ago(lc.ts) + ' — ' + (lc.ok ? '✅ অক্ষত' : '⚠️ অসঙ্গতি') : ' এখনো যাচাই হয়নি।'}</p>${vbox}<p class="sc-hint">সীমা: যার Apps Script কোড/Script Properties-এ প্রবেশাধিকার আছে (গোপন চাবি পড়তে পারেন), তিনি নকল চেইন বানাতে পারেন — তাই এডিটর-শেয়ারিং সীমিত রাখুন। পুরনো লগ হাতে মুছলেও এখানে সতর্কতা আসবে।</p></div>
+    <div class="sc-card"><div class="sc-h">লগইন ও নিরাপত্তা ইতিহাস <span class="sc-pill">${rows.length}টি</span></div><div class="sc-row" style="margin-bottom:10px">` + F.map(f => `<button class="sc-chip${S.lf === f[0] ? ' on' : ''}" data-sc="lf" data-v="${f[0]}">${f[1]}</button>`).join('') + `<select id="sc-lp" class="sc-sel"><option value="">সব পার্টনার</option>${Object.keys(NAME).map(n => `<option value="${n}"${S.lp === n ? ' selected' : ''}>${n}</option>`).join('')}</select><span style="flex:1"></span><button class="btn" data-sc="csv">📥 CSV</button></div><div class="sc-scroll"><table class="sc-t"><thead><tr><th>সময়</th><th>ঘটনা</th><th>পার্টনার</th><th>ডিভাইস</th><th>বিবরণ</th></tr></thead><tbody>` + (rows.length ? rows.slice(0, 200).map(e => { const i = evInfo(e.ev); return `<tr class="k-${i[2]}"><td style="white-space:nowrap">${esc(e.t)}</td><td>${i[0]} ${esc(i[1])}</td><td>${esc(e.p || '—')}</td><td>${esc(e.d || '—')}</td><td>${esc(e.n)}</td></tr>`; }).join('') : '<tr><td colspan="5" class="sc-empty">কিছু নেই</td></tr>') + `</tbody></table></div><p class="sc-hint" style="margin-top:8px">সর্বশেষ ৪০০টি ঘটনা থেকে (সর্বোচ্চ ২০০টি দেখানো)। লগে কখনো PIN বা টোকেন লেখা হয় না।</p></div>`;
+  }
+  function vCf() {
+    const d = S.d, ro = isOwner() ? '' : 'disabled';
+    const me = d.me.partner, tt = d.totp || {}, mine = tt[me] || { on: false, rc: 0, at: 0 }, other = Object.keys(NAME).find(n => n !== me);
+    const f2 = `<div class="sc-card" id="sc-2fa"><div class="sc-h">🔐 ২-ধাপ যাচাই (Authenticator) <span class="sc-pill ${mine.on ? 'ok' : ''}">${mine.on ? 'চালু' : 'বন্ধ'}</span></div>
+      <p class="sc-p">চালু করলে লগইনে PIN-এর পর ফোনের Authenticator অ্যাপের (Google Authenticator, Microsoft Authenticator, Authy ইত্যাদি) ৬ অঙ্কের কোড লাগবে — PIN ফাঁস হলেও কোড ছাড়া কেউ ঢুকতে পারবে না। এটি <b>ঐচ্ছিক ও শুধু আপনার (${esc(me)}) অ্যাকাউন্টের</b> জন্য।</p>
+      ${mine.on ? `<p class="sc-p">চালু হয়েছে ${fmt(mine.at)} · রিকভারি কোড বাকি: <b style="color:${mine.rc <= 2 ? 'var(--red)' : 'var(--text)'}">${mine.rc}টি</b></p><div class="sc-row"><button class="btn" data-sc="tf-rc">🧾 নতুন রিকভারি কোড</button><button class="btn danger" data-sc="tf-off">২-ধাপ বন্ধ করুন</button></div>` : `<div class="sc-row"><button class="btn primary" data-sc="tf-on">🔐 চালু করুন (PIN লাগবে)</button></div>`}
+      <p class="sc-hint" style="margin-top:8px">${esc(other || '')}-এর ২-ধাপ: ${tt[other] && tt[other].on ? '✅ চালু' : 'বন্ধ'} (তিনি নিজে চালু/বন্ধ করেন)। ফোন হারালে: রিকভারি কোড ব্যবহার করুন; তাও না থাকলে Apps Script এডিটরে <code>securityTotpReset_${esc(me)}</code> চালান। সীমা: Authenticator-এর গোপন চাবি সার্ভারের Script Properties-এ থাকে — Apps Script এডিটর-অ্যাক্সেস থাকলে দেখা সম্ভব।</p></div>`;
+    return f2 + `<div class="sc-card"><div class="sc-h">📧 সতর্কতা ইমেইল</div><p class="sc-p">সতর্কতা সবসময় মালিকের Gmail-এ (<b>${esc(d.cfg.owner || 'পাওয়া যায়নি')}</b>) যায়। চাইলে প্রত্যেক পার্টনারের নিজস্ব ঠিকানাও দিন — তাঁর অ্যাকাউন্ট-সংক্রান্ত সতর্কতা সেখানেও যাবে।</p>
+      <div class="sc-form">${Object.keys(NAME).map(n => `<label>${n}-এর ইমেইল (ঐচ্ছিক)<input class="form-input" type="email" id="sc-em-${n}" value="${esc(d.cfg.emails[n] || '')}" placeholder="name@gmail.com" ${ro}></label>`).join('')}<label class="sc-chk"><input type="checkbox" id="sc-nd" ${d.cfg.newDev ? 'checked' : ''} ${ro}> নতুন ডিভাইস থেকে লগইন হলে ইমেইল পাঠান</label></div>
+      <button class="btn primary" data-sc="cfg" ${ro}>💾 সেভ (PIN লাগবে)</button></div>
+    <div class="sc-card"><div class="sc-h">👥 ভূমিকা (Roles)</div><table class="sc-t"><thead><tr><th>পার্টনার</th><th>ভূমিকা</th><th>অবস্থা</th></tr></thead><tbody>${Object.keys(d.roles).map(n => `<tr><td>${esc(n)}</td><td>${esc(d.roles[n].role)}</td><td>${d.roles[n].active ? '<span class="sc-pill ok">Active</span>' : '<span class="sc-pill bad">Disabled</span>'}</td></tr>`).join('')}</tbody></table><p class="sc-hint" style="margin-top:8px">ভূমিকা বদলাতে Google Sheet-এর <b>🔐 Access_Roles</b> ট্যাবে লিখুন (Owner / Partner / ReadOnly; Active / Disabled)। ২ মিনিটের মধ্যে কার্যকর হয়। Owner: সব; Partner: ব্যবসার কাজ (কুরিয়ার credentials ও নিরাপত্তা-পরিবর্তন ছাড়া); ReadOnly: শুধু দেখা।</p></div>
+    <div class="sc-card"><div class="sc-h">🛡️ সিস্টেম অবস্থা</div><p class="sc-p">সার্ভার-সেশন যাচাই: <b>${esc(d.mode === 'on' ? 'চালু' : d.mode === 'log' ? 'শুধু লগ' : 'বন্ধ')}</b> · এই ডিভাইসের অটো-লক: <b>${(typeof igAutoLockMin === 'function') ? igAutoLockMin() : 10} মিনিট</b></p><p class="sc-hint">জরুরি উপায় (Apps Script এডিটরে চালাতে হয়): <code>securityEmergencyReset_Ismail</code> / <code>_Ashik</code> · <code>securityTotpReset_Ismail</code> / <code>_Ashik</code> · <code>securityLogVerify</code> · <code>securityLogAcknowledge</code> · <code>securityRevokeAllSessions</code> · <code>securityPanicClear</code> · <code>securityEnforceOn/Log/Off</code> · <code>securityRolesReset</code></p></div>`;
+  }
+  function vRs() {
+    const d = S.d, me = d.me.partner, other = Object.keys(NAME).find(n => n !== me), rs = d.reset;
+    let h = `<div class="sc-card"><div class="sc-h">🔑 দুই-পার্টনারের PIN রিসেট</div><p class="sc-p">কোনো পার্টনার PIN ভুলে গেলে অন্য পার্টনার রিসেট চাইতে পারেন। নিরাপত্তার জন্য <b>${d.resetDelayH} ঘণ্টা অপেক্ষা</b> করতে হয় এবং দুজনকেই ইমেইল যায়। এর মধ্যে আসল মালিক নিজের PIN দিয়ে লগইন করলে বা বাতিল করলে অনুরোধ বাতিল হয়ে যায়। পরে অস্থায়ী PIN দেওয়া হয় — প্রথম লগইনেই নতুন PIN বসাতে হয়। নিজের PIN ভুলে সেশনও না থাকলে অ্যাপ থেকে এটা করা যায় না; তখন এডিটরের জরুরি রিসেট লাগে।</p>`;
+    if (rs) {
+      const ready = Date.now() >= rs.readyAt, iAmBy = rs.by === me;
+      h += `<div class="sc-box ${ready ? 'ok' : 'warn'}">📨 <b>${esc(rs.by)}</b> → <b>${esc(rs.target)}</b>-এর PIN রিসেটের অনুরোধ (${fmt(rs.at)})<br>${ready ? '✅ ২৪ ঘণ্টা পূর্ণ — কার্যকর করা যাবে' : '⏳ কার্যকর করা যাবে ' + fmt(rs.readyAt) + '-এর পর (আরও ' + left(rs.readyAt) + ')'} · মেয়াদ শেষ ${fmt(rs.expAt)}</div><div class="sc-row">${iAmBy && isOwner() ? `<button class="btn primary" data-sc="rs-apply" ${ready ? '' : 'disabled'}>অস্থায়ী PIN নিন</button>` : ''}<button class="btn" data-sc="rs-cancel">↩️ অনুরোধ বাতিল (PIN লাগবে)</button></div>`;
+    } else if (isOwner()) h += `<div class="sc-row"><span>লক্ষ্য:</span><b>${esc(NAME[other] || other)}</b><button class="btn primary" data-sc="rs-req" data-t="${esc(other)}">📨 ${esc(other)}-এর PIN রিসেট চাই</button></div>`;
+    else h += '<p class="sc-p">শুধু Owner অনুরোধ করতে পারেন।</p>';
+    if (S.temp) h += `<div class="sc-box ok" id="sc-temp"><b>${esc(S.temp.target)}-এর অস্থায়ী PIN:</b> <span style="font-size:26px;letter-spacing:6px;font-weight:800;margin:0 10px" id="sc-temp-pin">${esc(S.temp.pin)}</span><button class="btn" data-sc="copytemp">কপি</button> <button class="btn" data-sc="hidetemp">লুকান</button><div class="sc-hint" style="margin-top:6px">এটা এখন একবারই দেখানো হচ্ছে — সরাসরি ${esc(S.temp.target)}-কে বলুন। তাঁর পুরনো সব সেশন বাতিল হয়েছে; লগইনের পর নতুন PIN বসাতে হবে।</div></div>`;
+    return h + '</div>';
+  }
+
+  // ── ২-ধাপ: ডায়ালগ ──
+  function ovBox(inner, w) {
+    const ov = document.createElement('div'); ov.className = 'sc-ov';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100000;display:flex;align-items:center;justify-content:center;padding:14px;overflow:auto';
+    ov.innerHTML = `<div class="sc-dlg" role="dialog" aria-modal="true" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;width:100%;max-width:${w || 400}px;color:var(--text);max-height:94vh;overflow:auto">${inner}</div>`;
+    document.body.appendChild(ov); return ov;
+  }
+  function askPinCode(title, needPin) {
+    return new Promise(res => {
+      const ov = ovBox(`<div class="sc-h">🔐 ${esc(title)}</div><div class="sc-form">${needPin ? '<label>আপনার PIN<input type="password" pattern="[0-9]*" maxlength="8" autocomplete="off" id="sc-q-pin" class="form-input"></label>' : ''}<label>Authenticator-এর ৬ অঙ্কের কোড (বা একটি রিকভারি কোড)<input type="text" maxlength="11" autocomplete="one-time-code" id="sc-q-code" class="form-input"></label></div><div id="sc-q-err" class="sc-hint" style="color:var(--red);min-height:16px"></div><div class="sc-row" style="justify-content:flex-end;margin-top:8px"><button class="btn" data-x="0">বাতিল</button><button class="btn primary" data-x="1">নিশ্চিত</button></div>`, 380);
+      const pinEl = ov.querySelector('#sc-q-pin'), codeEl = ov.querySelector('#sc-q-code'), er = ov.querySelector('#sc-q-err'); (pinEl || codeEl).focus();
+      const done = v => { ov.remove(); res(v); };
+      const ok = () => { const pin = pinEl ? pinEl.value.trim() : '', code = codeEl.value.trim(); if (needPin && !/^\d{4,8}$/.test(pin)) { er.textContent = 'PIN ৪–৮ সংখ্যার'; return; } if (!/^(\d{6}|[A-Za-z2-9]{5}-?[A-Za-z2-9]{5})$/.test(code)) { er.textContent = 'কোড ৬ অঙ্কের হতে হবে'; return; } done({ pin, code }); };
+      ov.querySelector('[data-x="0"]').onclick = () => done(null); ov.querySelector('[data-x="1"]').onclick = ok;
+      ov.addEventListener('keydown', e => { if (e.key === 'Enter') ok(); if (e.key === 'Escape') done(null); });
+    });
+  }
+  function showSetup(r) {
+    let qr = ''; try { const b = window.__igxBC; qr = b && b.qrSvg ? b.qrSvg(r.uri, 50).replace(/width="[^"]*mm" height="[^"]*mm"/, 'width="200" height="200" role="img" aria-label="Authenticator QR"') : ''; } catch (e) { qr = ''; }
+    const grp = String(r.secret).replace(/(.{4})/g, '$1 ').trim();
+    const ov = ovBox(`<div class="sc-h">🔐 ২-ধাপ চালু করুন</div>
+      <ol class="sc-p" style="padding-left:18px;margin:0 0 10px"><li>ফোনে Authenticator অ্যাপ খুলুন (Google/Microsoft Authenticator, Authy…)</li><li>"+" চেপে নিচের <b>QR স্ক্যান</b> করুন — না পারলে "Enter a setup key" দিয়ে নিচের কী-টা লিখুন</li><li>অ্যাপ যে ৬ অঙ্কের কোড দেখাচ্ছে সেটা নিচে দিন</li></ol>
+      <div style="text-align:center">${qr ? `<div style="display:inline-block;background:#fff;padding:6px;border-radius:10px" id="sc-qr">${qr}</div>` : '<div class="sc-hint">QR বানানো যায়নি — নিচের কী ব্যবহার করুন</div>'}</div>
+      <div style="text-align:center;margin:10px 0"><div class="sc-hint">সেটআপ কী (গোপন রাখুন; Time-based, ৬ অঙ্ক)</div><code id="sc-secret" style="font-size:13px;letter-spacing:1px;user-select:all;word-break:keep-all">${esc(grp)}</code> <button class="btn" data-x="copy">কপি</button></div>
+      <div class="sc-form" style="margin:0 auto 6px"><label>অ্যাপের ৬ অঙ্কের কোড<input type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" id="sc-s-code" class="form-input" style="text-align:center;letter-spacing:6px;font-size:20px"></label></div>
+      <div id="sc-s-err" class="sc-hint" style="color:var(--red);min-height:16px;text-align:center"></div>
+      <div class="sc-row" style="justify-content:flex-end"><button class="btn" data-x="0">বাতিল</button><button class="btn primary" data-x="1">✅ নিশ্চিত করে চালু করুন</button></div>
+      <p class="sc-hint" style="margin-top:8px">বাতিল করলে কিছু চালু হয় না। ১৫ মিনিটের মধ্যে নিশ্চিত করতে হবে।</p>`, 420);
+    const code = ov.querySelector('#sc-s-code'), er = ov.querySelector('#sc-s-err'); code.focus(); let busy = false;
+    ov.querySelector('[data-x="copy"]').onclick = async () => { try { await navigator.clipboard.writeText(r.secret); showToast('কী কপি হয়েছে', 'success'); } catch (e) { showToast('কপি করা যায়নি — হাতে লিখুন', 'error'); } };
+    ov.querySelector('[data-x="0"]').onclick = () => ov.remove();
+    const go = async () => {
+      if (busy) return; if (!/^\d{6}$/.test(code.value.trim())) { er.textContent = '৬ অঙ্কের কোড দিন'; return; }
+      busy = true; er.textContent = '⏳ যাচাই হচ্ছে...'; window.__lastAPIErrorMsg = '';
+      const x = await postToAPI({ action: 'secTotpEnable', code: code.value.trim() }); busy = false;
+      if (!x || x.status !== 'success') { er.textContent = window.__lastAPIErrorMsg || 'কোড মেলেনি'; return; }
+      ov.remove(); showRecovery(x.recovery); load(true);
+    };
+    ov.querySelector('[data-x="1"]').onclick = go; code.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+  }
+  function showRecovery(codes) {
+    const txt = 'InnoGix — ২-ধাপ রিকভারি কোড (প্রতিটি একবারই চলে)\n' + codes.join('\n') + '\n\nনিরাপদ জায়গায় রাখুন; অন্য কাউকে দেবেন না।';
+    const ov = ovBox(`<div class="sc-h">🧾 রিকভারি কোড — এখনই সংরক্ষণ করুন</div><p class="sc-p">ফোন হারালে বা Authenticator না পেলে এই কোডগুলো দিয়ে লগইন করা যাবে — <b>প্রতিটি মাত্র একবার</b>। কোডগুলো <b>আর কখনো দেখানো হবে না</b>।</p>
+      <div id="sc-rc" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-family:monospace;font-size:16px;letter-spacing:1px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">${codes.map(c => `<span>${esc(c)}</span>`).join('')}</div>
+      <div class="sc-row" style="margin:10px 0"><button class="btn" data-x="copy">📋 কপি</button><button class="btn" data-x="dl">⬇️ .txt সেভ</button><button class="btn" data-x="pr">🖨️ প্রিন্ট</button></div>
+      <label class="sc-chk" style="display:flex;gap:8px;align-items:center;font-size:13px"><input type="checkbox" id="sc-rc-ok"> আমি কোডগুলো নিরাপদে সংরক্ষণ করেছি</label>
+      <div class="sc-row" style="justify-content:flex-end;margin-top:10px"><button class="btn primary" data-x="close" disabled>বন্ধ করুন</button></div>`, 420);
+    const ok = ov.querySelector('#sc-rc-ok'), cl = ov.querySelector('[data-x="close"]'); ok.onchange = () => { cl.disabled = !ok.checked; };
+    ov.querySelector('[data-x="copy"]').onclick = async () => { try { await navigator.clipboard.writeText(txt); showToast('কপি হয়েছে', 'success'); } catch (e) { showToast('কপি করা যায়নি', 'error'); } };
+    ov.querySelector('[data-x="dl"]').onclick = () => { const b = new Blob([txt], { type: 'text/plain;charset=utf-8' }), u = URL.createObjectURL(b), x = document.createElement('a'); x.href = u; x.download = 'innogix-recovery-codes.txt'; x.click(); setTimeout(() => URL.revokeObjectURL(u), 3000); };
+    ov.querySelector('[data-x="pr"]').onclick = () => { const w = window.open('', '_blank'); if (!w) { showToast('পপ-আপ ব্লক — অনুমতি দিন', 'warning'); return; } w.document.write('<pre style="font:18px monospace;padding:24px">' + esc(txt) + '</pre>'); w.document.close(); w.print(); };
+    cl.onclick = () => ov.remove();
+  }
+
+  // ── ইভেন্ট ──
+  async function onClick(e) {
+    const t = e.target.closest('[data-sc],[data-sc-tab]'); if (!t) return;
+    if (t.dataset.scTab) { S.tab = t.dataset.scTab; render(); return; }
+    const a = t.dataset.sc;
+    if (a === 'refresh') return load();
+    if (a === 'lf') { S.lf = t.dataset.v; render(); return; }
+    if (a === 'csv') { const rows = logRows(); const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; const csv = '﻿' + 'সময়,ঘটনা,পার্টনার,ডিভাইস,বিবরণ\n' + rows.map(r => [r.t, evInfo(r.ev)[1], r.p, r.d, r.n].map(q).join(',')).join('\n'); const b = new Blob([csv], { type: 'text/csv;charset=utf-8' }), u = URL.createObjectURL(b), x = document.createElement('a'); x.href = u; x.download = 'security_log.csv'; x.click(); setTimeout(() => URL.revokeObjectURL(u), 3000); return; }
+    if (a === 'logverify') { if (S.vbusy) return; S.vbusy = true; render(); const r = await postToAPI({ action: 'secLogVerify' }); S.vbusy = false; if (r && r.status === 'success') S.vr = r; await load(true); return; }
+    if (a === 'tf-on') { const pin = await _askPartnerPin('২-ধাপ চালু করতে আপনার PIN দিন'); if (!pin) return; const r = await postToAPI({ action: 'secTotpSetup', pin }); if (r && r.status === 'success') showSetup(r); return; }
+    if (a === 'tf-rc') { const q = await askPinCode('নতুন রিকভারি কোড — পুরনোগুলো বাতিল হবে', true); if (!q) return; const r = await postToAPI({ action: 'secTotpRcNew', pin: q.pin, code: q.code }); if (r && r.status === 'success') { showRecovery(r.recovery); await load(true); } return; }
+    if (a === 'tf-off') { if (!confirm('২-ধাপ যাচাই বন্ধ করবেন? এরপর শুধু PIN দিয়েই লগইন হবে।')) return; const q = await askPinCode('২-ধাপ বন্ধ করতে', true); if (!q) return; const r = await postToAPI({ action: 'secTotpDisable', pin: q.pin, code: q.code }); if (r && r.status === 'success') { showToast('২-ধাপ যাচাই বন্ধ হয়েছে', 'success'); await load(true); } return; }
+    if (a === 'revoke') { if (!confirm('এই সেশনটি বন্ধ করবেন?')) return; const r = await act('সেশন বন্ধ করতে আপনার PIN দিন', { action: 'secRevokeSession', sid: t.dataset.sid }, '🛑 সেশন বন্ধ হয়েছে'); return; }
+    if (a === 'panic-others') { if (!confirm('আপনার এই ডিভাইস বাদে সব সেশন বন্ধ হবে। চালাবেন?')) return; await act('অন্য সব সেশন বন্ধ করতে PIN দিন', { action: 'secPanic', scope: 'others' }, '🛑 অন্য সব সেশন বন্ধ হয়েছে'); return; }
+    if (a === 'panic-lock') { const m = prompt('লকডাউন কত মিনিট? (15 / 30 / 60)\nসবার সেশন বন্ধ হবে এবং এই সময়ে কেউ (আপনিও) লগইন করতে পারবেন না।', '30'); if (!m) return; const mm = [15, 30, 60].includes(+m) ? +m : 30; const r = await act('লকডাউন চালু করতে PIN দিন', { action: 'secPanic', scope: 'lockdown', minutes: mm }); return; }
+    if (a === 'cfg') { const emails = {}; Object.keys(NAME).forEach(n => emails[n] = ($('sc-em-' + n).value || '').trim()); await act('সেটিংস সেভ করতে PIN দিন', { action: 'secSaveCfg', emails, newDev: $('sc-nd').checked }, '✅ সেটিংস সেভ হয়েছে'); return; }
+    if (a === 'rs-req') { if (!confirm(t.dataset.t + '-এর PIN রিসেটের অনুরোধ পাঠাবেন? ২৪ ঘণ্টা পর অস্থায়ী PIN নেওয়া যাবে; দুজনকেই ইমেইল যাবে।')) return; await act('রিসেটের অনুরোধ করতে আপনার PIN দিন', { action: 'secResetRequest', target: t.dataset.t }, '📨 অনুরোধ পাঠানো হয়েছে'); return; }
+    if (a === 'rs-cancel') { await act('অনুরোধ বাতিল করতে আপনার PIN দিন', { action: 'secResetCancel' }, '↩️ অনুরোধ বাতিল'); return; }
+    if (a === 'rs-apply') { const r = await act('অস্থায়ী PIN নিতে আপনার PIN দিন', { action: 'secResetApply' }); if (r && r.status === 'success') { S.temp = { target: r.target, pin: r.tempPin }; S.tab = 'rs'; render(); } return; }
+    if (a === 'copytemp') { try { await navigator.clipboard.writeText(S.temp.pin); showToast('কপি হয়েছে', 'success'); } catch (er) { showToast('কপি করা যায়নি — হাতে লিখে নিন', 'error'); } return; }
+    if (a === 'hidetemp') { S.temp = null; render(); return; }
+  }
+  function build() {
+    if ($('page-security-center')) return;
+    const ref = $('page-recycle-bin'); if (!ref || !ref.parentNode) return;
+    const pg = document.createElement('div'); pg.className = 'page'; pg.id = 'page-security-center';
+    pg.innerHTML = '<div class="breadcrumb">InnoGix / <span>নিরাপত্তা কেন্দ্র</span></div><div class="section-head"><h2>🛡️ নিরাপত্তা কেন্দ্র</h2><p>সেশন, লগইন ইতিহাস, জরুরি ব্যবস্থা ও PIN রিসেট — এক জায়গায়</p></div><div id="sc-root"></div>';
+    ref.parentNode.insertBefore(pg, ref);
+    pg.addEventListener('click', onClick);
+    pg.addEventListener('change', e => { if (e.target.id === 'sc-lp') { S.lp = e.target.value; render(); } });
+    const logNav = Array.from(document.querySelectorAll('.nav-item')).find(n => /showPage\('activity-log'/.test(n.getAttribute('onclick') || ''));
+    if (logNav) {
+      const nav = document.createElement('div'); nav.className = 'nav-item'; nav.id = 'nav-security-center'; nav.setAttribute('onclick', "showPage('security-center',this)");
+      nav.innerHTML = '<span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span>নিরাপত্তা কেন্দ্র';
+      logNav.parentNode.insertBefore(nav, logNav);
+    }
+    const st = document.createElement('style'); st.textContent = `
+#page-security-center .sc-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+#page-security-center .sc-tab,#page-security-center .sc-chip{border:1px solid var(--border);background:var(--bg3);color:var(--text2);border-radius:999px;padding:7px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+#page-security-center .sc-tab.on,#page-security-center .sc-chip.on{background:var(--gold2);border-color:var(--gold);color:var(--gold);font-weight:700}
+#page-security-center .sc-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
+#page-security-center .sc-grid{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:14px}
+@media(max-width:820px){#page-security-center .sc-grid{grid-template-columns:1fr}}
+#page-security-center .sc-score{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+#page-security-center .sc-h{font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#page-security-center .sc-p{font-size:13px;color:var(--text2);line-height:1.6;margin:0 0 10px}
+#page-security-center .sc-hint{font-size:11.5px;color:var(--text3);line-height:1.5}
+#page-security-center .sc-pill{font-size:11px;border-radius:999px;padding:2px 9px;background:var(--bg4);color:var(--text2);border:1px solid var(--border);font-weight:600}
+#page-security-center .sc-pill.ok{color:var(--green);border-color:var(--green);background:var(--green2)}#page-security-center .sc-pill.bad{color:var(--red);border-color:var(--red);background:var(--red2)}
+#page-security-center .sc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+#page-security-center .sc-stats b{display:block;font-size:26px;font-weight:800}#page-security-center .sc-stats span{font-size:11.5px;color:var(--text3)}
+#page-security-center .sc-ck{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border2);font-size:13px;color:var(--text)}#page-security-center .sc-ck:last-child{border:0}
+#page-security-center .sc-ck.bad .sc-hint{color:var(--red)}#page-security-center .sc-ck.warn .sc-hint{color:var(--orange)}
+#page-security-center .sc-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#page-security-center .sc-scroll{overflow-x:auto}
+#page-security-center .sc-t{width:100%;border-collapse:collapse;font-size:12.5px}
+#page-security-center .sc-t th{text-align:left;color:var(--text3);font-weight:600;padding:8px;border-bottom:1px solid var(--border);white-space:nowrap}
+#page-security-center .sc-t td{padding:8px;border-bottom:1px solid var(--border2);color:var(--text);vertical-align:top}
+#page-security-center .sc-t tr.cur td{background:var(--gold3)}#page-security-center .sc-t tr.k-bad td{color:var(--red)}
+#page-security-center .sc-empty{padding:30px;text-align:center;color:var(--text3);font-size:13px}
+#page-security-center .sc-sel,#page-security-center .form-input{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;font-family:inherit}
+#page-security-center .sc-form{display:grid;gap:10px;margin-bottom:12px;max-width:420px}#page-security-center .sc-form label{display:grid;gap:4px;font-size:12.5px;color:var(--text2)}
+#page-security-center .sc-form .sc-chk{display:flex;gap:8px;align-items:center}
+#page-security-center .sc-box{border:1px solid var(--border);border-radius:10px;padding:12px;margin:10px 0;font-size:13px;line-height:1.6}#page-security-center .sc-box.ok{border-color:var(--green);background:var(--green2)}#page-security-center .sc-box.warn{border-color:var(--orange);background:var(--orange2)}
+#page-security-center .btn.danger{border-color:var(--red);color:var(--red)}#page-security-center .btn:disabled{opacity:.45;cursor:not-allowed}
+#page-security-center code{background:var(--bg4);padding:1px 6px;border-radius:5px;font-size:11.5px}`;
+    document.head.appendChild(st);
+    if (typeof pageTitles === 'object') pageTitles['security-center'] = ['নিরাপত্তা কেন্দ্র', '— সুরক্ষা'];
+    const orig = window.showPage;
+    if (typeof orig === 'function') window.showPage = function (id) {
+      const r = orig.apply(this, arguments);
+      try { if (id === 'security-center') { S.temp = null; load(); } } catch (e) { console.error('sc hook', e); }
+      return r;
+    };
+    setInterval(() => { if (document.getElementById('page-security-center').classList.contains('active') && S.d && S.tab === 'rs' && S.d.reset) render(); }, 30000);
+  }
+  window.scOpen = () => load();
+  window.__sc = { S, checkup };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', build); else build();
+})();
+
 </script>
 </body>
 </html>
